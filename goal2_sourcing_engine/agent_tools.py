@@ -15,6 +15,7 @@ import os
 import sys
 import json
 import time
+import subprocess
 import asyncio
 import random
 from datetime import datetime
@@ -2102,7 +2103,16 @@ async def tool_generate_viral_audio(video_path: str, tts_text: str, memory: Agen
         audio_path = await asyncio.to_thread(_call_tts)
         # Assuming FFmpeg is installed to mix audio and video natively
         output_mixed = video_path.replace(".mp4", "_audio.mp4")
-        os.system(f"ffmpeg -i {video_path} -i {audio_path} -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -shortest {output_mixed} -y")
+        subprocess.run(
+            [
+                "ffmpeg", "-i", video_path, "-i", audio_path,
+                "-c:v", "copy", "-c:a", "aac",
+                "-map", "0:v:0", "-map", "1:a:0",
+                "-shortest", output_mixed, "-y"
+            ],
+            check=True,
+            capture_output=True
+        )
         
         memory.log_action("generate_viral_audio", f"Generated and muxed TTS audio: {tts_text[:20]}...")
         return {"success": True, "output_video": output_mixed}
