@@ -32,6 +32,7 @@ STOREFRONT_DIR = BASE_DIR.parent / "storefront"
 PRODUCTS_FILE = STOREFRONT_DIR / "src" / "data" / "products.js"
 PUBLIC_DIR = STOREFRONT_DIR / "public" / "products"
 UPLOADED_LOG = BASE_DIR / "uploaded_campaigns.json"
+DEFAULT_PRICE = 89
 
 READY_DIR.mkdir(exist_ok=True)
 PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -375,7 +376,7 @@ def check_and_register_outfit(campaign_dir, final_products):
                     outfit_data = {
                         "name": m.get("product_name") or campaign_dir.name,
                         "description": m.get("description") or f"Curated outfit set: {m.get('product_name')}.",
-                        "items": [{"name": m.get("product_name"), "price": m.get("price", 89)}]
+                        "items": [{"name": m.get("product_name"), "price": m.get("price", DEFAULT_PRICE)}]
                     }
         except:
             pass
@@ -457,7 +458,7 @@ def check_and_register_outfit(campaign_dir, final_products):
     for p_id in linked_products:
         p = next((prod for prod in final_products if prod["id"] == p_id), None)
         if p:
-            total_price += p.get("price", 89)
+            total_price += p.get("price", DEFAULT_PRICE)
             
     outfit_id = f"outfit-{slugify(outfit_data['name'])}"
     
@@ -584,13 +585,13 @@ def scan_and_upload():
             is_jacket = "jacket" in name_str or "coat" in name_str or "puffer" in name_str or "outerwear" in category_str
             
             if is_jacket:
-                sell_price = 89
+                sell_price = DEFAULT_PRICE
             elif is_tshirt and not any(k in name_str for k in ["hoodie", "sweatshirt", "jacket", "coat", "puffer"]):
                 sell_price = max(sell_price, 31)
             else:
                 sell_price = max(sell_price, 29)
         else:
-            sell_price = 89  # Default when no price is known
+            sell_price = DEFAULT_PRICE  # Default when no price is known
         
         # Map category to new aesthetic collections
         cat_lower = (first_meta.get("category") or "").lower()
