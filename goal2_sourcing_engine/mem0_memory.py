@@ -298,8 +298,86 @@ class Mem0Memory:
             self.mem0.add(f"Scraped new product drop: {name} under category {product.get('category')} for ¥{product.get('price')}.", user_id="sourcing_agent")
 
     def add_products_batch(self, products: list):
-        for p in products:
-            self.add_product(p)
+        if not products:
+            return
+
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Process in chunks of 500 to avoid SQLite limits on parameters
+        chunk_size = 500
+        for i in range(0, len(products), chunk_size):
+            chunk = products[i:i + chunk_size]
+
+            urls = [p.get("productUrl", "") for p in chunk if p.get("productUrl", "")]
+            names = [p.get("productName", "").strip() for p in chunk if p.get("productName", "").strip()]
+
+            existing_urls = set()
+            if urls:
+                placeholders = ",".join("?" for _ in urls)
+                cursor.execute(f"SELECT productUrl FROM products WHERE productUrl IN ({placeholders})", urls)
+                existing_urls = {row[0] for row in cursor.fetchall() if row[0]}
+
+            existing_names = set()
+            if names:
+                placeholders = ",".join("?" for _ in names)
+                names_lower = [n.lower() for n in names]
+                cursor.execute(f"SELECT LOWER(productName) FROM products WHERE LOWER(productName) IN ({placeholders})", names_lower)
+                existing_names = {row[0] for row in cursor.fetchall() if row[0]}
+
+            to_insert = []
+            mem0_messages = []
+            now_str = datetime.now().isoformat()
+            timestamp = int(datetime.now().timestamp())
+
+            seen_urls = set()
+            seen_names = set()
+
+            for idx, p in enumerate(chunk):
+                url = p.get("productUrl", "")
+                name = p.get("productName", "").strip()
+                name_lower = name.lower()
+
+                # Deduplicate against DB and current chunk
+                if url and (url in existing_urls or url in seen_urls):
+                    continue
+                if name and (name_lower in existing_names or name_lower in seen_names):
+                    continue
+
+                if url:
+                    seen_urls.add(url)
+                if name:
+                    seen_names.add(name_lower)
+
+                prod_id = p.get("id", f"prod_{timestamp}_{i + idx}")
+                extra = {k: v for k, v in p.items() if k not in ("id", "productName", "category", "productUrl", "price", "size_info")}
+
+                to_insert.append((
+                    prod_id,
+                    name,
+                    p.get("category", "top"),
+                    url,
+                    p.get("price", 0),
+                    p.get("size_info"),
+                    now_str,
+                    json.dumps(extra)
+                ))
+
+                if self.mem0:
+                    mem0_messages.append(f"Scraped new product drop: {name} under category {p.get('category')} for ¥{p.get('price')}.")
+
+            if to_insert:
+                cursor.executemany(
+                    "INSERT INTO products (id, productName, category, productUrl, price, size_info, scraped_at, extra_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    to_insert
+                )
+
+            if self.mem0 and mem0_messages:
+                for msg in mem0_messages:
+                    self.mem0.add(msg, user_id="sourcing_agent")
+
+        conn.commit()
+        conn.close()
 
     def mark_product_processed(self, product: dict, ad_paths: list = None):
         conn = sqlite3.connect(self.db_path)
