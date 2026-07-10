@@ -38,9 +38,9 @@ MODELS = {
 def get_product_type(filename: str) -> str:
     """Basic categorization for context-aware styling."""
     name = filename.lower()
-    if "shoe" in name or "sneaker" in name or "jordan" in name or "asics" in name:
+    if any(term in name for term in ["shoe", "sneaker", "jordan", "asics"]):
         return "shoe"
-    if "puffer" in name or "jacket" in name or "coat" in name or "winter" in name:
+    if any(term in name for term in ["puffer", "jacket", "coat", "winter"]):
         return "winter_clothing"
     return "clothing"
 
