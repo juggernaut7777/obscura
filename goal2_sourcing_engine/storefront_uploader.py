@@ -364,7 +364,7 @@ def check_and_register_outfit(campaign_dir, final_products):
             with open(outfit_meta_file, "r", encoding="utf-8") as f:
                 outfit_data = json.load(f)
                 is_outfit = True
-        except:
+        except Exception:
             pass
     elif meta_file.exists():
         try:
@@ -377,7 +377,7 @@ def check_and_register_outfit(campaign_dir, final_products):
                         "description": m.get("description") or f"Curated outfit set: {m.get('product_name')}.",
                         "items": [{"name": m.get("product_name"), "price": m.get("price", 89)}]
                     }
-        except:
+        except Exception:
             pass
             
     # Also check if campaign folder name contains "_and_"
@@ -447,7 +447,7 @@ def check_and_register_outfit(campaign_dir, final_products):
                 try:
                     shutil.copy(str(f), str(dest_path))
                     outfit_images.append(f"/products/outfits/{f.name}")
-                except:
+                except Exception:
                     pass
                     
     primary_image = outfit_images[0] if outfit_images else "https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=800&h=1000&fit=crop"
@@ -746,7 +746,7 @@ def scan_and_upload():
         for df in DEFAULT_OUTFITS:
             if not any(o["id"] == df["id"] for o in existing_outfits):
                 existing_outfits.append(df)
-    except:
+    except Exception:
         existing_outfits = list(DEFAULT_OUTFITS)
         
     # Phase A: Explicit set registration (from campaign metadata)
