@@ -163,6 +163,8 @@ class OutfitAssembler:
             match = self._find_best_match(needed, hero_style, hero_color, outfit_items)
             if match:
                 outfit_items.append(match)
+                # Note: This is numeric addition, not string concatenation.
+                # Using `+=` in the loop is the most efficient way to aggregate total_price here.
                 total_price += match.get("price", 0)
             else:
                 matched_all = False
@@ -258,20 +260,22 @@ class OutfitAssembler:
                     item_lines.append(f"• {name}")
             
             total = outfit.get("total_price", 0)
-            caption = f"GET THE LOOK 🔥\n\n"
-            caption += "\n".join(item_lines)
+            caption_parts = ["GET THE LOOK 🔥\n", "\n".join(item_lines)]
             if total > 0:
-                caption += f"\n\nFull outfit: £{total}"
-            caption += "\n\nLink in bio 🛒"
-            return caption
+                caption_parts.append(f"\nFull outfit: £{total}")
+            caption_parts.append("\nLink in bio 🛒")
+            return "\n".join(caption_parts)
         else:
             hero = outfit["hero"]
             name = hero.get("name", "Item")
             price = hero.get("price", 0)
             note = outfit.get("caption_note", "")
-            caption = f"🔥 {name}"
+
+            caption_parts = [f"🔥 {name}"]
             if price > 0:
-                caption += f" — £{price}"
-            caption += f"\n\n{note}"
-            caption += "\n\nLink in bio 🛒"
-            return caption
+                caption_parts[0] += f" — £{price}"
+
+            caption_parts.append(note)
+            caption_parts.append("Link in bio 🛒")
+
+            return "\n\n".join(caption_parts)
