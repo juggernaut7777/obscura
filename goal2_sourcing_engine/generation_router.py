@@ -32,7 +32,7 @@ def path_to_base64(path: str) -> str:
     ext = os.path.splitext(path)[1].lower().replace(".", "")
     if ext == "jpg":
         ext = "jpeg"
-    elif ext not in ["png", "jpeg", "webp"]:
+    elif ext not in ("png", "jpeg", "webp"):
         ext = "png"
     
     try:
@@ -564,7 +564,7 @@ class GenerationRouter:
             force_engine: 'auto', 'glabs', or 'flow'.
         """
         # Try G-Labs first if allowed and healthy
-        if force_engine in ["auto", "glabs"] and self._is_provider_healthy("glabs", force=(force_engine == "glabs")):
+        if force_engine in ("auto", "glabs") and self._is_provider_healthy("glabs", force=(force_engine == "glabs")):
             is_glabs_online = await self.glabs.check_health()
             if is_glabs_online:
                 safe_print("[*] Router: Routing image generation to G-Labs Automation server...")
@@ -611,7 +611,7 @@ class GenerationRouter:
                 safe_print("[*] Router: G-Labs server offline. Proceeding to Direct Flow API...")
         
         # Try Direct Flow API (Golden API Pipeline) with health memory & retry logic
-        if force_engine in ["auto", "flow"] and self._is_provider_healthy("flow", force=(force_engine == "flow")):
+        if force_engine in ("auto", "flow") and self._is_provider_healthy("flow", force=(force_engine == "flow")):
             safe_print("[*] Router: Attempting Direct Google Flow HTTP API generation...")
             max_attempts = 3
             for attempt in range(1, max_attempts + 1):
@@ -619,7 +619,7 @@ class GenerationRouter:
                 bearer, recaptcha, project_id, auth_user = await self._get_fresh_flow_tokens()
                 if bearer and recaptcha:
                     import httpx
-                    if not project_id or project_id in ["NOT_FOUND", "None", "null", ""]:
+                    if not project_id or project_id in ("NOT_FOUND", "None", "null", ""):
                         project_id = "1e47f082-dbd5-4cf3-869e-cffbf8722f1b"
                         safe_print(f"  [!] Router: Project ID not found or None. Falling back to default project ID: {project_id}")
                     
@@ -658,7 +658,7 @@ class GenerationRouter:
             self._mark_provider_failed("flow")
 
         # Fallback to Stealth Bridge (localhost:9877)
-        if force_engine in ["auto", "flow"] and self._is_provider_healthy("bridge", force=(force_engine == "flow")):
+        if force_engine in ("auto", "flow") and self._is_provider_healthy("bridge", force=(force_engine == "flow")):
             BRIDGE_URL = "http://localhost:9877/generate"
             safe_print(f"[*] Router: Falling back to legacy Stealth Bridge with {len(ref_image_paths or [])} reference(s)...")
             
@@ -706,7 +706,7 @@ class GenerationRouter:
                 self._mark_provider_failed("bridge")
         
         # Fallback to Meta AI image generation (e.g. if force_engine="meta" or auto-fallback)
-        if force_engine in ["auto", "meta"] and self._is_provider_healthy("meta", force=(force_engine == "meta")):
+        if force_engine in ("auto", "meta") and self._is_provider_healthy("meta", force=(force_engine == "meta")):
             safe_print("[*] Router: Routing image generation to Meta AI automation worker...")
             try:
                 worker = MetaAIVideoWorker(headless=True)
@@ -782,9 +782,9 @@ class GenerationRouter:
 
         # 1 & 2. Try ImagineArt and Fal.ai APIs concurrently
         tasks = []
-        if force_engine in ["auto", "imagineart"] and ref_image_paths and self.video_api.is_imagineart_available():
+        if force_engine in ("auto", "imagineart") and ref_image_paths and self.video_api.is_imagineart_available():
             tasks.append(run_imagineart())
-        if force_engine in ["auto", "fal"] and ref_image_paths and self.video_api.is_fal_available():
+        if force_engine in ("auto", "fal") and ref_image_paths and self.video_api.is_fal_available():
             tasks.append(run_fal())
             
         if tasks:
@@ -797,7 +797,7 @@ class GenerationRouter:
 
         # 2.5 Try Direct Flow Video API (Golden API Pipeline) with health memory & retry logic
         # Supports both Text-to-Video (veo_3_1_t2v_lite) and Image-to-Video (veo_3_1_i2v_lite).
-        should_try_flow = force_engine in ["auto", "flow"]
+        should_try_flow = force_engine in ("auto", "flow")
         if not video_path and should_try_flow and self._is_provider_healthy("flow", force=(force_engine == "flow")):
             safe_print("[*] Router: Attempting Direct Google Flow HTTP API Video generation...")
             max_attempts = 3
@@ -809,7 +809,7 @@ class GenerationRouter:
                 bearer, recaptcha, project_id, auth_user = await self._get_fresh_flow_tokens(current_action)
                 if bearer and recaptcha:
                     import httpx
-                    if not project_id or project_id in ["NOT_FOUND", "None", "null", ""]:
+                    if not project_id or project_id in ("NOT_FOUND", "None", "null", ""):
                         project_id = "1e47f082-dbd5-4cf3-869e-cffbf8722f1b"
                         safe_print(f"  [!] Router: Project ID not found or None. Falling back to default project ID: {project_id}")
                     
@@ -850,7 +850,7 @@ class GenerationRouter:
                 self._mark_provider_failed("flow")
 
         # 3. Try G-Labs Local Server
-        if not video_path and force_engine in ["auto", "glabs"] and self._is_provider_healthy("glabs", force=(force_engine == "glabs")):
+        if not video_path and force_engine in ("auto", "glabs") and self._is_provider_healthy("glabs", force=(force_engine == "glabs")):
             is_glabs_online = await self.glabs.check_health()
             if is_glabs_online:
                 safe_print("[*] Router: Routing video generation to G-Labs Automation server...")
@@ -890,7 +890,7 @@ class GenerationRouter:
                 safe_print("[*] Router: G-Labs server offline. Falling back to browser automation...")
 
         # 4. Try Kling AI Video Bridge
-        if not video_path and force_engine in ["auto", "kling"] and ref_image_paths and self._is_provider_healthy("kling", force=(force_engine == "kling")):
+        if not video_path and force_engine in ("auto", "kling") and ref_image_paths and self._is_provider_healthy("kling", force=(force_engine == "kling")):
             safe_print("[*] Router: Attempting Kling AI video generation fallback...")
             try:
                 bridge = await self._get_video_bridge()
@@ -905,7 +905,7 @@ class GenerationRouter:
                 self._mark_provider_failed("kling")
 
         # 5. Try Meta AI Video Worker
-        if not video_path and force_engine in ["auto", "meta"] and self._is_provider_healthy("meta", force=(force_engine == "meta")):
+        if not video_path and force_engine in ("auto", "meta") and self._is_provider_healthy("meta", force=(force_engine == "meta")):
             safe_print("[*] Router: Attempting Meta AI video generation fallback...")
             worker = MetaAIVideoWorker(headless=True)
             try:
@@ -920,7 +920,7 @@ class GenerationRouter:
                 self._mark_provider_failed("meta")
 
         # 6. Try Dreamina (Seedance 2.0) Video Bridge
-        if not video_path and force_engine in ["auto", "dreamina"] and ref_image_paths and self._is_provider_healthy("dreamina", force=(force_engine == "dreamina")):
+        if not video_path and force_engine in ("auto", "dreamina") and ref_image_paths and self._is_provider_healthy("dreamina", force=(force_engine == "dreamina")):
             safe_print("[*] Router: Attempting Dreamina video generation fallback...")
             try:
                 bridge = await self._get_video_bridge()
