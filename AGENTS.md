@@ -484,6 +484,30 @@ To balance high-margin replica sales with global scale and safety, OBSCURA opera
 ### C. Design Reference Brand: ASTORR (`astorr.co`)
 - **Scraped Catalog:** Anime-inspired luxury streetwear catalog (*ADAPT KING JEANS*, *KING OF CURSES HOODIE*, *GODSPEED KNIT*, *KURAPIKA JEANS*). Used for design inspiration and matching outfit drop structures.
 
+---
+
+## 16. AUTOMATED DEVELOPER AGENT & SOURCING TOOLS (JULES & MCP)
+
+To support hands-off development and automated maintenance of the OBSCURA fashion pipeline, the codebase integrates with Google's cloud developer ecosystem:
+
+### A. Google Labs Jules Integration (jules.google.com)
+- **Repository:** Connected to `juggernaut7777/obscura` (Private GitHub repository).
+- **Brain Integration:** Jules automatically parses this `AGENTS.md` file to understand the architecture, API keys, database design, and code patterns.
+- **Proactive Suggestions:** Enabled for automated codebase overview, code cleanup, performance optimizations (fixing slow loops, string concats), and security audits.
+- **Workflow:** You can prompt Jules on `jules.google.com` to create tests, refactor scraper tools, or upgrade storefront code. It operates in a secure cloud VM and submits pull requests (PRs) to the repository.
+
+### B. Model Context Protocol (MCP) Capabilities
+- **Jules as Client:** Jules can connect to external MCP servers to fetch contextual info or interface with external tools.
+- **Custom Sourcing MCP Servers:** The python scrapers (`auto_scout_v2.py`, `chinese_sourcing_agent.py`) can be wrapped into a custom local or hosted MCP server to expose tool executions (e.g. `scrape_weidian`, `get_yupoo_catalog`) directly to AI models like Jules, Aider, or Antigravity IDE.
+- **Jules REST API:** Google provides an official REST API (`X-Goog-Api-Key` token auth) that allows scripting or triggering Jules sessions from external CLI tools or CI/CD pipelines.
+
+### C. Fully Autonomous Testing Loop Strategy
+To test the pipeline end-to-end (from Yupoo/Weidian scraping, image processing, to storefront uploading and mock generation), we implement a self-healing testing loop (modeled on the Aider/SWE-agent architecture):
+1. **The Test Runner:** Run `goal2_sourcing_engine/start_test_run.py` to trigger a simulated product drop (scraping a test link, staging in `MANUAL_CURATION`, launching `local_generation_worker.py` in test mode, and pushing metadata to Next.js).
+2. **Autonomous Error Catching:** The test script captures all console logs, compiler diagnostics, and playwright trace logs.
+3. **AI Corrections:** If any stage of the pipeline fails (e.g. rate limit, selector change, syntax crash), the error is fed directly to the active agent (Jules in the cloud or Antigravity locally) with the instruction to fix the code, commit the repair, and re-run the test script. This forms a closed, self-healing loop until the test pipeline achieves a 100% green checkmark.
+
+
 
 
 
