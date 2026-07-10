@@ -1,0 +1,17 @@
+[Unit]
+Description=Auto Matcher Outfit Styling Engine
+After=network.target
+
+[Service]
+Type=simple
+User=USER
+WorkingDirectory=/home/USER/ai-ugc
+Environment=PATH=/home/USER/ai-ugc/venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/USER/ai-ugc/venv/bin/python /home/USER/ai-ugc/auto_matcher.py --watch
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/USER/ai-ugc/logs/matcher_vps.log
+StandardError=append:/home/USER/ai-ugc/logs/matcher_vps.log
+
+[Install]
+WantedBy=multi-user.target

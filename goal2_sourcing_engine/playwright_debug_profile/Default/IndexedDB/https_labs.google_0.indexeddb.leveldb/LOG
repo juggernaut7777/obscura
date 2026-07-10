@@ -1,0 +1,6 @@
+2026/04/24-14:32:23.233 1ad4 Creating DB C:\Users\USER\ai ugc and sales\goal2_sourcing_engine\playwright_debug_profile\Default\IndexedDB\https_labs.google_0.indexeddb.leveldb since it was missing.
+2026/04/24-14:32:23.243 1ad4 Reusing MANIFEST C:\Users\USER\ai ugc and sales\goal2_sourcing_engine\playwright_debug_profile\Default\IndexedDB\https_labs.google_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/24-14:32:24.016 2464 Level-0 table #5: started
+2026/04/24-14:32:24.028 2464 Level-0 table #5: 1298 bytes OK
+2026/04/24-14:32:24.030 2464 Delete type=0 #3
+2026/04/24-14:32:24.031 23d8 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)

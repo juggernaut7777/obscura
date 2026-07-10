@@ -1,0 +1,236 @@
+[10:14:34] 
+============================================================
+[10:14:34] SCRAPING: Cloyad (TopHot)
+[10:14:34] ============================================================
+[10:14:34] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4642354
+[10:14:37]   Found 123 albums on category page
+[10:14:37]   Fetching album: https://tophotfashion.x.yupoo.com/albums/226040582?uid=1&isSubCate=false&referrercate=4642354
+[10:14:38]   Found 106 candidate images
+[10:14:45]   OK: male_prd_male_e16c9739_1777799678.jpg — OK (810x1080, 756KB)
+[10:14:51]   OK: male_prd_male_a2722604_1777799686.jpg — OK (1440x1919, 1727KB)
+[10:14:53]   OK: male_prd_male_0dad2e0c_1777799691.jpg — OK (810x1080, 325KB)
+[10:14:57]   Fetching album: https://tophotfashion.x.yupoo.com/albums/223960491?uid=1&isSubCate=false&referrercate=4642354
+[10:15:00]   Found 61 candidate images
+[10:15:01]   REJECT: Low res (486x1080)
+[10:15:04]   OK: male_prd_male_07004bea_1777799702.jpg — OK (900x2000, 500KB)
+[10:15:08]   OK: male_prd_male_8d0e523a_1777799705.jpg — OK (810x1080, 474KB)
+[10:15:12]   Fetching album: https://tophotfashion.x.yupoo.com//undefined.x.yupoo.com/albums
+[10:15:14]   Found 1 candidate images
+[10:15:16]   REJECT: Too small (20KB)
+[10:15:23] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4644452
+[10:15:24]   Found 123 albums on category page
+[10:15:24]   Fetching album: https://tophotfashion.x.yupoo.com/albums/222166833?uid=1&isSubCate=false&referrercate=4644452
+[10:15:26]   Found 126 candidate images
+[10:15:29]   OK: male_bal_male_bfde02d1_1777799726.jpg — OK (1080x796, 82KB)
+[10:15:30]   OK: male_bal_male_6ff45935_1777799729.jpg — OK (1084x799, 81KB)
+[10:15:36]   OK: male_bal_male_29118bd5_1777799731.jpg — OK (1080x1080, 954KB)
+[10:15:39]   Fetching album: https://tophotfashion.x.yupoo.com/albums?tab=gallery
+[10:15:42]   Found 120 candidate images
+[10:15:43]   OK: male_bal_male_6a8ca653_1777799742.jpg — OK (636x800, 271KB)
+[10:15:44]   REJECT: Low res (398x500)
+[10:15:47]   REJECT: Low res (500x500)
+[10:15:51]   Fetching album: https://tophotfashion.x.yupoo.com/albums/233509606?uid=1&isSubCate=false&referrercate=4644452
+[10:15:52]   Found 76 candidate images
+[10:15:54]   REJECT: Low res (1080x559)
+[10:15:55]   OK: male_bal_male_37a5298a_1777799755.jpg — OK (1440x745, 84KB)
+[10:15:58]   OK: male_bal_male_2dd04d67_1777799756.jpg — OK (840x1080, 332KB)
+[10:16:06] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4645167
+[10:16:07]   Found 123 albums on category page
+[10:16:07]   Fetching album: https://tophotfashion.x.yupoo.com/albums/223477327?uid=1&isSubCate=false&referrercate=4645167
+[10:16:08]   Found 46 candidate images
+[10:16:11]   OK: female_shoes_1f17511d_1777799768.jpg — OK (810x1080, 324KB)
+[10:16:13]   OK: female_shoes_6a7a8d83_1777799771.jpg — OK (1440x1920, 723KB)
+[10:16:16]   OK: female_shoes_423752a9_1777799775.jpg — OK (810x1080, 270KB)
+[10:16:21]   Fetching album: https://tophotfashion.x.yupoo.com/albums/223466255?uid=1&isSubCate=false&referrercate=4645167
+[10:16:22]   Found 96 candidate images
+[10:16:23]   OK: female_shoes_9eb38ae8_1777799782.jpg — OK (969x1080, 411KB)
+[10:16:26]   OK: female_shoes_ba666df7_1777799785.jpg — OK (1218x1357, 558KB)
+[10:16:30]   OK: female_shoes_4e1b7769_1777799787.jpg — OK (810x1080, 339KB)
+[10:16:33]   Fetching album: https://tophotfashion.x.yupoo.com/albums/224855114?uid=1&isSubCate=false&referrercate=4645167
+[10:16:36]   Found 366 candidate images
+[10:16:38]   OK: female_shoes_817aa164_1777799796.jpg — OK (720x1080, 404KB)
+[10:16:43]   OK: female_shoes_f0073073_1777799799.jpg — OK (1440x2160, 1169KB)
+[10:16:47]   OK: female_shoes_2dd94638_1777799803.jpg — OK (1080x1080, 323KB)
+[10:16:57] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4642350
+[10:17:00]   Found 45 albums on category page
+[10:17:00]   Fetching album: https://tophotfashion.x.yupoo.com/albums/205622787?uid=1&isSubCate=false&referrercate=4642350
+[10:17:01]   Found 126 candidate images
+[10:17:03]   OK: female_hoodies_868213b6_1777799821.jpg — OK (1080x1039, 262KB)
+[10:17:06]   OK: female_hoodies_ac5c617a_1777799824.jpg — OK (818x787, 155KB)
+[10:17:09]   OK: female_hoodies_f90c5496_1777799827.jpg — OK (1080x1080, 313KB)
+[10:17:13]   Fetching album: https://tophotfashion.x.yupoo.com/albums/205712270?uid=1&isSubCate=false&referrercate=4642350
+[10:17:15]   Found 101 candidate images
+[10:17:17]   OK: female_hoodies_ee38c6dd_1777799835.jpg — OK (675x1080, 239KB)
+[10:17:20]   OK: female_hoodies_f30cc161_1777799838.jpg — OK (1500x2400, 685KB)
+[10:17:23]   OK: female_hoodies_c1b25525_1777799841.jpg — OK (1080x1080, 211KB)
+[10:17:27]   Fetching album: https://tophotfashion.x.yupoo.com/albums/205714959?uid=1&isSubCate=false&referrercate=4642350
+[10:17:29]   Found 106 candidate images
+[10:17:31]   OK: female_hoodies_b929ec1d_1777799849.jpg — OK (675x1080, 236KB)
+[10:17:35]   OK: female_hoodies_f7049a42_1777799852.jpg — OK (1500x2400, 647KB)
+[10:17:39]   OK: female_hoodies_736382c3_1777799857.jpg — OK (1080x1080, 230KB)
+[10:17:47] 
+============================================================
+[10:17:47] SOURCING COMPLETE
+[10:17:47]   Downloaded: 29
+[10:17:47]   Rejected: 5
+[10:17:47]   Valid products ready: 29
+[10:17:47] ============================================================
+[12:18:23] 
+============================================================
+[12:18:23] SCRAPING: Cloyad (TopHot)
+[12:18:23] ============================================================
+[12:18:23] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4642350
+[12:18:27]   Found 45 albums on category page
+[12:18:27]   Fetching album: https://tophotfashion.x.yupoo.com/albums/201020046?uid=1&isSubCate=false&referrercate=4642350
+[12:18:28]   Found 141 candidate images
+[12:18:38]   OK: male_hoodies_3ac61006_1777807108.jpg — OK (1080x1080, 160KB)
+[12:18:46] 
+============================================================
+[12:18:46] SCRAPING: Cloyad (TopHot)
+[12:18:46] ============================================================
+[12:18:46] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4642350
+[12:18:49]   Found 45 albums on category page
+[12:18:49]   Fetching album: https://tophotfashion.x.yupoo.com/albums/201020046?uid=1&isSubCate=false&referrercate=4642350
+[12:18:50]   Found 141 candidate images
+[12:18:56]   OK: male_hoodies_3ac61006_1777807130.jpg — OK (1080x1080, 160KB)
+[12:19:02]   OK: male_hoodies_2b09be65_1777807137.jpg — OK (2362x2362, 426KB)
+[12:19:11]   OK: male_hoodies_26c3d521_1777807143.jpg — OK (1080x1080, 177KB)
+[12:19:18]   OK: male_hoodies_f7b64111_1777807152.jpg — OK (1440x1440, 208KB)
+[12:19:28]   OK: male_hoodies_fd9c400d_1777807160.jpg — OK (1080x1080, 418KB)
+[12:19:33]   Fetching album: https://tophotfashion.x.yupoo.com/albums/170262085?uid=1&isSubCate=false&referrercate=4642350
+[12:19:38]   Found 81 candidate images
+[12:19:45]   OK: male_hoodies_2960d901_1777807178.jpg — OK (1080x605, 77KB)
+[12:19:49]   REJECT: Low res (1042x584)
+[12:19:56]   OK: male_hoodies_a5cd6825_1777807190.jpg — OK (867x1080, 171KB)
+[12:20:03]   OK: male_hoodies_e93db6f1_1777807197.jpg — OK (652x812, 99KB)
+[12:20:09]   OK: male_hoodies_8de8213b_1777807204.jpg — OK (792x1080, 138KB)
+[12:20:13]   Fetching album: https://tophotfashion.x.yupoo.com//undefined.x.yupoo.com/albums
+[12:20:14]   Found 1 candidate images
+[12:20:16]   REJECT: Too small (20KB)
+[12:20:20]   Fetching album: https://tophotfashion.x.yupoo.com/albums/170262263?uid=1&isSubCate=false&referrercate=4642350
+[12:20:21]   Found 106 candidate images
+[12:20:28]   OK: male_hoodies_42905e10_1777807221.jpg — OK (810x1080, 262KB)
+[12:21:00]   ERROR downloading: 
+[12:21:12]   OK: male_hoodies_a1efd469_1777807261.jpg — OK (810x1080, 356KB)
+[12:21:31]   OK: male_hoodies_698d95ff_1777807273.jpg — OK (3024x4032, 3155KB)
+[12:21:40]   OK: male_hoodies_fe79428e_1777807292.jpg — OK (1080x601, 90KB)
+[12:21:44]   Fetching album: https://tophotfashion.x.yupoo.com/albums/170261929?uid=1&isSubCate=false&referrercate=4642350
+[12:21:47]   Found 156 candidate images
+[12:21:59] 
+============================================================
+[12:21:59] SCRAPING: Cloyad (TopHot)
+[12:21:59] ============================================================
+[12:21:59] 
+[CATEGORY] https://tophotfashion.x.yupoo.com/categories/4642350
+[12:22:05]   Found 44 albums on category page
+[12:22:05]   Fetching album: https://tophotfashion.x.yupoo.com/albums/170261797?uid=1&isSubCate=false&referrercate=4642350
+[12:22:07]   Found 163 candidate images
+[12:22:12]   REJECT: Too small (26KB)
+[12:22:23]   OK: male_hoodies_8e3cb903_1777807333.jpg — OK (1080x696, 63KB)
+[12:22:31]   OK: male_hoodies_5defd197_1777807344.jpg — OK (1284x827, 77KB)
+[12:22:42]   OK: male_hoodies_408dfabe_1777807352.jpg — OK (1012x1080, 234KB)
+[12:22:47]   OK: male_hoodies_bb2f1b26_1777807362.jpg — OK (1080x1153, 227KB)
+[12:22:52]   Fetching album: https://tophotfashion.x.yupoo.com/albums/183282625?uid=1&isSubCate=false&referrercate=4642350
+[12:22:56]   Found 101 candidate images
+[12:23:06]   OK: male_hoodies_a34e7b27_1777807376.jpg — OK (1080x623, 87KB)
+[12:23:15]   OK: male_hoodies_f4990dd9_1777807387.jpg — OK (4568x2633, 499KB)
+[12:23:25]   OK: male_hoodies_2b2a3ef2_1777807396.jpg — OK (1080x1080, 319KB)
+[12:23:34]   OK: male_hoodies_3c8d794e_1777807406.jpg — OK (800x800, 187KB)
+[12:23:44]   OK: male_hoodies_3c2daec1_1777807416.jpg — OK (1015x1080, 319KB)
+[12:23:47]   Fetching album: https://tophotfashion.x.yupoo.com/albums/195406500?uid=1&isSubCate=false&referrercate=4642350
+[12:23:51]   Found 161 candidate images
+[12:23:58]   OK: male_hoodies_0c0547fd_1777807431.jpg — OK (1080x810, 319KB)
+[12:24:34]   OK: male_hoodies_09c59ee2_1777807439.jpg — OK (4032x3024, 3405KB)
+[12:24:44]   OK: male_hoodies_399acfba_1777807475.jpg — OK (1080x810, 369KB)
+[11:12:21] 
+============================================================
+[11:12:21] SCRAPING: Chaosmade
+[11:12:21] ============================================================
+[11:12:21] 
+[CATEGORY] https://chaosmade.x.yupoo.com/albums
+[11:12:24]   Found 136 albums on category page
+[11:12:24]   Fetching album: https://chaosmade.x.yupoo.com/albums/albums/235254643?uid=1
+[11:12:25]   Found 1 candidate images
+[11:12:27]   REJECT: Too small (20KB)
+[11:12:32]   Fetching album: https://chaosmade.x.yupoo.com/albums/albums/235258796?uid=1
+[11:12:32]   Found 1 candidate images
+[11:12:33]   REJECT: Too small (20KB)
+[11:12:36]   Fetching album: https://chaosmade.x.yupoo.com/albums/albums/235257982?uid=1
+[11:12:39]   Found 1 candidate images
+[11:12:39]   REJECT: Too small (20KB)
+[11:12:48] 
+============================================================
+[11:12:48] SCRAPING: Mook
+[11:12:48] ============================================================
+[11:12:48] 
+[CATEGORY] https://mook-official.x.yupoo.com/albums
+[11:12:50]   Found 136 albums on category page
+[11:12:50]   Fetching album: https://mook-official.x.yupoo.com/albums?lang=de
+[11:12:51]   Found 125 candidate images
+[11:12:58]   REJECT (Semantic): Image is a grid/collage of multiple different items (four shirts).
+[11:13:00]   REJECT: Low res (500x433)
+[11:13:01]   REJECT: Low res (500x433)
+[11:13:05]   Fetching album: https://mook-official.x.yupoo.com/albums/albums/157609028?uid=1
+[11:13:06]   Found 1 candidate images
+[11:13:06]   REJECT: Too small (20KB)
+[11:13:10]   Fetching album: https://mook-official.x.yupoo.com/albums/albums/176918755?uid=1
+[11:13:10]   Found 1 candidate images
+[11:13:10]   REJECT: Too small (20KB)
+[11:13:20] 
+============================================================
+[11:13:20] SCRAPING: The Thunder
+[11:13:20] ============================================================
+[11:13:20] 
+[CATEGORY] https://thethunder.x.yupoo.com/albums
+[11:13:22]   Found 117 albums on category page
+[11:13:22]   Fetching album: https://thethunder.x.yupoo.com/albums
+[11:13:24]   Found 704 candidate images
+[11:13:25]   REJECT: Low res (403x800)
+[11:13:27]   REJECT: Low res (252x500)
+[11:13:28]   REJECT: Too small (10KB)
+[11:13:32]   Fetching album: https://thethunder.x.yupoo.com/albums/albums/119313450?uid=1&isSubCate=false&referrercate=3972294
+[11:13:34]   Found 1 candidate images
+[11:13:35]   REJECT: Too small (20KB)
+[11:13:38]   Fetching album: https://thethunder.x.yupoo.com/albums/albums/230780845?uid=1&isSubCate=false&referrercate=4302768
+[11:13:39]   Found 1 candidate images
+[11:13:39]   REJECT: Too small (20KB)
+[11:13:49] 
+============================================================
+[11:13:49] SCRAPING: Wang567
+[11:13:49] ============================================================
+[11:13:49] 
+[CATEGORY] https://wang567.x.yupoo.com/albums
+[11:13:53]   Found 11 albums on category page
+[11:13:53]   Fetching album: https://wang567.x.yupoo.com/albums?lang=de
+[11:13:53]   Found 1 candidate images
+[11:13:53]   REJECT: Too small (0KB)
+[11:13:58]   Fetching album: https://wang567.x.yupoo.com/albums?lang=ru
+[11:13:59]   Found 1 candidate images
+[11:14:00]   REJECT: Too small (0KB)
+[11:14:04]   Fetching album: https://wang567.x.yupoo.com/albums?lang=fr
+[11:14:05]   Found 1 candidate images
+[11:14:06]   REJECT: Too small (0KB)
+[11:14:14] 
+============================================================
+[11:14:14] SCRAPING: TigerRep
+[11:14:14] ============================================================
+[11:14:14] 
+[CATEGORY] https://tigerrep.x.yupoo.com/albums
+[11:14:17]   Found 85 albums on category page
+[11:14:17]   Fetching album: https://tigerrep.x.yupoo.com/albums/albums/235563697?uid=1&isSubCate=false&referrercate=4820703
+[11:14:17]   Found 1 candidate images
+[11:14:17]   REJECT: Too small (20KB)
+[11:14:21]   Fetching album: https://tigerrep.x.yupoo.com/albums?lang=zh-TW
+[11:14:23]   Found 543 candidate images
+[11:14:29]   WARNING: Semantic validation threw exception: 'charmap' codec can't encode characters in position 0-1: character maps to <undefined>
+[11:14:31]   REJECT: Low res (500x375)
+[11:14:32]   REJECT: Too small (3KB)
+[11:14:35]   Fetching album: https://tigerrep.x.yupoo.com/albums/albums/230265127?uid=1&isSubCate=false&referrercate=5161702
+[11:14:35]   Found 1 candidate images
+[11:14:36]   REJECT: Too small (20KB)

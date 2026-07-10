@@ -1,0 +1,12 @@
+services:
+  vton-bot:
+    build: .
+    volumes:
+      - ./output:/app/output
+      - ./playwright_profile:/app/playwright_profile
+      - ./models:/app/models
+      - ./test_products:/app/test_products
+    restart: always
+    shm_size: '2gb'
+    environment:
+      - PYTHONUNBUFFERED=1

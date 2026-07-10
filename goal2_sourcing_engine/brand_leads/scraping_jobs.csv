@@ -1,0 +1,55 @@
+Job Title,Job URL,Snippet Info,AI Draft Proposal,Discovered Date
+[Reddit] Imperva tls block issue,https://reddit.com/r/webscraping/comments/1u44li3/imperva_tls_block_issue/,User u/QuinsZouls posted about: Imperva tls block issue,"Addressing Imperva TLS blocks often requires a multi-faceted approach. We typically find success by integrating advanced browser automation (like Playwright with `playwright-stealth` or similar evasion techniques) coupled with dynamic fingerprinting overrides and a robust pool of high-quality rotating residential proxies.
+
+If you'd be interested, we could perform a quick, complimentary test run on your target site to demonstrate how our systems effectively bypass these types of blocks.",2026-06-17
+[Reddit] Tired of Hcaptcha?,https://reddit.com/r/webscraping/comments/1u0ymc4/tired_of_hcaptcha/,User u/MohammadRafieefard posted about: Tired of Hcaptcha?,"Dealing with Hcaptcha and similar anti-bot systems during scraping can be incredibly frustrating. For robust bypass, we've found success by combining tools like Playwright-Stealth with dynamic fingerprinting override techniques, often coupled with rotating residential proxies. This approach helps mimic human browsing patterns and IP diversity effectively.
+
+If you'd like, we'd be happy to offer a quick, complimentary test run on your target site to demonstrate how this system performs. Hope this helps!",2026-06-17
+[Reddit] Sites with hCaptcha?,https://reddit.com/r/webscraping/comments/1ty3we5/sites_with_hcaptcha/,User u/A4_Ts posted about: Sites with hCaptcha?,"Sounds like you're running into hCaptcha challenges, which often indicates an advanced anti-bot system (like Cloudflare) is in play.
+
+Successfully bypassing these systems typically requires a multi-pronged technical approach. We usually employ `playwright-stealth` alongside dynamic browser fingerprint overrides to mimic genuine user interactions. This is then combined with a robust rotation of high-quality residential proxies to ensure IP diversity and evade detection.
+
+To demonstrate how we handle this, we'd be pleased to run a quick, complimentary test scrape on your target site. Feel free to DM us the URL if you're interested.",2026-06-17
+[Reddit] [HIRING] Enterprise Captcha v3 Solve At Scale,https://reddit.com/r/webscraping/comments/1txfi21/hiring_enterprise_captcha_v3_solve_at_scale/,User u/Bilalin posted about: [HIRING] Enterprise Captcha v3 Solve At Scale,"Bypassing enterprise Captcha v3 and advanced anti-bot systems at scale is a common hurdle. Our approach leverages Playwright-Stealth with dynamic browser fingerprinting overrides, combined with a robust network of rotating residential proxies. We'd be glad to perform a complimentary, quick test run on your target site to demonstrate our bypass system in action and discuss how it can scale for your needs. Feel free to connect directly if you're interested.",2026-06-17
+"[Reddit] Blocked from website, what are my options?",https://reddit.com/r/webscraping/comments/1tw03x2/blocked_from_website_what_are_my_options/,"User u/Knowledge-Seeker15 posted about: Blocked from website, what are my options?","Hello u/Knowledge-Seeker15,
+
+Dealing with advanced anti-bot systems and frequent blocking during scraping is a very common challenge.
+
+For robust bypasses, we typically leverage a combination of techniques: implementing headless browser stealth (e.g., via Playwright-Stealth), dynamically overriding browser fingerprints to mimic genuine user behavior, and utilizing a pool of high-quality rotating residential proxies.
+
+We'd be happy to demonstrate our capabilities. If you're open to it, we could run a quick, free test scrape on your target site to show our system in action and provide a clear idea of how these protections can be effectively bypassed.
+
+Please feel free to reach out if you're interested.",2026-06-17
+[Reddit] Nodejs Puppeteer Tutorial #6,https://www.youtube.com/watch?v=TqHiXD832N0,User u/Michael_Kitas posted about: Nodejs Puppeteer Tutorial #6 - How to bypass/solve normal captcha using 2captcha API,"Following up on your Puppeteer tutorial, dealing with sophisticated anti-bot systems like Cloudflare or Akamai is often the next major challenge after normal captchas. These systems frequently block standard Puppeteer setups by detecting automation patterns and IP reputation.
+
+For these tougher scenarios, we find success by combining advanced techniques such as:
+1.  **Playwright-Stealth:** To make your automation less detectable and mimic real browser behavior.
+2.  **Dynamic Fingerprinting Overrides:** To precisely control and randomize browser attributes, fooling anti-bot heuristics.
+3.  **High-Quality Rotating Residential Proxies:** Essential for IP reputation management and avoiding blanket bans.
+
+We'd be happy to run a quick, free test on your target site to demonstrate our working bypass system. Let us know if you're interested!",2026-06-17
+[Reddit] Nodejs Puppeteer Tutorial #5,https://www.youtube.com/watch?v=5wpSNZMQpYk,User u/Michael_Kitas posted about: Nodejs Puppeteer Tutorial #5 - How to bypass/solve reCAPTCHA using 2captcha API,"Hi! If you are getting blocked by Cloudflare or Turnstile, standard Playwright/Selenium will fail. You need to use playwright-stealth and configure your finger-prints properly. I've built custom bypass scrapers for this; feel free to PM me the target URL, and I can run a free test extraction for you.",2026-06-17
+E-commerce Product Data Scraper - Cloudflare Bypass Required,https://www.upwork.com/jobs/~0123456789abcdef01,"Our client needs to scrape product names, prices, and descriptions from a competitor's e-commerce site. They are encountering Cloudflare protection and need a robust solution to bypass it reliably for daily data collection. The goal is to monitor competitive pricing.","Bypassing advanced anti-bot protections like Cloudflare for consistent, daily data collection is a significant technical challenge.
+
+Our expertise lies in developing robust, custom Playwright-Stealth scrapers. These solutions integrate residential proxy pools and dynamic cookie mirroring to precisely emulate genuine human browsing patterns, ensuring reliable and persistent access even against sophisticated anti-bot systems.
+
+To demonstrate our capabilities, we offer a complimentary 5-minute dry-run scrape on your target website. This will quickly validate our stealth profiles and provide confidence in our ability to deliver the daily data you require.
+
+We are prepared to discuss this further and execute the dry-run at your earliest convenience.",2026-06-17
+Advanced Web Scraper for Real Estate Listings - Captcha & IP Block Handling,https://www.upwork.com/jobs/~0123456789abcdef02,"We need to aggregate real estate listings including property details, prices, and agent info from multiple property portals. Our previous attempts are blocked by frequent captchas and aggressive IP banning, requiring an expert to develop a resilient scraping script. A rotating proxy solution and cap","We understand the frustration of aggressive anti-bot measures, including frequent CAPTCHAs and IP bans, when attempting to aggregate real estate data.
+
+Our expertise lies in developing highly resilient, custom Playwright-Stealth scrapers. We integrate premium residential proxy pools and dynamic cookie mirroring techniques to emulate genuine human browsing behavior, effectively bypassing sophisticated bot detection systems like Cloudflare Turnstile and DataDome.
+
+To demonstrate our capabilities, we offer a complimentary 5-minute dry-run scrape on your target website. This will provide immediate proof of concept that our stealth profiles can successfully extract the required data without detection.
+
+We are confident in delivering a robust, long-term scraping solution for your real estate data aggregation needs.",2026-06-17
+Experienced Python Scraper Needed: Bypass Cloudflare for E-commerce Product Data,https://www.upwork.com/jobs/~01e74f1b8a9c2d3e4f,"Our e-commerce business needs to track competitor pricing and product availability from several large online retailers. We're encountering persistent Cloudflare challenges that are preventing our current scrapers from collecting accurate, real-time data. We need a skilled developer to implement a ro","Persistent Cloudflare challenges are a common barrier to accurate e-commerce data. We specialize in bypassing advanced anti-bot systems like Cloudflare, DataDome, and Turnstile.
+
+Our approach utilizes custom Playwright-Stealth scrapers, combined with residential proxy pools and dynamic cookie mirroring. This engineering ensures our requests perfectly emulate 100% legitimate human traffic, allowing for reliable, real-time data collection.
+
+To prove our capabilities, we offer a complimentary 5-minute dry-run scrape on one of your target websites. This will immediately demonstrate the effectiveness of our stealth profiles.
+
+Ready to see our solution in action.",2026-06-18
+Web Scraping Expert: DataDome/Akamai Bypass for Flight & Hotel Price Monitoring,https://www.upwork.com/jobs/~01a3b4c5d6e7f8a9b0,"We operate a travel analytics platform and require up-to-date pricing data for flights and hotels from various booking sites. These sites utilize advanced anti-bot measures like DataDome or Akamai, which are blocking our attempts to gather necessary information. We're looking for a developer who can","Experiencing blocks from DataDome, Akamai, or similar advanced anti-bot systems is a common challenge in web scraping. Our expertise lies in developing highly robust, custom Playwright-Stealth scrapers. These solutions integrate residential proxy pools, dynamic cookie mirroring, and advanced browser fingerprinting to emulate genuine human user behavior, effectively bypassing sophisticated bot detection.
+
+To demonstrate our capabilities, we offer a complimentary 5-minute dry-run scrape on one of your target websites. This will quickly validate the effectiveness of our stealth profiles and our ability to deliver reliable data.",2026-06-18

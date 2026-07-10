@@ -1,0 +1,53 @@
+{
+  "carousel_name": "carousel_red_hoodie_20260430_141033",
+  "product": "red_hoodie",
+  "created": "20260430_141033",
+  "total_slides": 7,
+  "slides": [
+    {
+      "slide": 1,
+      "filename": "slide_01_f3.png",
+      "model": "f3",
+      "source": "f3_red_hoodie_20260426_125240_0.png"
+    },
+    {
+      "slide": 2,
+      "filename": "slide_02_f4.png",
+      "model": "f4",
+      "source": "f4_red_hoodie_20260426_121210_0.png"
+    },
+    {
+      "slide": 3,
+      "filename": "slide_03_f5.png",
+      "model": "f5",
+      "source": "f5_red_hoodie_20260426_115543_0.png"
+    },
+    {
+      "slide": 4,
+      "filename": "slide_04_m1.png",
+      "model": "m1",
+      "source": "m1_red_hoodie_20260426_124320_0.png"
+    },
+    {
+      "slide": 5,
+      "filename": "slide_05_m4.png",
+      "model": "m4",
+      "source": "m4_red_hoodie_20260426_124925_0.png"
+    },
+    {
+      "slide": 6,
+      "filename": "slide_06_f5.png",
+      "model": "f5",
+      "source": "f5_red_hoodie_20260426_124021_0.png"
+    },
+    {
+      "slide": 7,
+      "filename": "slide_07_f5.png",
+      "model": "f5",
+      "source": "f5_red_hoodie_20260426_124636_0.png"
+    }
+  ],
+  "caption": "That feeling when your outfit just HITS different\n\nRed Hoodie -- Made to move with you, made to make a statement.\n\nTap to shop. Limited stock available.\n\n#MinimalStyle #EverydayFashion #CleanAesthetic #ModernWardrobe",
+  "format": "1080x1350 (4:5 portrait)",
+  "notes": "Add trending audio for Reels discovery. Use native product tags."
+}

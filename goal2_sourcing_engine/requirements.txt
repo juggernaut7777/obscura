@@ -1,0 +1,46 @@
+# Core automation
+playwright>=1.40.0
+# NOTE: When scaling to multi-account, swap playwright for patchright:
+# pip install patchright (drop-in replacement, better stealth)
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# KOFA Bridge (VPS-side API)
+fastapi[standard]>=0.100.0
+uvicorn>=0.23.0
+httpx>=0.25.0
+pydantic>=2.0.0
+
+# Supplier integrations
+requests>=2.31.0
+
+# Misc
+python-dotenv>=1.0.0
+nest-asyncio>=1.5.0
+PyJWT>=2.8.0
+
+# Agent Brain (all use free tiers)
+openai>=1.0.0
+# Groq API called via httpx (already listed above)
+# xAI Grok API called via httpx (already listed above)
+
+# Missing dependencies
+beautifulsoup4>=4.12.0
+pyngrok>=7.0.0
+
+# ─── AGENT ENGINE UPGRADE ───
+litellm>=1.20.0
+crawl4ai>=0.3.0
+mem0ai>=0.1.0
+langgraph>=0.0.10
+langchain-core>=0.1.0
+
+# Missing core integrations
+discord.py>=2.3.0
+supabase>=2.3.0
+scrapegraphai>=1.0.0
+cloakbrowser>=0.1.0
+fal-client>=0.4.0
+patchright>=1.60.0
+edge-tts>=7.0.0
+google-generativeai>=0.3.0

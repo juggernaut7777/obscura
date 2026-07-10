@@ -1,0 +1,17 @@
+[Unit]
+Description=Discord Listener Bot for Sourcing Engine
+After=network.target
+
+[Service]
+Type=simple
+User=USER
+WorkingDirectory=/home/USER/ai-ugc
+Environment=PATH=/home/USER/ai-ugc/venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/USER/ai-ugc/venv/bin/python -u /home/USER/ai-ugc/discord_listener.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/USER/ai-ugc/logs/discord_vps.log
+StandardError=append:/home/USER/ai-ugc/logs/discord_vps.log
+
+[Install]
+WantedBy=multi-user.target

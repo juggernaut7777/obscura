@@ -1,0 +1,294 @@
+[2026-04-26 12:38:18] 
+[2026-04-26 12:38:18] ============================================================
+[2026-04-26 12:38:18]   AGENT BRAIN — LOCAL MODE
+[2026-04-26 12:38:18]   Mode: STATUS
+[2026-04-26 12:38:18]   Started: 2026-04-26 12:38
+[2026-04-26 12:38:18] ============================================================
+[2026-04-26 12:38:18] [STATE] Models: 0 | Products scraped: 0 | Posts: 0
+[2026-04-26 12:38:18] === STATE ===
+Phase: setup | Actions today: 0
+
+Models: none
+Products: 0 scraped, 0 processed, 0 posted
+Digital products: 0 created, 0 listed
+Accounts: none
+Brands: 0 found, 0 contacted
+
+Last action: none (❌)
+Last error: none
+
+Recent learnings: none
+[2026-04-26 12:38:41] 
+[2026-04-26 12:38:41] ============================================================
+[2026-04-26 12:38:41]   AGENT BRAIN — LOCAL MODE
+[2026-04-26 12:38:41]   Mode: GENERATE-ONLY
+[2026-04-26 12:38:41]   Started: 2026-04-26 12:38
+[2026-04-26 12:38:41] ============================================================
+[2026-04-26 12:38:41] [STATE] Models: 10 | Products scraped: 0 | Posts: 0
+[2026-04-26 12:38:41] [BRAIN] Phase 2: Generating 5 images...
+[2026-04-26 12:38:41] [GEN] Starting generation 1/5...
+[2026-04-26 12:40:34] [+] Generation 1/5 complete!
+[2026-04-26 12:40:34] [WAIT] 77s before next generation...
+[2026-04-26 12:41:51] [GEN] Starting generation 2/5...
+[2026-04-26 12:43:36] [+] Generation 2/5 complete!
+[2026-04-26 12:43:36] [WAIT] 110s before next generation...
+[2026-04-26 12:45:26] [GEN] Starting generation 3/5...
+[2026-04-26 12:46:48] [+] Generation 3/5 complete!
+[2026-04-26 12:46:48] [WAIT] 98s before next generation...
+[2026-04-26 12:48:26] [GEN] Starting generation 4/5...
+[2026-04-26 12:49:39] [+] Generation 4/5 complete!
+[2026-04-26 12:49:39] [WAIT] 100s before next generation...
+[2026-04-26 12:51:19] [GEN] Starting generation 5/5...
+[2026-04-26 12:52:48] [+] Generation 5/5 complete!
+[2026-04-26 12:52:48] [BRAIN] Phase 3: Building carousels...
+[2026-04-26 12:52:49] [+] Carousel builder output:
+[2026-04-26 12:52:49]   
+[2026-04-26 12:52:49]   Save this for your next outfit inspo
+[2026-04-26 12:52:49]   
+[2026-04-26 12:52:49]   #MinimalStyle #EverydayFashion #CleanAesthetic #ModernWardrobe
+[2026-04-26 12:52:49]   --- END CAPTION ---
+[2026-04-30 13:39:18] 
+[2026-04-30 13:39:18] ============================================================
+[2026-04-30 13:39:18]   AGENT BRAIN — LOCAL MODE
+[2026-04-30 13:39:18]   Mode: FULL
+[2026-04-30 13:39:18]   Started: 2026-04-30 13:39
+[2026-04-30 13:39:18] ============================================================
+[2026-04-30 13:39:18] [STATE] Models: 10 | Products scraped: 0 | Posts: 5
+[2026-04-30 13:39:18] 
+[2026-04-30 13:39:18] --- CYCLE 1 ---
+[2026-04-30 13:39:18] [BRAIN] Phase 1: Scraping trends...
+[2026-04-30 13:39:26] [SCRAPE] Meta Ad Library: 'pleated skirt'
+[2026-04-30 13:39:41] [!] No ads found for 'pleated skirt'
+[2026-04-30 13:40:01] [+] TikTok: 0 hashtags, 0 products
+[2026-04-30 13:40:01] [BRAIN] Sourcing products from supplier agents...
+[2026-04-30 13:40:01]    [*] Sourcing category: skirts
+[2026-04-30 13:40:02]    [*] Sourcing category: shoes
+[2026-04-30 13:40:29] [+] Product sourcing complete!
+[2026-04-30 13:40:29] [BRAIN] Phase 2: Generating 3 images...
+[2026-04-30 13:40:29] [GEN] Starting generation 1/3...
+[2026-04-30 13:41:14] [!] Generation 1/3 may have failed
+[2026-04-30 13:41:14] [WAIT] 86s before next generation...
+[2026-04-30 13:42:40] [GEN] Starting generation 2/3...
+[2026-04-30 13:44:18] [+] Generation 2/3 complete!
+[2026-04-30 13:44:18] [WAIT] 92s before next generation...
+[2026-04-30 13:45:50] [GEN] Starting generation 3/3...
+[2026-04-30 13:46:56] [+] Generation 3/3 complete!
+[2026-04-30 13:46:56] [BRAIN] Phase 3: Building carousels...
+[2026-04-30 13:46:56] [+] Carousel builder output:
+[2026-04-30 13:46:56]   
+[2026-04-30 13:46:56]   Share this with someone who needs this look
+[2026-04-30 13:46:56]   
+[2026-04-30 13:46:56]   #MinimalStyle #EverydayFashion #CleanAesthetic #ModernWardrobe
+[2026-04-30 13:46:56]   --- END CAPTION ---
+[2026-04-30 13:46:56] [BRAIN] Phase 7: Order Fulfillment Check...
+[2026-04-30 13:46:59]    [*] No pending orders to fulfill.
+[2026-04-30 13:46:59] [STATS] Cycle 1 complete. Actions: 4
+[2026-04-30 13:46:59] [WAIT] Next cycle in 73min (anti-shadowban spacing)...
+[2026-04-30 14:10:31] 
+[2026-04-30 14:10:31] ============================================================
+[2026-04-30 14:10:31]   AGENT BRAIN — LOCAL MODE
+[2026-04-30 14:10:31]   Mode: GENERATE-ONLY
+[2026-04-30 14:10:31]   Started: 2026-04-30 14:10
+[2026-04-30 14:10:31] ============================================================
+[2026-04-30 14:10:31] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-04-30 14:10:31] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-04-30 14:10:32] [GEN] Starting campaign 1/5 for 'red_hoodie'...
+[2026-04-30 14:10:32] [!] Generation error: tool_generate_ad() got an unexpected keyword argument 'reference_image_url'
+[2026-04-30 14:10:32] [BRAIN] Phase 3: Building carousels...
+[2026-04-30 14:10:38] [+] Carousel builder output:
+[2026-04-30 14:10:38]   
+[2026-04-30 14:10:38]   Comment 'LINK' and we'll DM you the shop page
+[2026-04-30 14:10:38]   
+[2026-04-30 14:10:38]   #FitCheck #StreetStyle #FashionTok #DailyFit #LookOfTheDay
+[2026-04-30 14:10:38]   --- END CAPTION ---
+[2026-04-30 14:12:16] 
+[2026-04-30 14:12:16] ============================================================
+[2026-04-30 14:12:16]   AGENT BRAIN — LOCAL MODE
+[2026-04-30 14:12:16]   Mode: GENERATE-ONLY
+[2026-04-30 14:12:16]   Started: 2026-04-30 14:12
+[2026-04-30 14:12:16] ============================================================
+[2026-04-30 14:12:16] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-04-30 14:12:16] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-04-30 14:12:16] [GEN] Starting campaign 1/5 for 'vintage_graphic_tee'...
+[2026-04-30 14:12:16] [!] Generation error: cannot access local variable 'os' where it is not associated with a value
+[2026-04-30 14:12:16] [BRAIN] Phase 3: Building carousels...
+[2026-04-30 14:12:16] [+] Carousel builder output:
+[2026-04-30 14:12:16]   
+[2026-04-30 14:12:16]   DM us 'STYLE' for exclusive pricing
+[2026-04-30 14:12:16]   
+[2026-04-30 14:12:16]   #OOTD #FashionFinds #StyleInspo #NewDrop #WardrobeEssentials
+[2026-04-30 14:12:16]   --- END CAPTION ---
+[2026-04-30 14:13:42] 
+[2026-04-30 14:13:42] ============================================================
+[2026-04-30 14:13:42]   AGENT BRAIN — LOCAL MODE
+[2026-04-30 14:13:42]   Mode: GENERATE-ONLY
+[2026-04-30 14:13:42]   Started: 2026-04-30 14:13
+[2026-04-30 14:13:42] ============================================================
+[2026-04-30 14:13:42] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-04-30 14:13:42] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-04-30 14:13:42] [GEN] Starting campaign 1/5 for 'red_hoodie'...
+[2026-04-30 14:13:42] [!] Generation error: 'charmap' codec can't encode character '\u274c' in position 0: character maps to <undefined>
+[2026-04-30 14:13:42] [BRAIN] Phase 3: Building carousels...
+[2026-04-30 14:13:42] [+] Carousel builder output:
+[2026-04-30 14:13:42]   
+[2026-04-30 14:13:42]   Comment 'LINK' and we'll DM you the shop page
+[2026-04-30 14:13:42]   
+[2026-04-30 14:13:42]   #OOTD #FashionFinds #StyleInspo #NewDrop #WardrobeEssentials
+[2026-04-30 14:13:42]   --- END CAPTION ---
+[2026-04-30 14:14:26] 
+[2026-04-30 14:14:26] ============================================================
+[2026-04-30 14:14:26]   AGENT BRAIN — LOCAL MODE
+[2026-04-30 14:14:26]   Mode: GENERATE-ONLY
+[2026-04-30 14:14:26]   Started: 2026-04-30 14:14
+[2026-04-30 14:14:26] ============================================================
+[2026-04-30 14:14:26] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-04-30 14:14:26] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-04-30 14:14:26] [GEN] Starting campaign 1/5 for 'red_hoodie'...
+[2026-04-30 14:23:18] 
+[2026-04-30 14:23:18] ============================================================
+[2026-04-30 14:23:18]   AGENT BRAIN — LOCAL MODE
+[2026-04-30 14:23:18]   Mode: GENERATE-ONLY
+[2026-04-30 14:23:18]   Started: 2026-04-30 14:23
+[2026-04-30 14:23:18] ============================================================
+[2026-04-30 14:23:18] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-04-30 14:23:18] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-04-30 14:23:18] [GEN] Starting campaign 1/5 for 'black_cargo_pants'...
+[2026-05-01 08:16:05] 
+[2026-05-01 08:16:05] ============================================================
+[2026-05-01 08:16:05]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 08:16:05]   Mode: GENERATE-ONLY
+[2026-05-01 08:16:05]   Started: 2026-05-01 08:16
+[2026-05-01 08:16:05] ============================================================
+[2026-05-01 08:16:05] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-05-01 08:16:05] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-05-01 08:16:05] [GEN] Starting campaign 1/5 for 'vintage_graphic_tee'...
+[2026-05-01 08:23:12] 
+[2026-05-01 08:23:12] ============================================================
+[2026-05-01 08:23:12]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 08:23:12]   Mode: GENERATE-ONLY
+[2026-05-01 08:23:12]   Started: 2026-05-01 08:23
+[2026-05-01 08:23:12] ============================================================
+[2026-05-01 08:23:12] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-05-01 08:23:12] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-05-01 08:23:12] [GEN] Starting campaign 1/5 for 'red_hoodie'...
+[2026-05-01 08:25:32] 
+[2026-05-01 08:25:32] ============================================================
+[2026-05-01 08:25:32]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 08:25:32]   Mode: GENERATE-ONLY
+[2026-05-01 08:25:32]   Started: 2026-05-01 08:25
+[2026-05-01 08:25:32] ============================================================
+[2026-05-01 08:25:32] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-05-01 08:25:32] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-05-01 08:25:33] [GEN] Starting campaign 1/5 for 'red_chunky_sneakers'...
+[2026-05-01 08:28:45] 
+[2026-05-01 08:28:45] ============================================================
+[2026-05-01 08:28:45]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 08:28:45]   Mode: GENERATE-ONLY
+[2026-05-01 08:28:45]   Started: 2026-05-01 08:28
+[2026-05-01 08:28:45] ============================================================
+[2026-05-01 08:28:45] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-05-01 08:28:45] [BRAIN] Phase 2: Generating 5 campaigns...
+[2026-05-01 08:28:45] [GEN] Starting campaign 1/5 for 'red_hoodie'...
+[2026-05-01 08:51:47] [+] Campaign 1/5 complete! Saved to None
+[2026-05-01 08:51:47] [GEN] Starting campaign 2/5 for 'black_cargo_pants'...
+[2026-05-01 09:11:13] 
+[2026-05-01 09:11:13] ============================================================
+[2026-05-01 09:11:13]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 09:11:13]   Mode: GENERATE-ONLY
+[2026-05-01 09:11:13]   Started: 2026-05-01 09:11
+[2026-05-01 09:11:13] ============================================================
+[2026-05-01 09:11:13] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-05-01 09:11:13] [BRAIN] Phase 2: Generating 5 campaign(s)...
+[2026-05-01 09:11:14] [BRAIN] Available: 4 products, 10 models (['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'm1', 'm2', 'm3', 'm4'])
+[2026-05-01 09:11:14] [GEN] Campaign 1/5: product='vintage_graphic_tee', model='f2'
+[2026-05-01 09:11:18] [!] Campaign 1 FAILED: Generation failed
+[2026-05-01 09:11:18] [WAIT] Sleeping 5 minutes before next product...
+[2026-05-01 09:21:17] 
+[2026-05-01 09:21:17] ============================================================
+[2026-05-01 09:21:17]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 09:21:17]   Mode: GENERATE-ONLY
+[2026-05-01 09:21:17]   Started: 2026-05-01 09:21
+[2026-05-01 09:21:17] ============================================================
+[2026-05-01 09:21:17] [STATE] Models: 10 | Products scraped: 0 | Posts: 7
+[2026-05-01 09:21:17] [BRAIN] Phase 2: Generating 1 campaign(s)...
+[2026-05-01 09:21:17] [BRAIN] Available: 4 products, 10 models (['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'm1', 'm2', 'm3', 'm4'])
+[2026-05-01 09:21:17] [GEN] Campaign 1/1: product='red_chunky_sneakers', model='f4'
+[2026-05-01 09:22:24] [+] Campaign 1 COMPLETE! -> C:\Users\USER\ai ugc and sales\goal2_sourcing_engine\output\2026-05-01\red_chunky_sneakers
+[2026-05-01 09:22:24] [BRAIN] Phase 3: Building carousels...
+[2026-05-01 09:22:25] [+] Carousel builder output:
+[2026-05-01 09:22:25]   
+[2026-05-01 09:22:25]   Tap to shop. Limited stock available.
+[2026-05-01 09:22:25]   
+[2026-05-01 09:22:25]   #FitCheck #StreetStyle #FashionTok #DailyFit #LookOfTheDay
+[2026-05-01 09:22:25]   --- END CAPTION ---
+[2026-05-01 09:28:13] 
+[2026-05-01 09:28:13] ============================================================
+[2026-05-01 09:28:13]   AGENT BRAIN — LOCAL MODE
+[2026-05-01 09:28:13]   Mode: FULL
+[2026-05-01 09:28:13]   Started: 2026-05-01 09:28
+[2026-05-01 09:28:13] ============================================================
+[2026-05-01 09:28:13] [STATE] Models: 10 | Products scraped: 0 | Posts: 8
+[2026-05-01 09:28:13] 
+[2026-05-01 09:28:13] --- CYCLE 1 ---
+[2026-05-01 09:28:13] [BRAIN] Phase 1: Scraping trends...
+[2026-05-01 09:28:17] [SCRAPE] Meta Ad Library: 'vintage wash'
+[2026-05-01 09:28:35] [!] No ads found for 'vintage wash'
+[2026-05-01 09:28:53] [+] TikTok: 0 hashtags, 0 products
+[2026-05-01 09:28:53] [BRAIN] Sourcing products from supplier agents...
+[2026-05-01 09:28:53]    [*] Sourcing category: dresses
+[2026-05-01 09:28:54]    [*] Sourcing category: hoodies
+[2026-05-01 09:29:21] [+] Product sourcing complete!
+[2026-05-01 09:29:21] [BRAIN] Phase 2: Generating 3 campaign(s)...
+[2026-05-01 09:29:21] [BRAIN] Available: 4 products, 10 models (['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'm1', 'm2', 'm3', 'm4'])
+[2026-05-01 09:29:21] [GEN] Campaign 1/3: product='vintage_graphic_tee', model='m4'
+[2026-05-01 09:30:33] [+] Campaign 1 COMPLETE! -> C:\Users\USER\ai ugc and sales\goal2_sourcing_engine\output\2026-05-01\vintage_graphic_tee
+[2026-05-01 09:30:33] [WAIT] Sleeping 5 minutes before next product...
+[2026-05-01 09:35:33] [GEN] Campaign 2/3: product='black_cargo_pants', model='f6'
+[2026-05-01 09:36:39] [+] Campaign 2 COMPLETE! -> C:\Users\USER\ai ugc and sales\goal2_sourcing_engine\output\2026-05-01\black_cargo_pants
+[2026-05-01 09:36:39] [WAIT] Sleeping 5 minutes before next product...
+[2026-05-01 09:41:39] [GEN] Campaign 3/3: product='red_hoodie', model='m2'
+[2026-05-01 09:42:40] [+] Campaign 3 COMPLETE! -> C:\Users\USER\ai ugc and sales\goal2_sourcing_engine\output\2026-05-01\red_hoodie
+[2026-05-01 09:42:40] [BRAIN] Phase 3: Building carousels...
+[2026-05-01 09:42:40] [+] Carousel builder output:
+[2026-05-01 09:42:40]   
+[2026-05-01 09:42:40]   Available now. Link in bio before it's gone.
+[2026-05-01 09:42:40]   
+[2026-05-01 09:42:40]   #StyleGuide #OutfitIdeas #FashionDaily #TrendAlert #GetDressed
+[2026-05-01 09:42:40]   --- END CAPTION ---
+[2026-05-01 09:42:40] [BRAIN] Phase 7: Order Fulfillment Check...
+[2026-05-01 09:42:43]    [*] No pending orders to fulfill.
+[2026-05-01 09:42:43] [STATS] Cycle 1 complete. Actions: 4
+[2026-05-01 09:42:43] [WAIT] Next cycle in 89min (anti-shadowban spacing)...
+[2026-05-03 12:08:42] [BRAIN] Fashion Manifesto loaded. All rules active.
+[2026-05-03 12:08:50] [BRAIN] Gemini Director (Multimodal Intelligence) initialized.
+[2026-05-03 12:08:50] [BRAIN] Fashion Critic (Gatekeeper) initialized.
+[2026-05-03 12:08:50] 
+[2026-05-03 12:08:50] ============================================================
+[2026-05-03 12:08:50]   [BRAIN] AGENT BRAIN - LOCAL MODE
+[2026-05-03 12:08:50]   Mode: FULL
+[2026-05-03 12:08:50]   Started: 2026-05-03 12:08
+[2026-05-03 12:08:50] ============================================================
+[2026-05-03 12:08:50] [STATE] Models: 10 | Products scraped: 0 | Posts: 11
+[2026-05-03 12:08:50] 
+[2026-05-03 12:08:50] --- CYCLE 1 ---
+[2026-05-03 12:08:50] [BRAIN] Phase 1: Scraping trends...
+[2026-05-03 12:08:55] [SCRAPE] Meta Ad Library: 'graphic tee'
+[2026-05-03 12:09:09] [!] No ads found for 'graphic tee'
+[2026-05-03 12:09:33] [+] TikTok: 0 hashtags, 0 products
+[2026-05-03 12:09:33] [BRAIN] Sourcing products from supplier agents...
+[2026-05-03 12:09:33]    [*] Sourcing category: skirts
+[2026-05-03 12:09:34]    [*] Sourcing category: shoes
+[2026-05-03 12:10:12] [+] Product sourcing complete!
+[2026-05-03 12:10:12] [BRAIN] Phase 2: Generating 3 campaign(s)...
+[2026-05-03 12:10:12] [!] Generation error: closing parenthesis ']' does not match opening parenthesis '(' on line 985 (agent_tools_vps.py, line 992)
+[2026-05-03 12:10:12] [BRAIN] Phase 3: Building carousels...
+[2026-05-03 12:10:12] [+] Carousel builder output:
+[2026-05-03 12:10:12]   
+[2026-05-03 12:10:12]   DM us 'STYLE' for exclusive pricing
+[2026-05-03 12:10:12]   
+[2026-05-03 12:10:12]   #StyleGuide #OutfitIdeas #FashionDaily #TrendAlert #GetDressed
+[2026-05-03 12:10:12]   --- END CAPTION ---
+[2026-05-03 12:10:12] [BRAIN] Phase 7: Order Fulfillment Check...
+[2026-05-03 12:10:16]    [*] No pending orders to fulfill.
+[2026-05-03 12:10:16] [STATS] Cycle 1 complete. Actions: 4
+[2026-05-03 12:10:16] [WAIT] Next cycle in 69min (anti-shadowban spacing)...

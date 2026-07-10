@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBSCURA VTON - Interactive Try-On Demonstration</title>
+    <!-- Modern Premium Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #0A0A0A;
+            --color-card: rgba(20, 20, 20, 0.7);
+            --color-gold: #D4AF37;
+            --color-gold-hover: #F3E5AB;
+            --color-text: #F5F5F0;
+            --color-muted: #8E8E93;
+            --border-radius: 12px;
+            --font-family: 'Inter', sans-serif;
+            --font-title: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-family);
+            background-image: radial-gradient(circle at 50% -20%, #222 0%, #0a0a0a 70%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--color-card);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            backdrop-filter: blur(16px);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Product Gallery/Viewer */
+        .product-gallery {
+            background: #0F0F0F;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .product-display {
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 4/5;
+            background-color: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .product-img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            transition: all 0.5s ease;
+        }
+
+        /* Scan Effect overlay */
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(212, 175, 55, 0.15), transparent);
+            transform: translateY(-100%);
+            pointer-events: none;
+            display: none;
+        }
+
+        .scanning .scan-overlay {
+            display: block;
+            animation: scanLoop 1.8s infinite linear;
+        }
+
+        @keyframes scanLoop {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* Product Info panel */
+        .product-info {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .brand-header {
+            color: var(--color-gold);
+            font-family: var(--font-title);
+            font-size: 13px;
+            letter-spacing: 3px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .product-title {
+            font-family: var(--font-title);
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 24px;
+        }
+
+        .product-desc {
+            font-size: 13px;
+            color: var(--color-muted);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .options-group {
+            margin-bottom: 30px;
+        }
+
+        .options-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--color-text);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .sizes {
+            display: flex;
+            gap: 8px;
+        }
+
+        .size-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--color-text);
+            padding: 10px 18px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .size-btn:hover, .size-btn.active {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        /* VTON Try-On Button */
+        .btn-tryon {
+            width: 100%;
+            background: linear-gradient(135deg, var(--color-gold) 0%, #B8860B 100%);
+            border: none;
+            color: #000;
+            padding: 16px 20px;
+            border-radius: var(--border-radius);
+            font-family: var(--font-title);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-tryon::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .btn-tryon:hover::after {
+            left: 120%;
+            opacity: 1;
+        }
+
+        .btn-tryon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+            background: linear-gradient(135deg, var(--color-gold-hover) 0%, var(--color-gold) 100%);
+        }
+
+        /* Modal Structure */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: #111;
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 480px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: var(--color-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        .modal-title {
+            font-family: var(--font-title);
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--color-gold);
+            letter-spacing: 1px;
+        }
+
+        /* Grid of model selections */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .model-card {
+            background: #181818;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .model-card:hover {
+            border-color: rgba(212,175,55,0.3);
+        }
+
+        .model-card.active {
+            border-color: var(--color-gold);
+            background: rgba(212,175,55,0.05);
+        }
+
+        .model-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #222;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: var(--color-gold);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .model-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .model-name {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .model-meta {
+            font-size: 9px;
+            color: var(--color-muted);
+            margin-top: 2px;
+        }
+
+        /* Render loading screen inside product viewer */
+        .vton-loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10,10,10,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .vton-loader.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(212, 175, 55, 0.1);
+            border-top-color: var(--color-gold);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            font-family: var(--font-title);
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: var(--color-gold);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Floating demo hint */
+        .demo-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--color-gold);
+            color: var(--color-gold);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Gallery / Visual Display -->
+        <div class="product-gallery" id="gallery-container">
+            <span class="demo-tag">VTON Live Demo</span>
+            <div class="product-display">
+                <!-- Fallback logo vector drawing when image doesn't load -->
+                <img id="product-main-view" class="product-img" src="obscura_logo.png" alt="Aventis Heavy Fleece Hoodie" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'250\' viewBox=\'0 0 100 120\'><rect x=\'10\' y=\'30\' width=\'80\' height=\'70\' rx=\'8\' fill=\'%23333\'/><path d=\'M25 30 L40 10 L60 10 L75 30\' fill=\'none\' stroke=\'%23444\' stroke-width=\'5\'/><circle cx=\'50\' cy=\'65\' r=\'12\' fill=\'%23D4AF37\'/><text x=\'50\' y=\'110\' fill=\'%23fff\' font-size=\'8\' text-anchor=\'middle\'>Original Flatlay</text></svg>'">
+                
+                <div class="scan-overlay"></div>
+            </div>
+            
+            <!-- VTON Loading Box -->
+            <div class="vton-loader" id="loader">
+                <div class="spinner"></div>
+                <div class="loader-text" id="loader-msg">Mapping Garment...</div>
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="product-info">
+            <div>
+                <span class="brand-header">AVENTIS STREETWEAR</span>
+                <h1 class="product-title">Heavyweight Oversized Fleece Hoodie</h1>
+                <div class="product-price">$129.00</div>
+                <p class="product-desc">
+                    Meticulously crafted from 450GSM organic French terry cotton. Styled with drop-shoulder seams, a double-lined structured hood without drawstrings, and deep rib knit details. Pre-shrunk and custom-dyed for a washed charcoal finish.
+                </p>
+
+                <!-- Size options -->
+                <div class="options-group">
+                    <span class="options-label">Select Size</span>
+                    <div class="sizes">
+                        <button class="size-btn">S</button>
+                        <button class="size-btn active">M</button>
+                        <button class="size-btn">L</button>
+                        <button class="size-btn">XL</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Virtual Try-On trigger -->
+            <button class="btn-tryon" id="tryon-btn">
+                <!-- Sparkle icon -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                VIRTUAL TRY-ON
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Selection Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <button class="close-btn" id="close-modal">&times;</button>
+            <h2 class="modal-title">CHOOSE VIRTUAL MODEL</h2>
+            
+            <div class="models-grid">
+                <!-- Model 1 (f1) -->
+                <div class="model-card active" data-model="f1">
+                    <div class="model-avatar">
+                        <!-- Custom vector drawing for Avatar -->
+                        <svg width="100%" height="100%" viewBox="0 0 60 60" fill="%23222">
+                            <circle cx="30" cy="22" r="10" fill="#D4AF37"/>
+                            <path d="M12 48 C12 36 20 34 30 34 C40 34 48 36 48 48" fill="#D4AF37"/>
+                        </svg>
+                    </div>
+                    <span class="model-name">Female 1</span>
+                    <span class="model-meta">Athletic | M</span>
+                </div>
+                
+                <!-- Model 2 (f2) -->
+                <div class="model-card" data-model="f2">
+                    <div class="model-avatar">
+                        <svg width="100%" height="100%" viewBox="0 0 60 60" fill="%23222">
+                            <circle cx="30" cy="22" r="10" fill="#C0C0C0"/>
+                            <path d="M12 48 C12 36 20 34 30 34 C40 34 48 36 48 48" fill="#C0C0C0"/>
+                        </svg>
+                    </div>
+                    <span class="model-name">Female 2</span>
+                    <span class="model-meta">Curvy | L</span>
+                </div>
+                
+                <!-- Model 3 (m1) -->
+                <div class="model-card" data-model="m1">
+                    <div class="model-avatar">
+                        <svg width="100%" height="100%" viewBox="0 0 60 60" fill="%23222">
+                            <circle cx="30" cy="22" r="10" fill="#CD7F32"/>
+                            <path d="M12 48 C12 36 20 34 30 34 C40 34 48 36 48 48" fill="#CD7F32"/>
+                        </svg>
+                    </div>
+                    <span class="model-name">Male 1</span>
+                    <span class="model-meta">Muscular | L</span>
+                </div>
+            </div>
+
+            <button class="btn-tryon" id="confirm-tryon">GENERATE TRY-ON</button>
+        </div>
+    </div>
+
+    <script>
+        const tryonBtn = document.getElementById('tryon-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModal = document.getElementById('close-modal');
+        const confirmTryon = document.getElementById('confirm-tryon');
+        const loader = document.getElementById('loader');
+        const loaderMsg = document.getElementById('loader-msg');
+        const galleryContainer = document.getElementById('gallery-container');
+        const productMainView = document.getElementById('product-main-view');
+        const modelCards = document.querySelectorAll('.model-card');
+        const sizeBtns = document.querySelectorAll('.size-btn');
+
+        let selectedModel = 'f1';
+
+        // Size button selection
+        sizeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sizeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Model card selection
+        modelCards.forEach(card => {
+            card.addEventListener('click', () => {
+                modelCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedModel = card.getAttribute('data-model');
+            });
+        });
+
+        // Open modal
+        tryonBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('active');
+        });
+
+        // Close modal
+        closeModal.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if(e.target === modalOverlay) modalOverlay.classList.remove('active');
+        });
+
+        // Simulate VTON Dress generation
+        confirmTryon.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+            loader.classList.add('active');
+            galleryContainer.classList.add('scanning');
+            
+            // Phase 1: Uploading
+            loaderMsg.innerText = "Analyzing Garment...";
+            
+            setTimeout(() => {
+                // Phase 2: Dressing
+                loaderMsg.innerText = `Dressing ${selectedModel.toUpperCase()} Model...`;
+                
+                setTimeout(() => {
+                    // Phase 3: Post-processing
+                    loaderMsg.innerText = "Enhancing Quality...";
+                    
+                    setTimeout(() => {
+                        // Change image source to simulate dressed model
+                        // We will use a premium placeholder depending on gender selected
+                        let dressedSvg = '';
+                        if(selectedModel.startsWith('f')) {
+                            dressedSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='250' viewBox='0 0 100 120'><rect x='10' y='30' width='80' height='70' rx='8' fill='%23111' stroke='%23D4AF37' stroke-width='2'/><path d='M25 30 L40 10 L60 10 L75 30' fill='none' stroke='%23111' stroke-width='5'/><circle cx='50' cy='65' r='12' fill='%23FFE4E1'/><path d='M35 15 L50 2 C50 2 65 15 50 15 Z' fill='%23444'/><text x='50' y='110' fill='%23D4AF37' font-size='7' font-family='sans-serif' text-anchor='middle'>Try-On: Female Model</text></svg>`;
+                        } else {
+                            dressedSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='250' viewBox='0 0 100 120'><rect x='10' y='30' width='80' height='70' rx='8' fill='%23111' stroke='%23D4AF37' stroke-width='2'/><path d='M25 30 L40 10 L60 10 L75 30' fill='none' stroke='%23111' stroke-width='5'/><circle cx='50' cy='65' r='12' fill='%23F5DEB3'/><text x='50' y='110' fill='%23D4AF37' font-size='7' font-family='sans-serif' text-anchor='middle'>Try-On: Male Model</text></svg>`;
+                        }
+                        
+                        productMainView.src = dressedSvg;
+                        
+                        // Finish load
+                        loader.classList.remove('active');
+                        galleryContainer.classList.remove('scanning');
+                        
+                        // Change Button Text to let them reset
+                        tryonBtn.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                            RESET PRODUCT VIEW
+                        `;
+                        // Change button behavior to reset
+                        tryonBtn.onclick = resetProduct;
+                        
+                    }, 1200);
+                }, 1200);
+            }, 1200);
+        });
+
+        function resetProduct() {
+            // Reset to original flatlay
+            productMainView.src = "obscura_logo.png";
+            tryonBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                VIRTUAL TRY-ON
+            `;
+            // Restore original modal trigger behavior
+            tryonBtn.onclick = () => {
+                modalOverlay.classList.add('active');
+            };
+        }
+    </script>
+</body>
+</html>

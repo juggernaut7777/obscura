@@ -1,0 +1,52 @@
+# API keys & local config
+.env
+.env.*
+*.local
+ngrok_url.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Node / Frontend (storefront)
+node_modules/
+storefront/node_modules/
+.next/
+storefront/.next/
+dist/
+dist-ssr/
+build/
+package-lock.json
+
+# Executables & Playwright profiles
+*.exe
+*.dll
+*.node
+playwright_profile_sourcing/
+goal2_sourcing_engine/playwright_profile_sourcing/
+
+# Models & backups
+*.onnx
+*.bin
+*.tar.gz
+*.zip
+vps_backups/
+
+# Data outputs & temp files
+goal2_sourcing_engine/output/
+goal2_sourcing_engine/output_ugc/
+goal2_sourcing_engine/MANUAL_CURATION/
+goal2_sourcing_engine/review_pending/
+goal2_sourcing_engine/data/yupoo_sellers.json.tmp
+output/
+scratch/
+goal2_sourcing_engine/scratch/
+
+# IDEs
+.vscode/
+.idea/
+.gemini/
+.agents/

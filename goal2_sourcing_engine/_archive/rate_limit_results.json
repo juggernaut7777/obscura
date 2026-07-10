@@ -1,0 +1,235 @@
+{
+  "tests": [
+    {
+      "test_name": "interval_5s_x5",
+      "interval_seconds": 5,
+      "attempted": 5,
+      "successes": 0,
+      "failures": 5,
+      "success_rate": 0.0,
+      "results": [
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.2,
+          "timestamp": "2026-04-30 12:03:21",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:05:26",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:07:31",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 38.3,
+          "timestamp": "2026-04-30 12:08:14",
+          "response_snippet": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 2.0,
+          "timestamp": "2026-04-30 12:08:21",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Max retries exceeded with url: /generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000019162F6CFC0>: Failed to est"
+        }
+      ],
+      "timestamp": "2026-04-30 12:08:21"
+    },
+    {
+      "test_name": "interval_5s_x5",
+      "interval_seconds": 5,
+      "attempted": 5,
+      "successes": 0,
+      "failures": 5,
+      "success_rate": 0.0,
+      "results": [
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 98.2,
+          "timestamp": "2026-04-30 12:17:47",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 4.4,
+          "timestamp": "2026-04-30 12:17:57",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 3.2,
+          "timestamp": "2026-04-30 12:18:05",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 3.9,
+          "timestamp": "2026-04-30 12:18:14",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 4.5,
+          "timestamp": "2026-04-30 12:18:23",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        }
+      ],
+      "timestamp": "2026-04-30 12:18:23"
+    },
+    {
+      "test_name": "interval_5s_x5",
+      "interval_seconds": 5,
+      "attempted": 5,
+      "successes": 0,
+      "failures": 5,
+      "success_rate": 0.0,
+      "results": [
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 4.7,
+          "timestamp": "2026-04-30 12:18:47",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 5.7,
+          "timestamp": "2026-04-30 12:18:58",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 4.2,
+          "timestamp": "2026-04-30 12:19:07",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 3.3,
+          "timestamp": "2026-04-30 12:19:16",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 4.4,
+          "timestamp": "2026-04-30 12:19:25",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        }
+      ],
+      "timestamp": "2026-04-30 12:19:25"
+    },
+    {
+      "test_name": "interval_5s_x5",
+      "interval_seconds": 5,
+      "attempted": 5,
+      "successes": 0,
+      "failures": 5,
+      "success_rate": 0.0,
+      "results": [
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 63.2,
+          "timestamp": "2026-04-30 12:29:18",
+          "response_snippet": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 2.0,
+          "timestamp": "2026-04-30 12:29:25",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Max retries exceeded with url: /generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000023F9A4AB610>: Failed to est"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 2.1,
+          "timestamp": "2026-04-30 12:29:32",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Max retries exceeded with url: /generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000023F9A4ABED0>: Failed to est"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 3.1,
+          "timestamp": "2026-04-30 12:29:41",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        },
+        {
+          "status": 500,
+          "success": false,
+          "elapsed_seconds": 2.6,
+          "timestamp": "2026-04-30 12:29:48",
+          "response_snippet": "{\"error\": \"Generation failed\"}"
+        }
+      ],
+      "timestamp": "2026-04-30 12:29:48"
+    },
+    {
+      "test_name": "interval_5s_x5",
+      "interval_seconds": 5,
+      "attempted": 5,
+      "successes": 0,
+      "failures": 5,
+      "success_rate": 0.0,
+      "results": [
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:36:13",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:38:18",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:40:23",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:42:28",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        },
+        {
+          "status": 0,
+          "success": false,
+          "elapsed_seconds": 120.0,
+          "timestamp": "2026-04-30 12:44:33",
+          "response_snippet": "HTTPConnectionPool(host='127.0.0.1', port=9877): Read timed out. (read timeout=120)"
+        }
+      ],
+      "timestamp": "2026-04-30 12:44:33"
+    }
+  ],
+  "findings": {}
+}

@@ -1,0 +1,11 @@
+{
+    "fit_name": "Azure Performance",
+    "selected_indices": [
+        0,
+        3
+    ],
+    "full_fit_prompt": "Put the white Balenciaga '10' performance jersey from Reference 3 and the vivid blue nylon athletic shorts from Reference 4 on the model from Reference 1 and 2. The jersey should be perfectly fitted but not restrictive, and the shorts should have a relaxed, functional fit. The model should stand confidently in a dynamic pose, showcasing the athletic yet luxurious aesthetic of the outfit. Cinematic lighting, 8K, raw photo aesthetic. No clouds.",
+    "flat_lay_prompt": "A studio flat lay of the white Balenciaga '10' performance jersey from Reference 3 and the vivid blue nylon athletic shorts from Reference 4. The items are neatly arranged on a neutral light grey concrete background, highlighting their textures and design details. Crisp, even lighting, professional product photography, 8K, raw photo aesthetic. No clouds.",
+    "location": "A sleek, modernist concrete stadium interior, with strong architectural lines and diffused natural light.",
+    "styling_notes": "Style with clean, minimalist white athletic sneakers. Hair should be groomed in a slicked-back, modern fashion, emphasizing the model's clean aesthetic. Maintain a fresh, natural face. Ensure the overall styling enhances the athletic luxury feel, focusing on the vibrant blue and crisp white color palette. No extraneous accessories or layering."
+}

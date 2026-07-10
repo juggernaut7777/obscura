@@ -1,0 +1,141 @@
+{
+  "blanks": [
+    {
+      "name": "IDLT",
+      "subdomain": "idlt",
+      "focus": "Y2K Washed Blanks, Heavy Cotton",
+      "url": "https://idlt.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "PYC Studio",
+      "subdomain": "pycstudio",
+      "focus": "Studio Blanks, Boxy Hoodies, Drop Shoulder Sweats",
+      "url": "https://pycstudio.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "UnionKingdom",
+      "subdomain": "unionkingdom",
+      "focus": "Vintage Heavyweight Tees & Basics",
+      "url": "https://unionkingdom.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "Maden Vintage",
+      "subdomain": "maden",
+      "focus": "Military Fatigue, Heavy Canvas, Cargo Pants",
+      "url": "https://maden.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "BJHG",
+      "subdomain": "bjhg",
+      "focus": "Gen-Z Streetwear, Cargo Pants, Retro Graphic Tees",
+      "url": "https://bjhg.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "Simple Project",
+      "subdomain": "simpleproject",
+      "focus": "Clean Tailoring, Wide-Leg Structured Trousers",
+      "url": "https://simpleproject.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    }
+  ],
+  "replicas_streetwear": [
+    {
+      "name": "Goat-Official",
+      "subdomain": "goat-official",
+      "focus": "Corteiz, Trapstar, Synaworld",
+      "url": "https://goat-official.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "Husky / Powerball",
+      "subdomain": "husky-reps",
+      "focus": "Nike Tech, Stussy, General Streetwear",
+      "url": "https://husky-reps.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "TopStoney",
+      "subdomain": "topstoney",
+      "focus": "Stone Island (Gold Standard)",
+      "url": "https://topstoney.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "ChaosMade",
+      "subdomain": "chaosmade",
+      "focus": "Represent, FOG Essentials, Budget Tees",
+      "url": "https://chaosmade.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "Singor",
+      "subdomain": "singor0220",
+      "focus": "Large Varied Inventory, Mid-Tier Streetwear",
+      "url": "https://singor0220.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    }
+  ],
+  "replicas_designer": [
+    {
+      "name": "Repsbrothers",
+      "subdomain": "repsbrothers",
+      "focus": "CDG, Ami Paris, Kenzo (Boutique Quality)",
+      "url": "https://repsbrothers.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "TopAcney",
+      "subdomain": "topacney",
+      "focus": "Acne Studios Knitwear, Boxy Tees, Cardigans",
+      "url": "https://topacney.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    },
+    {
+      "name": "Taurus",
+      "subdomain": "taurus-official",
+      "focus": "Balenciaga, Gallery Dept, Dior",
+      "url": "https://taurus-official.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    }
+  ],
+  "replicas_shoes": [
+    {
+      "name": "WWTOP",
+      "subdomain": "wwtop",
+      "focus": "Jordans, Travis Scott, Yeezy, Dunks (PK/LJR Batches)",
+      "url": "https://wwtop.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    }
+  ],
+  "replicas_accessories": [
+    {
+      "name": "BagKing",
+      "subdomain": "bagking",
+      "focus": "Prada, LV, Gucci Leather Bags",
+      "url": "https://bagking.x.yupoo.com",
+      "last_scraped": null,
+      "album_count": 0
+    }
+  ],
+  "spreadsheets": []
+}

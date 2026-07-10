@@ -1,0 +1,56 @@
+# Environment files (API keys)
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated outputs
+output/
+generated_ads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sensitive data files — NEVER commit
+google_cookies.json
+brain_memory.json
+ngrok_url.txt
+bridge_log.txt
+worker_log.txt
+uploaded_campaigns.json
+data/brain_sqlite.db
+*.kling_cookies.json
+*.dreamina_cookies.json
+
+# Debug files
+*.log
+bing_debug.html
+clot_search_raw.html
+ddg_stealth_results.html
+
+# Debug screenshots
+bing_debug_run.png
+ddg_debug.png
+topacney_category_debug.png
+yupoo_debug_*.png
+yupoo_screenshot.png
+test_screenshot.png
+
+# Playwright browser profiles (contain session data)
+playwright_profile*/
+
+# Test output files
+test_*_out.txt
+test_*_out2.txt
+test_*_err2.txt
+verify_*_out.txt
+verify_*_email.txt
+
+# Large binaries
+ngrok.exe
+cloudflared.exe

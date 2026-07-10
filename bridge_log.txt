@@ -1,0 +1,763 @@
+[13:19:55] ==================================================
+[13:19:55] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:19:55] ==================================================
+[13:19:57] ☁️ Starting Ngrok tunnel...
+[13:19:57] Server started on port 9877
+[13:19:57] 
+[13:19:57] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:19:57] --------------------------------------------------
+[13:19:57] --------------------------------------------------
+[13:19:57] 
+[13:19:57] Server is running in 24/7 PERSISTENT MODE.
+[13:19:57] Waiting for VPS requests on Port 9877...
+[13:19:57] Press Ctrl+C to stop.
+[13:20:06] INCOMING POST: /push
+[13:20:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:20:06] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION'}
+[13:20:07] INCOMING GET: /reload-extension
+[13:20:07] 🔄 Extension reload requested by developer.
+[13:20:07] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[13:20:08] 🔄 Signaling Chrome extension to reload...
+[13:20:09] INCOMING POST: /push
+[13:20:09] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:20:09] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION'}
+[13:20:18] INCOMING GET: /tokens?action=IMAGE_GENERATION
+[13:20:24] INCOMING GET: /tokens?action=IMAGE_GENERATION
+[13:20:33] INCOMING GET: /tokens?action=IMAGE_GENERATION
+[13:21:05] INCOMING POST: /push
+[13:21:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:21:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION'}
+[13:22:05] INCOMING POST: /push
+[13:22:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:22:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION'}
+[13:22:51] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:22:51] 🔄 Tokens requested for action 'VIDEO_GENERATION' but stale/missing. Signaling Chrome extension to push...
+[13:22:52] INCOMING POST: /push
+[13:22:52] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:22:52] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:22:55] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:23:00] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:23:05] INCOMING POST: /push
+[13:23:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:23:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:23:07] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:23:35] ==================================================
+[13:23:35] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:23:35] ==================================================
+[13:23:37] ☁️ Starting Ngrok tunnel...
+[13:23:37] Server started on port 9877
+[13:23:37] 
+[13:23:37] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:23:37] --------------------------------------------------
+[13:23:37] --------------------------------------------------
+[13:23:37] 
+[13:23:37] Server is running in 24/7 PERSISTENT MODE.
+[13:23:37] Waiting for VPS requests on Port 9877...
+[13:23:37] Press Ctrl+C to stop.
+[13:23:43] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[13:23:45] INCOMING GET: /reload-extension
+[13:23:45] 🔄 Extension reload requested by developer.
+[13:23:46] 🔄 Signaling Chrome extension to reload...
+[13:23:48] INCOMING POST: /push
+[13:23:48] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:23:48] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION'}
+[13:23:56] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:23:56] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:23:57] INCOMING POST: /push
+[13:23:57] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:23:57] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:23:59] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:23:59] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:01] INCOMING POST: /push
+[13:24:01] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:01] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:03] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:03] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:05] INCOMING POST: /push
+[13:24:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:06] INCOMING POST: /push
+[13:24:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:06] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:06] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:06] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:08] INCOMING POST: /push
+[13:24:08] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:08] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:09] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:09] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:11] INCOMING POST: /push
+[13:24:11] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:11] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:14] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:14] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:16] INCOMING POST: /push
+[13:24:16] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:16] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:18] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:18] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:20] INCOMING POST: /push
+[13:24:20] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:20] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:21] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:21] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:22] INCOMING POST: /push
+[13:24:22] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:22] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:28] ==================================================
+[13:24:28] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:24:28] ==================================================
+[13:24:30] ☁️ Starting Ngrok tunnel...
+[13:24:30] Server started on port 9877
+[13:24:30] 
+[13:24:30] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:24:30] --------------------------------------------------
+[13:24:30] --------------------------------------------------
+[13:24:30] 
+[13:24:30] Server is running in 24/7 PERSISTENT MODE.
+[13:24:30] Waiting for VPS requests on Port 9877...
+[13:24:30] Press Ctrl+C to stop.
+[13:24:30] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:30] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:24:31] INCOMING POST: /push
+[13:24:31] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:24:31] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:24:33] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:24:46] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[13:25:05] INCOMING POST: /push
+[13:25:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:25:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:26:05] INCOMING POST: /push
+[13:26:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:26:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:27:05] INCOMING POST: /push
+[13:27:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:27:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION'}
+[13:28:00] ==================================================
+[13:28:00] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:28:00] ==================================================
+[13:28:03] ☁️ Starting Ngrok tunnel...
+[13:28:03] Server started on port 9877
+[13:28:03] 
+[13:28:03] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:28:03] --------------------------------------------------
+[13:28:03] --------------------------------------------------
+[13:28:03] 
+[13:28:03] Server is running in 24/7 PERSISTENT MODE.
+[13:28:03] Waiting for VPS requests on Port 9877...
+[13:28:03] Press Ctrl+C to stop.
+[13:28:05] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[13:28:05] INCOMING POST: /push
+[13:28:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:28:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:28:12] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:28:12] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:28:14] INCOMING POST: /push
+[13:28:14] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:28:14] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:28:15] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:28:22] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:28:27] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:29:01] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:29:01] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:29:04] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:29:04] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:29:05] INCOMING POST: /push
+[13:29:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:29:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:29:06] INCOMING POST: /push
+[13:29:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:29:06] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:29:07] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:29:13] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:29:19] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:29:24] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:29:24] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:29:26] INCOMING POST: /push
+[13:29:26] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:29:26] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:29:27] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:30:05] INCOMING POST: /push
+[13:30:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:30:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:31:05] INCOMING POST: /push
+[13:31:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:31:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:32:06] INCOMING POST: /push
+[13:32:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:32:06] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:32:49] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:32:49] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:32:51] INCOMING POST: /push
+[13:32:51] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:32:51] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'batchAsyncGenerateVideoText', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:32:52] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:32:58] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:32:58] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:32:59] INCOMING POST: /push
+[13:32:59] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:32:59] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'video:batchAsyncGenerateVideoText', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:33:01] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:33:05] INCOMING POST: /push
+[13:33:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:33:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'video:batchAsyncGenerateVideoText', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:33:07] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:33:07] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:33:08] INCOMING POST: /push
+[13:33:08] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:33:08] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:33:10] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:34:07] INCOMING POST: /push
+[13:34:07] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:34:07] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:35:05] INCOMING POST: /push
+[13:35:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:35:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'VIDEO_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV'}
+[13:35:57] ==================================================
+[13:35:57] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:35:57] ==================================================
+[13:35:59] ☁️ Starting Ngrok tunnel...
+[13:35:59] Server started on port 9877
+[13:35:59] 
+[13:35:59] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:35:59] --------------------------------------------------
+[13:35:59] --------------------------------------------------
+[13:35:59] 
+[13:35:59] Server is running in 24/7 PERSISTENT MODE.
+[13:35:59] Waiting for VPS requests on Port 9877...
+[13:35:59] Press Ctrl+C to stop.
+[13:36:01] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[13:36:13] INCOMING POST: /push
+[13:36:13] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:36:13] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV', 'allSiteKeys': []}
+[13:37:07] INCOMING POST: /push
+[13:37:07] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:37:07] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV', 'allSiteKeys': []}
+[13:38:11] INCOMING POST: /push
+[13:38:11] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:38:11] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV', 'allSiteKeys': []}
+[13:39:05] INCOMING POST: /push
+[13:39:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:39:05] DEBUG: Current TOKENS state: {'user': 'David Ogbonnaya', 'pid': '994e7769-1688-41bf-89a8-3ed4e47fd2eb', 'auth': '0', 'action': 'IMAGE_GENERATION', 'siteKey': '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV', 'allSiteKeys': []}
+[13:39:48] ==================================================
+[13:39:48] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:39:48] ==================================================
+[13:39:50] ☁️ Starting Ngrok tunnel...
+[13:39:50] Server started on port 9877
+[13:39:50] 
+[13:39:50] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:39:50] --------------------------------------------------
+[13:39:50] --------------------------------------------------
+[13:39:50] 
+[13:39:50] Server is running in 24/7 PERSISTENT MODE.
+[13:39:50] Waiting for VPS requests on Port 9877...
+[13:39:50] Press Ctrl+C to stop.
+[13:39:51] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[13:40:06] INCOMING POST: /push
+[13:40:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:40:06] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:41:05] INCOMING POST: /push
+[13:41:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:41:05] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:42:06] INCOMING POST: /push
+[13:42:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:42:06] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:43:06] INCOMING POST: /push
+[13:43:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:43:06] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:44:06] INCOMING POST: /push
+[13:44:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:44:06] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:45:05] INCOMING POST: /push
+[13:45:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:45:05] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:45:48] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:45:48] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:45:51] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:45:51] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:45:52] INCOMING POST: /push
+[13:45:52] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:45:52] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:45:54] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:46:00] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:46:00] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:46:02] INCOMING POST: /push
+[13:46:02] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:46:02] DEBUG: TOKENS action='video:batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:46:03] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:46:09] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:46:09] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:46:10] INCOMING POST: /push
+[13:46:10] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:46:10] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:46:11] INCOMING POST: /push
+[13:46:11] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:46:11] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:46:13] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:47:06] INCOMING POST: /push
+[13:47:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:47:06] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:48:05] INCOMING POST: /push
+[13:48:05] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:48:05] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:49:06] INCOMING POST: /push
+[13:49:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:49:06] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=? cfgDiag=? allSiteKeys=[]
+[13:50:39] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:50:39] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:50:42] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:50:42] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:50:45] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:50:45] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:50:49] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:50:49] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:50:49] INCOMING POST: /push
+[13:50:49] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:50:49] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:50:52] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:50:57] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:50:57] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:01] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:51:01] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:04] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:51:04] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:07] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:51:07] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:09] INCOMING POST: /push
+[13:51:09] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:51:09] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:51:10] INCOMING GET: /tokens?action=video:batchAsyncGenerateVideoText&force=true
+[13:51:10] 🔄 Tokens requested for action 'video:batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:16] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:51:16] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:19] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:51:19] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:22] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:51:22] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:26] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:51:26] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:30] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:51:30] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:45] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:51:45] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:48] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:51:48] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:52] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:51:52] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:55] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:51:55] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:51:59] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:51:59] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:04] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:52:04] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:08] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:52:08] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:11] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:52:11] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:12] INCOMING POST: /push
+[13:52:12] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:52:12] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:52:15] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:52:15] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:18] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:52:18] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:24] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:52:24] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:27] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:52:27] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:31] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:52:31] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:34] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:52:34] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:52:38] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:52:38] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:11] INCOMING POST: /push
+[13:53:11] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:53:11] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:53:12] INCOMING POST: /push
+[13:53:12] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:53:12] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:53:25] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:53:31] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:31] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:35] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:35] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:38] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:38] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:42] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:42] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:45] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:45] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:49] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:49] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:52] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:52] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:56] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:56] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:53:59] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:53:59] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:54:02] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:54:02] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:54:06] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:54:06] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:54:09] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:54:09] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:54:12] INCOMING POST: /push
+[13:54:12] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:54:12] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:54:13] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:54:15] INCOMING POST: /push
+[13:54:15] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:54:15] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:54:19] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:54:19] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:54:22] INCOMING POST: /push
+[13:54:22] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:54:22] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:54:23] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:55:10] INCOMING POST: /push
+[13:55:10] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:55:10] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:55:55] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:55:55] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:55:59] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:55:59] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:02] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:56:02] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:06] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:56:06] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:06] INCOMING POST: /push
+[13:56:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:56:06] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:56:09] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:56:14] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:56:14] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:18] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:56:18] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:21] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:56:21] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:24] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:56:24] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:24] INCOMING POST: /push
+[13:56:24] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:56:24] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:56:28] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:56:33] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:56:33] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:36] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:56:36] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:40] INCOMING POST: /push
+[13:56:40] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:56:40] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:56:40] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:56:40] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:56:41] INCOMING POST: /push
+[13:56:41] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:56:41] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:56:43] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:57:02] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:57:02] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:05] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:57:05] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:08] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:57:08] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:11] INCOMING POST: /push
+[13:57:11] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:57:11] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:57:12] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[13:57:17] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:57:17] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:21] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:57:21] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:24] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:57:24] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:25] INCOMING POST: /push
+[13:57:25] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:57:25] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:57:27] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[13:57:33] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:57:33] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:36] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:57:36] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:39] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:57:39] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[13:57:39] INCOMING POST: /push
+[13:57:39] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:57:39] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:57:42] INCOMING POST: /push
+[13:57:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:57:42] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:57:42] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[13:58:40] INCOMING POST: /push
+[13:58:40] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[13:58:40] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[13:59:43] ==================================================
+[13:59:43] FLOW TOKEN BRIDGE + IMAGE GENERATOR
+[13:59:43] ==================================================
+[13:59:45] ☁️ Starting Ngrok tunnel...
+[13:59:45] Server started on port 9877
+[13:59:45] 
+[13:59:45] PASTE THIS IN CHROME CONSOLE (on a Flow project page):
+[13:59:45] --------------------------------------------------
+[13:59:45] --------------------------------------------------
+[13:59:45] 
+[13:59:45] Server is running in 24/7 PERSISTENT MODE.
+[13:59:45] Waiting for VPS requests on Port 9877...
+[13:59:45] Press Ctrl+C to stop.
+[13:59:48] 🚀 PUBLIC URL: https://buffoon-correct-credible.ngrok-free.dev
+[14:00:41] INCOMING POST: /push
+[14:00:41] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:00:41] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:01:39] INCOMING POST: /push
+[14:01:39] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:01:39] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:02:29] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:02:29] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:02:32] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:02:32] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:02:35] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:02:35] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:02:38] INCOMING POST: /push
+[14:02:38] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:02:38] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:02:39] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:02:40] INCOMING POST: /push
+[14:02:40] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:02:40] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:02:40] INCOMING POST: /generate-video-in-browser
+[14:02:40] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:03:40] INCOMING POST: /push
+[14:03:40] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:03:40] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:04:10] ❌ In-browser video generation request timed out!
+[14:04:13] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:04:13] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:04:17] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:04:17] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:04:20] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:04:20] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:04:21] INCOMING POST: /push
+[14:04:21] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:04:21] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:04:23] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:04:25] INCOMING POST: /generate-video-in-browser
+[14:04:25] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:04:39] INCOMING POST: /push
+[14:04:39] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:04:39] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:05:40] INCOMING POST: /push
+[14:05:40] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:05:40] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:05:55] ❌ In-browser video generation request timed out!
+[14:05:58] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:05:58] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:06:01] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:06:01] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:06:04] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:06:04] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:06:07] INCOMING POST: /push
+[14:06:07] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:06:07] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:06:08] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:06:09] INCOMING POST: /generate-video-in-browser
+[14:06:09] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:06:40] INCOMING POST: /push
+[14:06:40] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:06:40] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:07:20] INCOMING POST: /push-generation-result
+[14:07:20] 📥 Received video generation result from browser.
+[14:07:20] ✅ In-browser video generation request completed!
+[14:09:07] INCOMING POST: /push
+[14:09:07] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:09:07] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:10:21] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:10:21] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:24] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:10:24] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:27] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:10:27] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:30] INCOMING POST: /push
+[14:10:30] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:10:30] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:10:30] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:10:32] INCOMING POST: /generate-video-in-browser
+[14:10:32] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:10:41] INCOMING POST: /push-generation-result
+[14:10:41] 📥 Received video generation result from browser.
+[14:10:41] ✅ In-browser video generation request completed!
+[14:10:43] INCOMING POST: /push
+[14:10:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:10:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:10:45] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:10:45] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:48] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:10:48] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:51] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:10:51] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:54] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:10:54] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:10:55] INCOMING POST: /push
+[14:10:55] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:10:55] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:10:58] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:10:59] INCOMING POST: /generate-video-in-browser
+[14:10:59] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:11:07] INCOMING POST: /push-generation-result
+[14:11:07] 📥 Received video generation result from browser.
+[14:11:07] ✅ In-browser video generation request completed!
+[14:11:10] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:11:10] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:11:14] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:11:14] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:11:17] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:11:17] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:11:20] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:11:20] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:11:20] INCOMING POST: /push
+[14:11:20] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:11:20] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:11:23] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:11:25] INCOMING POST: /generate-video-in-browser
+[14:11:25] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:11:33] INCOMING POST: /push-generation-result
+[14:11:33] 📥 Received video generation result from browser.
+[14:11:33] ✅ In-browser video generation request completed!
+[14:11:44] INCOMING POST: /push
+[14:11:44] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:11:44] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:12:45] INCOMING POST: /push
+[14:12:45] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:12:45] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:13:56] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:13:56] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:13:59] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:13:59] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:02] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:14:02] 🔄 Tokens requested for action 'IMAGE_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:06] INCOMING POST: /push
+[14:14:06] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:14:06] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:14:06] INCOMING GET: /tokens?action=IMAGE_GENERATION&force=true
+[14:14:07] INCOMING POST: /generate-video-in-browser
+[14:14:07] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:14:14] INCOMING POST: /push-generation-result
+[14:14:14] 📥 Received video generation result from browser.
+[14:14:14] ✅ In-browser video generation request completed!
+[14:14:17] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:14:17] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:21] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:14:21] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:24] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:14:24] 🔄 Tokens requested for action 'batchAsyncGenerateVideoText' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:26] INCOMING POST: /push
+[14:14:26] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:14:26] DEBUG: TOKENS action='batchAsyncGenerateVideoText' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:14:27] INCOMING GET: /tokens?action=batchAsyncGenerateVideoText&force=true
+[14:14:28] INCOMING POST: /generate-video-in-browser
+[14:14:28] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:14:36] INCOMING POST: /push-generation-result
+[14:14:36] 📥 Received video generation result from browser.
+[14:14:36] ✅ In-browser video generation request completed!
+[14:14:39] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:14:39] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:41] INCOMING POST: /push
+[14:14:41] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:14:41] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:14:43] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:14:43] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:46] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:14:46] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:49] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:14:49] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:14:49] INCOMING POST: /push
+[14:14:49] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:14:49] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:14:52] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:14:54] INCOMING POST: /generate-video-in-browser
+[14:14:54] 🎬 Video generation requested: prompt='A slow cinematic dolly zoom of a model walking down a foggy Tokyo alley wearing a luxury black streetwear hoodie, moody cinematic lighting.', aspect='VIDEO_ASPECT_RATIO_LANDSCAPE'
+[14:15:01] INCOMING POST: /push-generation-result
+[14:15:01] 📥 Received video generation result from browser.
+[14:15:01] ✅ In-browser video generation request completed!
+[14:15:35] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:15:35] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:15:38] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:15:38] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:15:41] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:15:41] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:15:43] INCOMING POST: /push
+[14:15:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:15:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:15:45] INCOMING POST: /push
+[14:15:45] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:15:45] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:15:45] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:15:51] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:15:57] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:16:42] INCOMING POST: /push
+[14:16:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:16:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:17:42] INCOMING POST: /push
+[14:17:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:17:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:18:10] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:18:10] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:18:13] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:18:13] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:18:17] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:18:17] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:18:18] INCOMING POST: /push
+[14:18:18] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:18:18] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:18:20] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:18:41] INCOMING POST: /push
+[14:18:41] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:18:41] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:19:43] INCOMING POST: /push
+[14:19:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:19:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:20:42] INCOMING POST: /push
+[14:20:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:20:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:21:42] INCOMING POST: /push
+[14:21:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:21:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:22:43] INCOMING POST: /push
+[14:22:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:22:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:23:43] INCOMING POST: /push
+[14:23:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:23:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:24:35] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:24:35] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:24:38] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:24:38] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:24:42] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:24:42] 🔄 Tokens requested for action 'VIDEO_GENERATION' (force=True) but stale/missing/forced. Signaling Chrome extension to push...
+[14:24:43] INCOMING POST: /push
+[14:24:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:24:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:24:43] INCOMING POST: /push
+[14:24:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:24:43] DEBUG: TOKENS action='VIDEO_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:24:45] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:24:51] INCOMING GET: /tokens?action=VIDEO_GENERATION&force=true
+[14:25:09] INCOMING GET: /tokens?action=VIDEO_GENERATION
+[14:25:17] INCOMING GET: /tokens?action=VIDEO_GENERATION
+[14:25:43] INCOMING POST: /push
+[14:25:43] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:25:43] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:26:45] INCOMING POST: /push
+[14:26:45] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:26:45] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:27:42] INCOMING POST: /push
+[14:27:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:27:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:28:42] INCOMING POST: /push
+[14:28:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:28:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:29:42] INCOMING POST: /push
+[14:29:42] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:29:42] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']
+[14:30:44] INCOMING POST: /push
+[14:30:44] 📌 Project ID Sticky-Locked: 994e7769-1688-41bf-89a8-3ed4e47fd2eb
+[14:30:44] DEBUG: TOKENS action='IMAGE_GENERATION' siteKey='6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV' method=A_CFG cfgDiag=clients=1,keys=[100000] allSiteKeys=['6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV']

@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "OBSCURA Flow Bridge v6",
+    "version": "6.0.0",
+    "description": "Elite autonomous token bridge for OBSCURA fashion engine",
+    "permissions": [
+        "scripting",
+        "tabs",
+        "alarms",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://labs.google/*",
+        "http://localhost:9877/*",
+        "http://127.0.0.1:9877/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    }
+}

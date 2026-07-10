@@ -1,0 +1,23 @@
+{
+  "carousel_name": "carousel_red_hoodie_20260426_121441",
+  "product": "red_hoodie",
+  "created": "20260426_121441",
+  "total_slides": 2,
+  "slides": [
+    {
+      "slide": 1,
+      "filename": "slide_01_f4.png",
+      "model": "f4",
+      "source": "f4_red_hoodie_20260426_121210_0.png"
+    },
+    {
+      "slide": 2,
+      "filename": "slide_02_f5.png",
+      "model": "f5",
+      "source": "f5_red_hoodie_20260426_115543_0.png"
+    }
+  ],
+  "caption": "Obsessed is an understatement\n\nRed Hoodie -- Comfort first, compliments second. Both guaranteed.\n\nShop the look -- link in bio\n\n#StyleGuide #OutfitIdeas #FashionDaily #TrendAlert #GetDressed",
+  "format": "1080x1350 (4:5 portrait)",
+  "notes": "Add trending audio for Reels discovery. Use native product tags."
+}
