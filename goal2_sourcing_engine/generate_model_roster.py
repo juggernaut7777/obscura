@@ -55,8 +55,14 @@ def generate_sheet(model_id, prompt, suffix):
                         # img_path looks like /home/USER/ai-ugc/output/generated/file.webp
                         # change dest extension to webp
                         dest = dest.replace(".png", ".webp")
-                        cmd = f'scp -i C:/Users/USER/.ssh/google_compute_engine -o StrictHostKeyChecking=no USER@34.75.179.135:{img_path} "{dest}"'
-                        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        cmd = [
+                            "scp",
+                            "-i", "C:/Users/USER/.ssh/google_compute_engine",
+                            "-o", "StrictHostKeyChecking=no",
+                            f"USER@34.75.179.135:{img_path}",
+                            dest
+                        ]
+                        subprocess.run(cmd, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                         if os.path.exists(dest):
                             print(f"   ✅ Downloaded and saved to: {dest}")
                         else:
