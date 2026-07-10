@@ -177,10 +177,10 @@ async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATIO
                         } catch (e) {}
                     }
 
-                    // Method C: Hardcoded fallback
+                    // Method C: Hardcoded fallback removed for security.
                     if (!siteKey) {
-                        siteKey = "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV";
-                        siteKeyMethod = "C_HARDCODED";
+                        console.error("🔍 [OBSCURA v6] Failed to resolve siteKey dynamically. Extension functionality may be limited.");
+                        siteKeyMethod = "FAILED";
                     }
                     
                     console.log(`🔍 [OBSCURA v6] siteKey resolved via ${siteKeyMethod}. cfgDiag=${cfgDiag}. allKeys=[${siteKeysFound.join(",")}]`);
@@ -370,7 +370,7 @@ async function generateVideoInBrowser(genData) {
                     if (!authReq.ok) return { error: "Auth fetch failed: " + authReq.status };
                     const auth = await authReq.json();
                     
-                    let siteKey = "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV";
+                    let siteKey = "";
                     if (typeof ___grecaptcha_cfg !== "undefined" && ___grecaptcha_cfg.clients) {
                         const clients = ___grecaptcha_cfg.clients;
                         for (const key of Object.keys(clients)) {
