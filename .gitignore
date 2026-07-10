@@ -50,3 +50,6 @@ goal2_sourcing_engine/scratch/
 .idea/
 .gemini/
 .agents/
+test_mem.json
+benchmark*.py
+output.txt
