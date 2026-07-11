@@ -1402,10 +1402,12 @@ def tool_create_digital_product(
             BEAUTY_PROMPTS, WIG_PROMPTS, CHARACTER_SHEET_PROMPTS,
             CANDID_FILTERS,
         )
-        content = f"# {title}\n\n"
-        content += f"{description}\n\n"
-        content += "## 🔥 Anti-AI Detection Filter\n"
-        content += f"```\n{CANDID_FILTERS}\n```\n\n"
+        content_parts = [
+            f"# {title}\n\n",
+            f"{description}\n\n",
+            "## 🔥 Anti-AI Detection Filter\n",
+            f"```\n{CANDID_FILTERS}\n```\n\n"
+        ]
 
         sections = {
             "Clothing Ad Prompts": CLOTHING_PROMPTS,
@@ -1416,11 +1418,12 @@ def tool_create_digital_product(
             "Character Sheet Prompts": CHARACTER_SHEET_PROMPTS,
         }
         for section_name, prompts in sections.items():
-            content += f"## {section_name}\n\n"
+            content_parts.append(f"## {section_name}\n\n")
             for name, prompt in prompts.items():
-                content += f"### {name.replace('_', ' ').title()}\n"
-                content += f"```\n{prompt}\n```\n\n"
+                content_parts.append(f"### {name.replace('_', ' ').title()}\n")
+                content_parts.append(f"```\n{prompt}\n```\n\n")
 
+        content = "".join(content_parts)
         filepath = os.path.join(output_dir, f"{safe_title}.md")
         with open(filepath, "w") as f:
             f.write(content)
@@ -1435,43 +1438,56 @@ def tool_create_digital_product(
             "Module 6: Finding & Pitching Brands",
             "Module 7: Scaling to $1K/Month",
         ]
-        content = f"# {title}\n\n"
-        content += f"**Price: {price}**\n\n"
-        content += f"{description}\n\n"
-        content += "## Course Outline\n\n"
+        content_parts = [
+            f"# {title}\n\n",
+            f"**Price: {price}**\n\n",
+            f"{description}\n\n",
+            "## Course Outline\n\n"
+        ]
         for i, module in enumerate(outline):
-            content += f"{i+1}. {module}\n"
-        content += "\n\n## What You'll Learn\n\n"
-        content += "- Generate unlimited photorealistic AI ads for FREE\n"
-        content += "- Create consistent AI model characters\n"
-        content += "- Automate posting to TikTok, Instagram, Facebook\n"
-        content += "- Build an AI ad agency from scratch\n"
-        content += "- Use free AI tools (no paid APIs needed)\n"
+            content_parts.append(f"{i+1}. {module}\n")
 
+        content_parts.extend([
+            "\n\n## What You'll Learn\n\n",
+            "- Generate unlimited photorealistic AI ads for FREE\n",
+            "- Create consistent AI model characters\n",
+            "- Automate posting to TikTok, Instagram, Facebook\n",
+            "- Build an AI ad agency from scratch\n",
+            "- Use free AI tools (no paid APIs needed)\n"
+        ])
+
+        content = "".join(content_parts)
         filepath = os.path.join(output_dir, f"{safe_title}.md")
         with open(filepath, "w") as f:
             f.write(content)
 
     elif product_type == "workflow_template":
-        content = f"# {title}\n\n"
-        content += f"**Price: {price}**\n\n"
-        content += "## Included Workflows\n\n"
-        content += "1. Product Scraping (USFans/CNFans/Yupoo)\n"
-        content += "2. AI Image Generation (Google AI Studio)\n"
-        content += "3. Caption Generation (TikTok-safe)\n"
-        content += "4. Auto-Posting Pipeline\n"
-        content += "5. Brand Outreach Automation\n"
+        content_parts = [
+            f"# {title}\n\n",
+            f"**Price: {price}**\n\n",
+            "## Included Workflows\n\n",
+            "1. Product Scraping (USFans/CNFans/Yupoo)\n",
+            "2. AI Image Generation (Google AI Studio)\n",
+            "3. Caption Generation (TikTok-safe)\n",
+            "4. Auto-Posting Pipeline\n",
+            "5. Brand Outreach Automation\n"
+        ]
         for item in (content_outline or []):
-            content += f"- {item}\n"
+            content_parts.append(f"- {item}\n")
 
+        content = "".join(content_parts)
         filepath = os.path.join(output_dir, f"{safe_title}.md")
         with open(filepath, "w") as f:
             f.write(content)
     else:
         filepath = os.path.join(output_dir, f"{safe_title}.md")
-        content = f"# {title}\n\n{description}\n\nPrice: {price}\n"
+        content_parts = [
+            f"# {title}\n\n{description}\n\nPrice: {price}\n"
+        ]
         for item in (content_outline or []):
-            content += f"- {item}\n"
+            content_parts.append(f"- {item}\n")
+
+        content = "".join(content_parts)
         with open(filepath, "w") as f:
             f.write(content)
 
