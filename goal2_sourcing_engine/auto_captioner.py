@@ -63,14 +63,14 @@ class AutoCaptioner:
                 else:
                     return None
 
-            srt_content = ""
+            srt_parts = []
             for i, seg in enumerate(segments, 1):
                 start = self.float_to_srt_time(seg["start"])
                 end = self.float_to_srt_time(seg["end"])
                 text = seg["text"].strip()
-                srt_content += f"{i}\n{start} --> {end}\n{text}\n\n"
+                srt_parts.append(f"{i}\n{start} --> {end}\n{text}\n\n")
 
-            return srt_content
+            return "".join(srt_parts)
 
         except Exception as e:
             print(f"[-] Transcription error: {e}")
