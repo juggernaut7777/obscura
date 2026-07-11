@@ -51,3 +51,8 @@ goal2_sourcing_engine/scratch/
 .gemini/
 .agents/
 playwright_profile/
+
+# Benchmark files
+test_mem.json
+benchmark*.py
+output.txt

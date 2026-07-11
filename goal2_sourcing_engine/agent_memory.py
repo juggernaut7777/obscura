@@ -180,8 +180,13 @@ class AgentMemory:
     def add_product(self, product: dict):
         """Add a scraped product to catalog (with deduplication)."""
         # Dedup by URL or product name
-        existing_urls = {p.get("productUrl", "") for p in self.data["products_scraped"] if p.get("productUrl")}
-        existing_names = {p.get("productName", "").lower().strip() for p in self.data["products_scraped"] if p.get("productName")}
+        existing_urls = set()
+        existing_names = set()
+        for p in self.data["products_scraped"]:
+            if u := p.get("productUrl"):
+                existing_urls.add(u)
+            if n := p.get("productName"):
+                existing_names.add(n.lower().strip())
         
         url = product.get("productUrl", "")
         name = product.get("productName", "").lower().strip()
@@ -199,8 +204,13 @@ class AgentMemory:
         self.save()
 
     def add_products_batch(self, products: list):
-        existing_urls = {p.get("productUrl", "") for p in self.data["products_scraped"] if p.get("productUrl")}
-        existing_names = {p.get("productName", "").lower().strip() for p in self.data["products_scraped"] if p.get("productName")}
+        existing_urls = set()
+        existing_names = set()
+        for p in self.data["products_scraped"]:
+            if u := p.get("productUrl"):
+                existing_urls.add(u)
+            if n := p.get("productName"):
+                existing_names.add(n.lower().strip())
         added = 0
         for p in products:
             url = p.get("productUrl", "")
