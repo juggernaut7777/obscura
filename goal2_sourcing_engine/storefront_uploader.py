@@ -767,9 +767,10 @@ def scan_and_upload():
     
     # Phase B: For set items — auto-pair with shoes to complete the outfit
     # A tracksuit set is already ONE product. Add matching shoes to make a full outfit.
+    final_products_by_id = {p["id"]: p for p in final_products}
     for group_key, group in product_groups.items():
         if group.get("is_set"):
-            this_product = next((p for p in final_products if p["id"] == group["slug"]), None)
+            this_product = final_products_by_id.get(group["slug"])
             if not this_product:
                 continue
             
