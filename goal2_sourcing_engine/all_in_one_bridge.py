@@ -691,14 +691,19 @@ def main():
     log("")
     log("PASTE THIS IN CHROME CONSOLE (on a Flow project page):")
     log("-" * 50)
-    snippet = """(async function() {
+    site_key = os.environ.get("RECAPTCHA_SITE_KEY")
+    if not site_key:
+        log("WARNING: RECAPTCHA_SITE_KEY environment variable is not set. Falling back to empty string, which may cause failures.")
+        site_key = ""
+
+    snippet = f"""(async function() {{
     const pid = window.location.href.split('/project/')[1]?.split('/')[0];
-    const auth = await (await fetch('/fx/api/auth/session', {credentials:'include'})).json();
-    const rc = await grecaptcha.enterprise.execute('6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV', {action:'IMAGE_GENERATION'});
-    await fetch('http://localhost:9877/push', {method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({bearer: auth.access_token, recaptcha: rc, user: auth.user?.name, projectId: pid})});
+    const auth = await (await fetch('/fx/api/auth/session', {{credentials:'include'}})).json();
+    const rc = await grecaptcha.enterprise.execute('{site_key}', {{action:'IMAGE_GENERATION'}});
+    await fetch('http://localhost:9877/push', {{method:'POST', headers:{{'Content-Type':'application/json'}},
+        body: JSON.stringify({{bearer: auth.access_token, recaptcha: rc, user: auth.user?.name, projectId: pid}})}});
     console.log('Tokens pushed for Project: ' + pid);
-})();"""
+}})();"""
     print(snippet, flush=True)
     log("-" * 50)
     log("")

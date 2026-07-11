@@ -137,12 +137,13 @@ async def get_fresh_tokens() -> tuple[str, str]:
 
         print("  [*] Extracting reCAPTCHA Enterprise Token...")
         try:
-            recaptcha = await page.evaluate("""async () => {
+            site_key = os.environ.get("RECAPTCHA_SITE_KEY", "")
+            recaptcha = await page.evaluate("""async (siteKey) => {
                 if (typeof grecaptcha !== 'undefined' && grecaptcha.enterprise) {
-                    return await grecaptcha.enterprise.execute('6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV', {action: 'IMAGE_GENERATION'});
+                    return await grecaptcha.enterprise.execute(siteKey, {action: 'IMAGE_GENERATION'});
                 }
                 return null;
-            }""")
+            }""", site_key)
         except Exception as e:
             print(f"  [!] Failed to get recaptcha: {e}")
             recaptcha = None

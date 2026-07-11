@@ -282,17 +282,18 @@ async def setup_browser():
 async def get_fresh_recaptcha(page):
     """Extracts a FRESH reCAPTCHA token right before a generation call."""
     try:
-        recaptcha = await page.evaluate("""async () => {
+        site_key = os.environ.get("RECAPTCHA_SITE_KEY", "")
+        recaptcha = await page.evaluate("""async (siteKey) => {
             try {
                 if (typeof grecaptcha !== 'undefined' && grecaptcha.enterprise) {
                     return await grecaptcha.enterprise.execute(
-                        '6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV',
+                        siteKey,
                         {action: 'IMAGE_GENERATION'}
                     );
                 }
                 return null;
             } catch { return null; }
-        }""")
+        }""", site_key)
         if recaptcha:
             log("[+] Fresh reCAPTCHA extracted!")
         else:
