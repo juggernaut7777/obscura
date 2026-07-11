@@ -1427,7 +1427,7 @@ async def on_message(message):
     # Download images
     saved_images = 0
     for attachment in message.attachments:
-        if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']):
+        if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             file_path = product_dir / attachment.filename
             try:
                 await attachment.save(file_path)
