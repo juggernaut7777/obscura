@@ -10,15 +10,20 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("[!] ERROR: Supabase URL or Key is missing from .env")
-
-# Initialize client
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase = None
+else:
+    # Initialize client
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def upload_product_to_storefront(product_data: dict):
     """
     Uploads a new product to the Supabase database.
     Expects product_data to have: title, description, price, category, images (list), source_url
     """
+    if supabase is None:
+        print("[-] Skipping upload: Supabase client is not initialized.")
+        return False
+
     try:
         # Format the data for the database
         db_payload = {
