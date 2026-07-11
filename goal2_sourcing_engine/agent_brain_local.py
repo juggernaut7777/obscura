@@ -39,6 +39,7 @@ from datetime import datetime
 from pathlib import Path
 
 from agent_memory import AgentMemory
+from supabase_client import upload_product_to_storefront
 
 BASE_DIR = Path(__file__).parent
 LOG_FILE = BASE_DIR / "brain_log.txt"
@@ -440,9 +441,12 @@ class LocalBrain:
                 "price": 85.00
             }
             
-            # TODO: Integrate Supabase Push here
-            log(f"[POST] Successfully synced '{product_data['title']}' to Obscura website database.")
-            log("   [*] Bypassing Meta/TikTok Shops. Socials will be used for organic traffic only.")
+            success = upload_product_to_storefront(product_data)
+            if success:
+                log(f"[POST] Successfully synced '{product_data['title']}' to Obscura website database.")
+                log("   [*] Bypassing Meta/TikTok Shops. Socials will be used for organic traffic only.")
+            else:
+                log(f"   [!] Failed to sync '{product_data['title']}' to Supabase.")
             
         except Exception as e:
             log("[!] Storefront error: {}".format(e))
