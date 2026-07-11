@@ -8,8 +8,14 @@ Replaces legacy corruptible JSON memory (brain_memory.json) with:
 import os
 import sqlite3
 import json
+import functools
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+
+@functools.lru_cache(maxsize=1024)
+def _cached_json_loads(s: str) -> Any:
+    """Cached json parser for repeated arrays/dicts."""
+    return json.loads(s)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BASE_DIR, "data", "brain_sqlite.db")
@@ -170,7 +176,7 @@ class Mem0Memory:
                 "ethnicity": r[2],
                 "gender": r[3],
                 "created": r[4],
-                "angles": json.loads(r[5]) if r[5] else []
+                "angles": list(_cached_json_loads(r[5])) if r[5] else []
             }
         return result
 
@@ -185,7 +191,7 @@ class Mem0Memory:
         
         products = []
         for r in rows:
-            extra = json.loads(r[10]) if r[10] else {}
+            extra = dict(_cached_json_loads(r[10])) if r[10] else {}
             products.append({
                 "id": r[0],
                 "productName": r[1],

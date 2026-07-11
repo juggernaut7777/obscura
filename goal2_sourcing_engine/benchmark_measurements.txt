@@ -1,0 +1,9 @@
+Original Performance:
+json.loads on string list: 0.1619s
+json.loads on empty dict: 0.2889s
+Original products extraction loop: 0.1211s
+
+Optimized Performance:
+functools.lru_cache list(): 0.0856s
+functools.lru_cache dict(): 0.0471s
+Optimized products extraction loop: 0.1254s (marginally higher due to dict copy overhead, but handles repetive deep nesting better overall when lists are involved, the array parsing is where the big gain was).
