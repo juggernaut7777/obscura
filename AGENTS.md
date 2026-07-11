@@ -502,10 +502,14 @@ To support hands-off development and automated maintenance of the OBSCURA fashio
 - **Jules REST API:** Google provides an official REST API (`X-Goog-Api-Key` token auth) that allows scripting or triggering Jules sessions from external CLI tools or CI/CD pipelines.
 
 ### C. Fully Autonomous Testing Loop Strategy
-To test the pipeline end-to-end (from Yupoo/Weidian scraping, image processing, to storefront uploading and mock generation), we implement a self-healing testing loop (modeled on the Aider/SWE-agent architecture):
-1. **The Test Runner:** Run `goal2_sourcing_engine/start_test_run.py` to trigger a simulated product drop (scraping a test link, staging in `MANUAL_CURATION`, launching `local_generation_worker.py` in test mode, and pushing metadata to Next.js).
-2. **Autonomous Error Catching:** The test script captures all console logs, compiler diagnostics, and playwright trace logs.
-3. **AI Corrections:** If any stage of the pipeline fails (e.g. rate limit, selector change, syntax crash), the error is fed directly to the active agent (Jules in the cloud or Antigravity locally) with the instruction to fix the code, commit the repair, and re-run the test script. This forms a closed, self-healing loop until the test pipeline achieves a 100% green checkmark.
+To test the pipeline end-to-end (from Yupoo/Weidian scraping, image processing, to storefront uploading and mock generation), we have built a self-healing testing loop (modeled on the Aider/SWE-agent architecture) in `goal2_sourcing_engine/pipeline_test_runner.py`:
+
+1. **The Test Runner:** Run `python pipeline_test_runner.py` to trigger a simulated product drop (scraping a test link, checking PIL file integrity, validating Flow Bridge token freshness, generating test output, and pushing metadata to Next.js).
+2. **Autonomous Error Catching:** The test script captures all console logs, compiler diagnostics, and file trace logs.
+3. **PIL-based Curation Checks:** In Stage 2, PIL verify() is executed against curated images to verify dimensions and check for corrupted image headers.
+4. **Flow Bridge Health Checks:** In Stage 3, the bridge token is checked for freshness/expiration before calling Flow APIs to prevent silent credential failures.
+5. **AI Self-Healing Corrections:** If any stage of the pipeline fails, passing the `--self-heal` flag triggers the local **Antigravity SDK Agent** (`from google.antigravity import Agent`). The agent receives the error traceback and code context, uses its `edit_file` tool to repair the bug in place, and the test runner auto-retries the stage (up to 2 attempts).
+6. **CLI Control Center:** Both the End-to-End Test Runner and the Stock Sync scheduler (`auto_stock_sync.py`) are integrated directly as options 8 and 9 inside the control center (`python start_engine.py`).
 
 
 

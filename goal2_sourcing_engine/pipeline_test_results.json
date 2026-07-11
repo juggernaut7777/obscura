@@ -1,0 +1,56 @@
+{
+  "run_at": "2026-07-11T10:54:52.619241",
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "results": [
+    {
+      "stage": 1,
+      "name": "SOURCING",
+      "passed": true,
+      "detail": "Dry run \u2014 imports OK, skipped live scrape",
+      "error": "",
+      "timestamp": "2026-07-11T10:54:48.086311"
+    },
+    {
+      "stage": 2,
+      "name": "CURATION",
+      "passed": true,
+      "detail": "Created valid test product in C:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\MANUAL_CURATION\\__pipeline_test_product__",
+      "error": "",
+      "timestamp": "2026-07-11T10:54:48.242250"
+    },
+    {
+      "stage": 3,
+      "name": "GENERATION",
+      "passed": false,
+      "detail": "Flow Bridge not running on localhost:9877. Start it with: python all_in_one_bridge.py",
+      "error": "",
+      "timestamp": "2026-07-11T10:54:52.360021"
+    },
+    {
+      "stage": 4,
+      "name": "OUTPUT",
+      "passed": true,
+      "detail": "Valid output folder with 2 images + metadata",
+      "error": "",
+      "timestamp": "2026-07-11T10:54:52.605521"
+    },
+    {
+      "stage": 5,
+      "name": "STOREFRONT",
+      "passed": true,
+      "detail": "Dry run \u2014 imports OK, products.js readable",
+      "error": "",
+      "timestamp": "2026-07-11T10:54:52.614992"
+    },
+    {
+      "stage": 6,
+      "name": "STOCK SYNC",
+      "passed": true,
+      "detail": "Dry run \u2014 imports OK, mappings readable",
+      "error": "",
+      "timestamp": "2026-07-11T10:54:52.618384"
+    }
+  ]
+}

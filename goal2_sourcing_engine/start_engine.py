@@ -32,10 +32,12 @@ def main():
         print("5. Run Factory Hunter (Find direct suppliers)")
         print("6. START 24/7 AUTONOMOUS LOOP")
         print("7. Push Code to VPS")
-        print("8. Exit")
+        print("8. Run End-to-End Pipeline Test")
+        print("9. Run Stock Sync (Updates live stock/prices)")
+        print("10. Exit")
 
         try:
-            choice = input("\nEnter choice (1-8): ").strip()
+            choice = input("\nEnter choice (1-10): ").strip()
 
             if choice == '1':
                 print("\n[*] Launching Social Media Login...")
@@ -60,6 +62,14 @@ def main():
                 print("\n[*] Pushing to VPS...")
                 os.system("push_to_vps.bat")
             elif choice == '8':
+                print("\n[*] Running End-to-End Pipeline Test...")
+                os.system("python pipeline_test_runner.py --self-heal")
+                input("\nPress Enter to return to main menu...")
+            elif choice == '9':
+                print("\n[*] Running Stock Sync...")
+                os.system("python auto_stock_sync.py")
+                input("\nPress Enter to return to main menu...")
+            elif choice == '10':
                 print("Exiting...")
                 sys.exit(0)
             else:
