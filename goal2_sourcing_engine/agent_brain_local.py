@@ -440,8 +440,13 @@ class LocalBrain:
                 "price": 85.00
             }
             
-            # TODO: Integrate Supabase Push here
-            log(f"[POST] Successfully synced '{product_data['title']}' to Obscura website database.")
+            from supabase_client import upload_product_to_storefront
+            success = upload_product_to_storefront(product_data)
+
+            if success:
+                log(f"[POST] Successfully synced '{product_data['title']}' to Obscura website database.")
+            else:
+                log(f"[!] Failed to sync '{product_data['title']}' to Supabase.")
             log("   [*] Bypassing Meta/TikTok Shops. Socials will be used for organic traffic only.")
             
         except Exception as e:
