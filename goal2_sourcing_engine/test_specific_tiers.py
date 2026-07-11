@@ -12,8 +12,9 @@ sys.path.insert(0, os.getcwd())
 from local_generation_worker import (
     setup_browser, discover_models, discover_products,
     upload_image, get_fresh_recaptcha, generate_image,
-    save_generated_images, PROMPT_TIERS
+    PROMPT_TIERS
 )
+from utils import save_generated_images
 
 import httpx
 

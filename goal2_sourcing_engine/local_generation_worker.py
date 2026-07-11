@@ -30,10 +30,12 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
+from typing import Optional
 from prompt_library import PROMPT_TIERS, ELITE_PROMPTS
 from prompt_library import get_prompts_for_product, get_flat_lay_only_prompts
 from prompt_library import GHOST_MANNEQUIN_PROMPTS, HANGER_PROMPTS, SET_FLAT_LAY_PROMPTS, DETAIL_CLOSEUP_PROMPTS
 from vision_evaluator import VisionEvaluator
+from utils import save_generated_images
 
 load_dotenv()
 
@@ -370,97 +372,6 @@ async def generate_image(client, prompt, asset_ids, headers, project_id, recaptc
     response.raise_for_status()
     return response.json()
 
-
-def save_generated_images(result: dict, model_id: str, product_name: str, source_products: list, campaign_folder: str, shot_name: str) -> list:
-    """
-    Saves generated images into a dedicated campaign folder.
-    Also copies the source product images, metadata, and size charts into the same folder for organization.
-    """
-    import shutil
-    import base64
-    campaign_dir = OUTPUT_DIR / campaign_folder
-    campaign_dir.mkdir(parents=True, exist_ok=True)
-
-    # Copy source products first
-    for sp in source_products:
-        try:
-            shutil.copy(sp, campaign_dir / Path(sp).name)
-        except:
-            pass
-
-    # Copy metadata.json, outfit_metadata.json, link.txt and size charts from the source folder
-    if source_products:
-        src_dir = Path(source_products[0]).parent
-        
-        # Copy metadata
-        for meta_name in ["metadata.json", "outfit_metadata.json", "link.txt"]:
-            meta_file = src_dir / meta_name
-            if meta_file.exists():
-                try:
-                    shutil.copy(str(meta_file), str(campaign_dir / meta_name))
-                except:
-                    pass
-                    
-        # Copy size charts
-        for f in src_dir.iterdir():
-            if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-                if any(k in f.name.lower() for k in ["chart", "size", "guide"]):
-                    try:
-                        shutil.copy(str(f), str(campaign_dir / f.name))
-                    except:
-                        pass
-
-    saved = []
-    
-    # 1. Check for CDN URLs (fifeUrl)
-    media_list = result.get("media", [])
-    for i, media_item in enumerate(media_list):
-        gen_image = media_item.get("image", {}).get("generatedImage", {})
-        fife_url = gen_image.get("fifeUrl", "")
-        if fife_url:
-            filename = f"{shot_name}_{i}.png"
-            filepath = campaign_dir / filename
-            success = False
-            for attempt in range(3):
-                try:
-                    import httpx as httpx_sync
-                    with httpx_sync.Client() as dl_client:
-                        img_response = dl_client.get(fife_url, timeout=60.0)
-                        img_response.raise_for_status()
-                        with open(filepath, "wb") as f:
-                            f.write(img_response.content)
-                        saved.append(str(filepath))
-                        log(f"  [SAVED] {campaign_folder}/{filename} ({len(img_response.content) // 1024} KB)")
-                        success = True
-                        break
-                except Exception as e:
-                    log(f"  [!] Download attempt {attempt+1} failed: {e}")
-                    import time
-                    time.sleep(2)
-            if not success:
-                log(f"  [!] Failed to download image after 3 attempts.")
-
-    # 2. Check for base64-encoded images (fallback)
-    images = result.get("generatedImages", result.get("images", []))
-    if not images and "responses" in result:
-        for resp in result["responses"]:
-            images.extend(resp.get("generatedImages", []))
-            
-    for i, img_data in enumerate(images):
-        img_bytes = img_data.get("encodedImage", img_data.get("imageBytes", ""))
-        if img_bytes:
-            filename = f"{shot_name}_fallback_{i}.png"
-            filepath = campaign_dir / filename
-            try:
-                with open(filepath, "wb") as f:
-                    f.write(base64.b64decode(img_bytes))
-                saved.append(str(filepath))
-                log(f"  [SAVED] {campaign_folder}/{filename}")
-            except Exception as e:
-                log(f"  [!] Failed to save base64: {e}")
-        log(f"  [?] No images in response. Debug saved: {debug_file.name}")
-
-    return saved
 
 
 
