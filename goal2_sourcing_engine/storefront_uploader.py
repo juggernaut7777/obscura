@@ -547,9 +547,13 @@ def scan_and_upload():
     # Build product entries
     final_products = list(existing_products)  # Start with existing products
     
+    product_id_to_idx = {p["id"]: i for i, p in enumerate(final_products)}
+    new_inserts_count = 0
+
     for group_key, group in product_groups.items():
         # Check if product already exists
-        existing_idx = next((i for i, p in enumerate(final_products) if p["id"] == group["slug"]), None)
+        original_idx = product_id_to_idx.get(group["slug"])
+        existing_idx = original_idx + new_inserts_count if original_idx is not None else None
         
         product_slug = group["slug"]
         
@@ -723,6 +727,7 @@ def scan_and_upload():
                 "stock_status": first_meta.get("stock_status", {})
             }
             final_products.insert(0, product_entry) # Put new items at the top
+            new_inserts_count += 1
             
             # ── PHASE 4B: Save supplier mapping to PRIVATE file ──
             supplier_mappings = load_supplier_mappings()
