@@ -27,6 +27,7 @@ import time
 import random
 import asyncio
 import traceback
+from typing import Optional
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -49,6 +50,8 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 LOG_FILE = BASE_DIR / "worker_log.txt"
 MODELS_DIR = BASE_DIR / "models" / "character_sheets"
 INPUT_DIR = BASE_DIR / "input_sourcing"
+
+BAD_IMAGE_KEYWORDS = ("chart", "size", "guide", "grid")
 
 MIN_DELAY_SECONDS = 90
 MAX_DELAY_SECONDS = 180
@@ -120,7 +123,8 @@ def discover_products():
             # Filter/Validate images in the folder
             valid_images = []
             for img in images:
-                if any(bad in img.name.lower() for bad in ["chart", "size", "guide", "grid"]):
+                name_lower = img.name.lower()
+                if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
                     continue
                 if has_validator:
                     check = validate_product_image(str(img))
@@ -166,7 +170,8 @@ def discover_products():
         loose_images.extend(list(INPUT_DIR.glob(ext)))
     
     for img in loose_images:
-        if any(bad in img.name.lower() for bad in ["chart", "size", "guide", "grid"]):
+        name_lower = img.name.lower()
+        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
             continue
         if has_validator:
             check = validate_product_image(str(img))
