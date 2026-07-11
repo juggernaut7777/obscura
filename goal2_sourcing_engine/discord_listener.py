@@ -262,30 +262,51 @@ async def call_gemini(prompt: str, system: str = BOT_BRAIN_SYSTEM) -> str:
         return ""
 
 
+import collections
+
+# Bounded cache to avoid slow memory leaks. Keeps max 1000 items.
+_metadata_cache = collections.OrderedDict()
+
 def get_warehouse_summary() -> str:
     """Summarise what's currently in MANUAL_CURATION for the bot brain context."""
-    folders = sorted(
-        [f for f in MANUAL_CURATION_DIR.iterdir() if f.is_dir()],
-        key=lambda f: f.stat().st_mtime, reverse=True
-    ) if MANUAL_CURATION_DIR.exists() else []
-    total = len(folders)
+    if not MANUAL_CURATION_DIR.exists():
+        return "Total products in warehouse: 0"
+
+    try:
+        entries = [e for e in os.scandir(MANUAL_CURATION_DIR) if e.is_dir()]
+        entries.sort(key=lambda e: e.stat().st_mtime, reverse=True)
+    except Exception:
+        entries = []
+
+    total = len(entries)
     recent = []
-    for folder in folders[:8]:
-        meta_file = folder / "metadata.json"
+    for entry in entries[:8]:
+        meta_file = Path(entry.path) / "metadata.json"
         if meta_file.exists():
             try:
-                meta = json.loads(meta_file.read_text(encoding="utf-8"))
-                name = meta.get("product_name", folder.name)
+                mtime = meta_file.stat().st_mtime
+                cached = _metadata_cache.get(meta_file)
+                if cached and cached['mtime'] == mtime:
+                    meta = cached['data']
+                    _metadata_cache.move_to_end(meta_file)
+                else:
+                    meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                    _metadata_cache[meta_file] = {'mtime': mtime, 'data': meta}
+                    if len(_metadata_cache) > 1000:
+                        _metadata_cache.popitem(last=False)
+
+                name = meta.get("product_name", entry.name)
                 color = meta.get("color", "")
                 cat = meta.get("category", "")
-                entry = f"{name}"
+                entry_str = f"{name}"
                 if color and color not in ("default", ""):
-                    entry += f" ({color})"
+                    entry_str += f" ({color})"
                 if cat:
-                    entry += f" [{cat}]"
-                recent.append(entry)
+                    entry_str += f" [{cat}]"
+                recent.append(entry_str)
             except Exception:
-                recent.append(folder.name)
+                recent.append(entry.name)
+
     lines = [f"Total products in warehouse: {total}"]
     if recent:
         lines.append("Recent additions: " + ", ".join(recent))
