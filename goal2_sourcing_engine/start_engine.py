@@ -34,10 +34,11 @@ def main():
         print("7. Push Code to VPS")
         print("8. Run End-to-End Pipeline Test")
         print("9. Run Stock Sync (Updates live stock/prices)")
-        print("10. Exit")
+        print("10. Compile captioned UGC Video Ad")
+        print("11. Exit")
 
         try:
-            choice = input("\nEnter choice (1-10): ").strip()
+            choice = input("\nEnter choice (1-11): ").strip()
 
             if choice == '1':
                 print("\n[*] Launching Social Media Login...")
@@ -70,6 +71,17 @@ def main():
                 os.system("python auto_stock_sync.py")
                 input("\nPress Enter to return to main menu...")
             elif choice == '10':
+                print("\n[*] UNIFIED UGC AD CREATOR [*]")
+                prompt = input("Enter video prompt (e.g. Model wearing black hoodie walking down NYC street): ").strip()
+                script = input("Enter narration script (e.g. Get the new Obscura heavy weight basic hoodie now): ").strip()
+                refs = input("Enter reference image paths (optional, space separated): ").strip()
+                cmd = f'python compile_ugc_ad.py --prompt "{prompt}" --script "{script}"'
+                if refs:
+                    cmd += f' --refs {refs}'
+                print(f"\n[*] Executing: {cmd}")
+                os.system(cmd)
+                input("\nPress Enter to return to main menu...")
+            elif choice == '11':
                 print("Exiting...")
                 sys.exit(0)
             else:
