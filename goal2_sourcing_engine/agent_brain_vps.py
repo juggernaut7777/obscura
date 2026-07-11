@@ -303,18 +303,19 @@ class AgentBrain:
             _tool_failure_count.pop(t, None)  # Reset failure count too
 
         # Build failure context so the LLM knows what's broken
-        failure_context = ""
+        failure_context_parts = []
         if _blocked_tools:
             blocked_list = "\n".join([
                 f"  - {t}: {info['reason'] if isinstance(info, dict) else info}"
                 for t, info in _blocked_tools.items()
             ])
-            failure_context += f"\n⚠️ TEMPORARILY BLOCKED TOOLS (will auto-retry soon):\n{blocked_list}\n"
+            failure_context_parts.append(f"\n⚠️ TEMPORARILY BLOCKED TOOLS (will auto-retry soon):\n{blocked_list}\n")
         if _tool_failure_count:
             failing = {t: c for t, c in _tool_failure_count.items() if c > 0}
             if failing:
                 fail_list = "\n".join([f"  - {t}: failed {c} times" for t, c in failing.items()])
-                failure_context += f"\n⚠️ RECENTLY FAILED TOOLS:\n{fail_list}\n"
+                failure_context_parts.append(f"\n⚠️ RECENTLY FAILED TOOLS:\n{fail_list}\n")
+        failure_context = "".join(failure_context_parts)
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
