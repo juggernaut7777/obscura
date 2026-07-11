@@ -165,18 +165,18 @@ def extract_metadata_from_campaign(campaign_dir):
     
     # Collect generated images (the AI shots, not the source product photos)
     for f in sorted(campaign_dir.iterdir()):
-        if f.suffix in [".png", ".jpg", ".jpeg", ".webp"]:
+        if f.suffix in {".png", ".jpg", ".jpeg", ".webp"}:
             # Only include generated shots (01_editorial, 02_lifestyle, etc.)
-            if any(tag in f.name for tag in ["editorial", "lifestyle", "flatlay", "ghost", "fallback",
+            if any(tag in f.name for tag in ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
                                               "flat_lay", "mannequin", "hanger", "detail", "hero",
-                                              "on_foot", "unboxing", "set_flat", "product_"]):
+                                              "on_foot", "unboxing", "set_flat", "product_")):
                 metadata["images"].append(f)
     
     # Collect original source images (Yupoo/Weidian scraped photos)
     metadata["source_images"] = []
     source_prefixes = ("front_angle", "back_angle", "side_angle", "angle_", "source_")
     for f in sorted(campaign_dir.iterdir()):
-        if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
+        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
             if f.stem.startswith(source_prefixes):
                 metadata["source_images"].append(f)
     
@@ -190,8 +190,8 @@ def copy_size_charts_to_public(campaign_dir, product_slug):
     
     web_paths = []
     for f in campaign_dir.iterdir():
-        if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-            if any(k in f.name.lower() for k in ["chart", "size", "guide"]):
+        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+            if any(k in f.name.lower() for k in ("chart", "size", "guide")):
                 # Clean or preserve name
                 dest_name = f"size_guide_{f.name}"
                 dest_path = product_dir / dest_name
@@ -440,8 +440,8 @@ def check_and_register_outfit(campaign_dir, final_products):
     # Determine the lookbook image for the outfit (first editorial image)
     outfit_images = []
     for f in sorted(campaign_dir.iterdir()):
-        if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-            if any(t in f.name.lower() for t in ["editorial", "lifestyle", "urban"]):
+        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+            if any(t in f.name.lower() for t in ("editorial", "lifestyle", "urban")):
                 # Copy to public
                 dest_dir = PUBLIC_DIR / "outfits"
                 dest_dir.mkdir(parents=True, exist_ok=True)
@@ -587,7 +587,7 @@ def scan_and_upload():
             
             if is_jacket:
                 sell_price = 89
-            elif is_tshirt and not any(k in name_str for k in ["hoodie", "sweatshirt", "jacket", "coat", "puffer"]):
+            elif is_tshirt and not any(k in name_str for k in ("hoodie", "sweatshirt", "jacket", "coat", "puffer")):
                 sell_price = max(sell_price, 31)
             else:
                 sell_price = max(sell_price, 29)
@@ -781,7 +781,6 @@ def scan_and_upload():
                 p_name = (p.get("name", "") or "").lower()
                 if p["id"] == this_product["id"]:
                     continue
-                # Check if it's a shoe/sneaker
                 if any(kw in p_cat or kw in p_name for kw in SHOE_KEYWORDS):
                     # Prefer color-matched shoes
                     shoe_colors = [c.get("name", "").lower() for c in p.get("colors", [])]
