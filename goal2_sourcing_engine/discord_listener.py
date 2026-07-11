@@ -273,8 +273,9 @@ def get_warehouse_summary() -> str:
         return "Total products in warehouse: 0"
 
     try:
-        entries = [e for e in os.scandir(MANUAL_CURATION_DIR) if e.is_dir()]
-        entries.sort(key=lambda e: e.stat().st_mtime, reverse=True)
+        with os.scandir(MANUAL_CURATION_DIR) as scanner:
+            entries = [e for e in scanner if e.is_dir()]
+            entries.sort(key=lambda e: e.stat().st_mtime, reverse=True)
     except Exception:
         entries = []
 
