@@ -264,10 +264,13 @@ async def call_gemini(prompt: str, system: str = BOT_BRAIN_SYSTEM) -> str:
 
 def get_warehouse_summary() -> str:
     """Summarise what's currently in MANUAL_CURATION for the bot brain context."""
-    folders = sorted(
-        [f for f in MANUAL_CURATION_DIR.iterdir() if f.is_dir()],
-        key=lambda f: f.stat().st_mtime, reverse=True
-    ) if MANUAL_CURATION_DIR.exists() else []
+    # ⚡ Bolt Optimization: Use os.scandir to avoid N+1 stat calls for mtime
+    if MANUAL_CURATION_DIR.exists():
+        with os.scandir(MANUAL_CURATION_DIR) as scanner:
+            entries = [entry for entry in scanner if entry.is_dir()]
+            folders = [Path(entry.path) for entry in sorted(entries, key=lambda e: e.stat().st_mtime, reverse=True)]
+    else:
+        folders = []
     total = len(folders)
     recent = []
     for folder in folders[:8]:
