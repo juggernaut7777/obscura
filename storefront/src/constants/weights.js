@@ -1,0 +1,22 @@
+// Estimated weights by category (kg) — mirrors Kakobuy weight tiers
+export const WEIGHT_BY_CATEGORY = {
+  hoodie:     0.60,
+  jacket:     0.90,
+  coat:       1.20,
+  puffer:     1.10,
+  tee:        0.25,
+  shirt:      0.30,
+  sweatshirt: 0.55,
+  shorts:     0.35,
+  pants:      0.55,
+  jeans:      0.70,
+  joggers:    0.50,
+  skirt:      0.35,
+  dress:      0.55,
+  sneakers:   0.90,
+  boots:      1.20,
+  sandals:    0.50,
+  bag:        0.60,
+  hat:        0.15,
+  default:    0.40,
+};
