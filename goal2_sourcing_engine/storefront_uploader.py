@@ -39,6 +39,8 @@ PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
 # Private supplier mappings file — NEVER exposed to frontend customers
 SUPPLIER_MAPPINGS_FILE = BASE_DIR / "supplier_mappings.json"
 
+SHOE_KEYWORDS = ("shoe", "sneaker", "boot", "trainer", "jordan", "dunk")
+
 
 def load_supplier_mappings():
     if SUPPLIER_MAPPINGS_FILE.exists():
@@ -780,7 +782,7 @@ def scan_and_upload():
                 if p["id"] == this_product["id"]:
                     continue
                 # Check if it's a shoe/sneaker
-                if any(kw in p_cat or kw in p_name for kw in ["shoe", "sneaker", "boot", "trainer", "jordan", "dunk"]):
+                if any(kw in p_cat or kw in p_name for kw in SHOE_KEYWORDS):
                     # Prefer color-matched shoes
                     shoe_colors = [c.get("name", "").lower() for c in p.get("colors", [])]
                     if set_color and set_color in shoe_colors:
