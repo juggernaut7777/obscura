@@ -1,6 +1,5 @@
 "use client";
-import { use } from "react";
-import { useState } from "react";
+import { use, useState, useMemo } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import Header from "@/components/Header";
@@ -18,24 +17,28 @@ export default function ShopPage({ searchParams }) {
   const { cartItems, cartOpen, setCartOpen, updateQty, removeItem } = useCart();
   const [sort, setSort] = useState("new");
 
-  // Filter products
-  let products = [...DEMO_PRODUCTS];
-  if (categoryFilter && categoryFilter !== "all") {
-    if (categoryFilter === "sale") {
-      products = products.filter(p => p.comparePrice > 0);
-    } else if (categoryFilter === "new") {
-      products = products.filter(p => p.badge === "New");
-    } else {
-      products = products.filter(p => p.category.toLowerCase() === categoryFilter.toLowerCase());
-    }
-  }
-
-  // Sort products
-  if (sort === "price-low") products.sort((a, b) => a.price - b.price);
-  if (sort === "price-high") products.sort((a, b) => b.price - a.price);
-  
   // Get unique categories for filter
-  const categories = ["all", ...Array.from(new Set(DEMO_PRODUCTS.map(p => p.category.toLowerCase())))];
+  const categories = useMemo(() => ["all", ...Array.from(new Set(DEMO_PRODUCTS.map(p => p.category.toLowerCase())))], []);
+
+  // Filter and sort products
+  const products = useMemo(() => {
+    let result = [...DEMO_PRODUCTS];
+    if (categoryFilter && categoryFilter !== "all") {
+      if (categoryFilter === "sale") {
+        result = result.filter(p => p.comparePrice > 0);
+      } else if (categoryFilter === "new") {
+        result = result.filter(p => p.badge === "New");
+      } else {
+        result = result.filter(p => p.category.toLowerCase() === categoryFilter.toLowerCase());
+      }
+    }
+
+    // Sort products
+    if (sort === "price-low") result.sort((a, b) => a.price - b.price);
+    if (sort === "price-high") result.sort((a, b) => b.price - a.price);
+
+    return result;
+  }, [categoryFilter, sort]);
 
   return (
     <>
