@@ -116,23 +116,27 @@ def discover_products():
     # 1. Discover subdirectories (folder-grouped products)
     for subdir in INPUT_DIR.iterdir():
         if subdir.is_dir() and subdir.name not in ("outfit_grid", "_rejected", "__pycache__"):
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
-            
-            # Filter/Validate images in the folder
             valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
-                if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-                    continue
-                if has_validator:
-                    check = validate_product_image(str(img))
-                    if check.get("valid"):
-                        valid_images.append(str(img))
-                else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
+
+            with os.scandir(subdir) as entries:
+                for entry in entries:
+                    if not entry.is_file():
+                        continue
+
+                    name_lower = entry.name.lower()
+                    if not any(name_lower.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp"]):
+                        continue
+
+                    if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                        continue
+
+                    if has_validator:
+                        check = validate_product_image(entry.path)
+                        if check.get("valid"):
+                            valid_images.append(entry.path)
+                    else:
+                        if entry.stat(follow_symlinks=False).st_size >= 30000:
+                            valid_images.append(entry.path)
             
             if valid_images:
                 # Load metadata if exists
@@ -165,27 +169,34 @@ def discover_products():
                 })
 
     # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
-        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-            continue
-        if has_validator:
-            check = validate_product_image(str(img))
-            if not check.get("valid"):
+    with os.scandir(INPUT_DIR) as entries:
+        for entry in entries:
+            if not entry.is_file():
                 continue
-        else:
-            if img.stat().st_size < 30000:
+
+            name_lower = entry.name.lower()
+            if not any(name_lower.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp"]):
                 continue
-        
-        products.append({
-            "is_folder": False,
-            "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
+
+            if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                continue
+
+            if has_validator:
+                check = validate_product_image(entry.path)
+                if not check.get("valid"):
+                    continue
+            else:
+                if entry.stat(follow_symlinks=False).st_size < 30000:
+                    continue
+
+            # Get stem without Path object overhead
+            stem = entry.name[:entry.name.rfind('.')] if '.' in entry.name else entry.name
+
+            products.append({
+                "is_folder": False,
+                "folder_path": None,
+                "name": stem,
+                "images": [entry.path],
             "link": "",
             "metadata": {}
         })
@@ -658,10 +669,14 @@ async def main():
         test_dir = BASE_DIR / "test_products"
         if test_dir.exists():
             import shutil
-            for f in test_dir.glob("*"):
-                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp') and f.stat().st_size > 30000:
-                    shutil.copy(f, INPUT_DIR / f.name)
-                    log(f"  [+] Copied fallback product: {f.name}")
+            with os.scandir(test_dir) as entries:
+                for entry in entries:
+                    if not entry.is_file():
+                        continue
+                    name_lower = entry.name.lower()
+                    if any(name_lower.endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']) and entry.stat(follow_symlinks=False).st_size > 30000:
+                        shutil.copy(entry.path, INPUT_DIR / entry.name)
+                        log(f"  [+] Copied fallback product: {entry.name}")
             products = discover_products()
         if not products:
             log("[!] No products anywhere. Drop images into input_sourcing/ and restart.")
