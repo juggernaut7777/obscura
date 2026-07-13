@@ -423,15 +423,21 @@ class LocalBrain:
         try:
             # Find the latest generated products to list
             output_dir = BASE_DIR / "output_ugc"
-            recent_images = sorted(output_dir.glob("*.png"), key=os.path.getmtime, reverse=True)[:4]
-            image_paths = [str(img) for img in recent_images]
+            recent_images = []
+            if output_dir.exists() and output_dir.is_dir():
+                with os.scandir(output_dir) as entries:
+                    recent_images = [e for e in entries if e.is_file() and e.name.endswith(".png")]
+                recent_images.sort(key=lambda e: e.stat(follow_symlinks=False).st_mtime, reverse=True)
+                recent_images = recent_images[:4]
+
+            image_paths = [e.path for e in recent_images]
             
             if not image_paths:
                 log("   [!] No generated images found to list.")
                 return
             
             # Build product data from the most recent generation
-            product_name = recent_images[0].stem.split("_")[1] if recent_images else "Fashion Item"
+            product_name = Path(recent_images[0].path).stem.split("_")[1] if recent_images else "Fashion Item"
             
             product_data = {
                 "title": product_name.replace("_", " ").title(),
