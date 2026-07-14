@@ -1,9 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product, index = 0 }) {
+// ⚡ Bolt Optimization: Memoize the ProductCard component
+// This prevents O(N) re-renders for every product card in a grid when parent state
+// (like global cart opening/closing or generic layout changes) triggers a re-render.
+// Impact: Reduces unnecessary React renders for grids containing many items.
+const ProductCard = memo(function ProductCard({ product, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -76,4 +80,6 @@ export default function ProductCard({ product, index = 0 }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductCard;
