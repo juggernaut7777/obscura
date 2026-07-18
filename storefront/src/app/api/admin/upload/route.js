@@ -1,13 +1,15 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
 
 export async function POST() {
   try {
+    const args = ["storefront_uploader.py"];
+    // 🛡️ Sentinel: Fixed Command Injection vulnerability by using execFile instead of exec.
     console.log("[API ADMIN UPLOAD POST] Executing storefront_uploader.py...");
-    const { stdout, stderr } = await execAsync("python storefront_uploader.py", { cwd });
+    const { stdout, stderr } = await execFileAsync("python", args, { cwd });
 
     if (stderr && !stdout) {
       console.error("[API ADMIN UPLOAD POST] Stderr output:", stderr);
