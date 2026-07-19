@@ -1,0 +1,4 @@
+## 2024-07-19 - [CRITICAL] Prevent Command Injection via child_process.execFile
+**Vulnerability:** Several Next.js API routes were using `child_process.exec` with string interpolation to pass user-provided data (e.g., `orderId`, `tracking`, etc.) to Python scripts. This creates a critical command injection vulnerability where a malicious user could craft an input that executes arbitrary shell commands on the server.
+**Learning:** In Node.js/JavaScript applications, `child_process.exec` creates a shell to execute commands, making it susceptible to injection if inputs aren't perfectly sanitized. Even seemingly safe variables can be manipulated if they come from HTTP requests.
+**Prevention:** Always use `child_process.execFile` (or `spawn`) and pass arguments as an array. `execFile` executes the given application directly without creating a shell, making it immune to shell-based command injection.
