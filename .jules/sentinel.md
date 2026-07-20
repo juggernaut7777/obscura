@@ -1,0 +1,4 @@
+## 2023-10-27 - [Command Injection via os.system()]
+**Vulnerability:** Found a critical command injection vulnerability in `goal2_sourcing_engine/start_engine.py` where user inputs (`prompt`, `script`, `refs`) were concatenated into a string and executed using `os.system()`. This allowed arbitrary command execution if a user entered something like `prompt="test\" && rm -rf /"`.
+**Learning:** This existed because `os.system()` is commonly used for convenience when stringing together commands in CLI applications without realizing the severe security implications when any part of that string comes from user input.
+**Prevention:** Never use `os.system()` or `subprocess.run(shell=True)` when handling external or user-provided inputs. Always use `subprocess.run()` with a list of arguments so the OS treats inputs as arguments rather than executable commands.
