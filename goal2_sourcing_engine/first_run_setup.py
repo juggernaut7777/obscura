@@ -39,20 +39,28 @@ def main():
     
     input_dir.mkdir(exist_ok=True)
     
-    # Check if input_sourcing is empty (except for _rejected)
+    # Check if input_sourcing is empty (except for _rejected) using os.scandir for better performance
     has_products = False
-    for f in input_dir.glob("*"):
-        if f.name != "_rejected" and f.is_file():
-            has_products = True
-            break
+    try:
+        with os.scandir(input_dir) as it:
+            for entry in it:
+                if entry.name != "_rejected" and entry.is_file():
+                    has_products = True
+                    break
+    except OSError:
+        pass
             
     if not has_products and test_dir.exists():
         print("[*] input_sourcing is empty. Copying test products...")
         import shutil
-        for f in test_dir.glob("*"):
-            if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp') and f.stat().st_size > 30000:
-                shutil.copy(f, input_dir / f.name)
-                print(f"  [+] Copied {f.name}")
+        try:
+            with os.scandir(test_dir) as it:
+                for entry in it:
+                    if entry.is_file() and entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) and entry.stat().st_size > 30000:
+                        shutil.copy(entry.path, input_dir / entry.name)
+                        print(f"  [+] Copied {entry.name}")
+        except OSError:
+            pass
 
     print("\n" + "=" * 50)
     print("SETUP COMPLETE. YOU ARE READY TO RUN.")
