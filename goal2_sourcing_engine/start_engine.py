@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import subprocess
 
 def print_banner():
     print("=" * 60)
@@ -75,11 +76,20 @@ def main():
                 prompt = input("Enter video prompt (e.g. Model wearing black hoodie walking down NYC street): ").strip()
                 script = input("Enter narration script (e.g. Get the new Obscura heavy weight basic hoodie now): ").strip()
                 refs = input("Enter reference image paths (optional, space separated): ").strip()
-                cmd = f'python compile_ugc_ad.py --prompt "{prompt}" --script "{script}"'
+
+                # 🛡️ Sentinel: Fixed command injection vulnerability by using subprocess.run with a list of arguments instead of os.system
+                cmd_args = [sys.executable, "compile_ugc_ad.py", "--prompt", prompt, "--script", script]
                 if refs:
-                    cmd += f' --refs {refs}'
-                print(f"\n[*] Executing: {cmd}")
-                os.system(cmd)
+                    cmd_args.extend(["--refs"] + refs.split())
+
+                print(f"\n[*] Executing: {' '.join(cmd_args)}")
+                try:
+                    subprocess.run(cmd_args, check=True)
+                except subprocess.CalledProcessError as e:
+                    print(f"\n[!] Command failed with exit code: {e.returncode}")
+                except Exception as e:
+                    print(f"\n[!] Execution error: {e}")
+
                 input("\nPress Enter to return to main menu...")
             elif choice == '11':
                 print("Exiting...")
