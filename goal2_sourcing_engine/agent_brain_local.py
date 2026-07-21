@@ -423,15 +423,27 @@ class LocalBrain:
         try:
             # Find the latest generated products to list
             output_dir = BASE_DIR / "output_ugc"
-            recent_images = sorted(output_dir.glob("*.png"), key=os.path.getmtime, reverse=True)[:4]
-            image_paths = [str(img) for img in recent_images]
             
-            if not image_paths:
-                log("   [!] No generated images found to list.")
+            # Use os.scandir to avoid N+1 stat calls when sorting by modification time
+            # ⚡ Bolt: Performance Improvement - os.scandir caches file attributes
+            try:
+                with os.scandir(output_dir) as entries:
+                    png_files = [e for e in entries if e.is_file() and e.name.endswith(".png")]
+                    png_files.sort(key=lambda e: e.stat().st_mtime, reverse=True)
+                    recent_entries = png_files[:4]
+                    image_paths = [e.path for e in recent_entries]
+
+                    if not image_paths:
+                        log("   [!] No generated images found to list.")
+                        return
+
+                    # Build product data from the most recent generation
+                    # Extract stem by removing the .png extension
+                    stem = recent_entries[0].name[:-4]
+                    product_name = stem.split("_")[1] if "_" in stem else "Fashion Item"
+            except OSError as e:
+                log(f"   [!] Could not access output_ugc directory: {e}")
                 return
-            
-            # Build product data from the most recent generation
-            product_name = recent_images[0].stem.split("_")[1] if recent_images else "Fashion Item"
             
             product_data = {
                 "title": product_name.replace("_", " ").title(),
