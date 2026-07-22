@@ -1,0 +1,4 @@
+## 2024-10-24 - [CRITICAL] Command Injection in Next.js API Routes via child_process.exec
+**Vulnerability:** Found multiple instances where Next.js API routes executed backend Python scripts by directly interpolating user input (like `orderId`, `tracking`, `pipeline`) into shell command strings via `child_process.exec`.
+**Learning:** This is a recurring pattern where the frontend interacts with the backend by shelling out to Python scripts. Any time user-supplied input from an API request is concatenated into a shell command, it creates a critical Command Injection risk. An attacker could pass shell metacharacters (e.g., `; rm -rf /`) in these fields.
+**Prevention:** In Node.js/JavaScript, ALWAYS use `child_process.execFile` or `child_process.spawn` instead of `exec`. Pass arguments as an array instead of building a command string. This forces the OS to treat inputs strictly as data arguments to the executable, preventing shell interpolation.
