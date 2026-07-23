@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product, index = 0 }) {
+// Use React.memo to prevent unnecessary O(N) re-renders when global context state (like CartContext)
+// changes in parent page layouts, which was causing performance bottlenecks.
+const ProductCard = memo(function ProductCard({ product, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -76,4 +78,6 @@ export default function ProductCard({ product, index = 0 }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductCard;
