@@ -1,9 +1,9 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const activeOrdersPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\data\\orders\\active_orders.json";
 const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
 
@@ -30,22 +30,22 @@ export async function POST(request) {
       return Response.json({ success: false, error: "Missing orderId or action" }, { status: 400 });
     }
 
-    let command = "";
+    let args = ["order_fulfillment.py"];
     if (action === "mark-paid") {
-      command = `python order_fulfillment.py --mark-paid "${orderId}"`;
+      args.push("--mark-paid", orderId);
     } else if (action === "mark-combining") {
-      command = `python order_fulfillment.py --mark-combining "${orderId}"`;
+      args.push("--mark-combining", orderId);
     } else if (action === "mark-shipped") {
       if (!tracking || !pipeline) {
         return Response.json({ success: false, error: "Missing tracking or pipeline info for shipping" }, { status: 400 });
       }
-      command = `python order_fulfillment.py --mark-shipped "${orderId}" "${tracking}" "${pipeline}"`;
+      args.push("--mark-shipped", orderId, tracking, pipeline);
     } else {
       return Response.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
 
-    console.log(`[API ADMIN ORDERS POST] Executing: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    console.log(`[API ADMIN ORDERS POST] Executing python with args:`, args);
+    const { stdout, stderr } = await execFileAsync("python", args, { cwd });
 
     if (stderr && !stdout) {
       console.error("[API ADMIN ORDERS POST] Stderr output:", stderr);
