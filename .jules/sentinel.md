@@ -1,0 +1,4 @@
+## 2024-05-24 - Command Injection in User Input Handling
+**Vulnerability:** Command injection vulnerability in `start_engine.py` where user inputs (prompt, script, references) were concatenated directly into a command string passed to `os.system()`.
+**Learning:** Even internal CLI tools or "control centers" are vulnerable if they take unbounded string input and execute it in a shell. The use of string formatting `f'python script.py --prompt "{prompt}"'` allows users to break out using shell metacharacters (e.g. `"; ls"`).
+**Prevention:** Always use `subprocess.run()` with an argument list rather than `os.system()` or `subprocess.run(shell=True)`. Ensure variables representing space-separated user inputs (like multiple file paths) are passed using `.split()` in the argument list to be parsed correctly.
