@@ -113,82 +113,86 @@ def discover_products():
     except ImportError:
         has_validator = False
     
-    # 1. Discover subdirectories (folder-grouped products)
-    for subdir in INPUT_DIR.iterdir():
-        if subdir.is_dir() and subdir.name not in ("outfit_grid", "_rejected", "__pycache__"):
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
-            
-            # Filter/Validate images in the folder
-            valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
-                if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-                    continue
-                if has_validator:
-                    check = validate_product_image(str(img))
-                    if check.get("valid"):
-                        valid_images.append(str(img))
-                else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
-            
-            if valid_images:
-                # Load metadata if exists
-                metadata = {}
-                meta_file = subdir / "metadata.json"
-                if meta_file.exists():
-                    try:
-                        with open(meta_file, "r", encoding="utf-8") as mf:
-                            metadata = json.load(mf)
-                    except Exception:
-                        pass
-                
-                # Load link if exists
-                link = metadata.get("link", "")
-                link_file = subdir / "link.txt"
-                if not link and link_file.exists():
-                    try:
-                        with open(link_file, "r", encoding="utf-8") as lf:
-                            link = lf.read().strip()
-                    except Exception:
-                        pass
+    VALID_EXTS = ('.png', '.jpg', '.jpeg', '.webp')
 
-                products.append({
-                    "is_folder": True,
-                    "folder_path": str(subdir),
-                    "name": metadata.get("product_name") or subdir.name,
-                    "images": valid_images,
-                    "link": link,
-                    "metadata": metadata
-                })
+    # Discover subdirectories and loose files in one pass
+    try:
+        with os.scandir(INPUT_DIR) as scanner:
+            for entry in scanner:
+                if entry.is_dir() and entry.name not in ("outfit_grid", "_rejected", "__pycache__"):
+                    subdir_path = Path(entry.path)
 
-    # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
-        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-            continue
-        if has_validator:
-            check = validate_product_image(str(img))
-            if not check.get("valid"):
-                continue
-        else:
-            if img.stat().st_size < 30000:
-                continue
-        
-        products.append({
-            "is_folder": False,
-            "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
-            "link": "",
-            "metadata": {}
-        })
+                    # Filter/Validate images in the folder using scandir
+                    valid_images = []
+                    try:
+                        with os.scandir(subdir_path) as sub_scanner:
+                            for file_entry in sub_scanner:
+                                if file_entry.is_file() and file_entry.name.lower().endswith(VALID_EXTS):
+                                    name_lower = file_entry.name.lower()
+                                    if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                                        continue
+                                    if has_validator:
+                                        check = validate_product_image(file_entry.path)
+                                        if check.get("valid"):
+                                            valid_images.append(file_entry.path)
+                                    else:
+                                        if file_entry.stat().st_size >= 30000:
+                                            valid_images.append(file_entry.path)
+                    except OSError as e:
+                        log(f"[!] Error reading subdirectory {subdir_path}: {e}")
+
+                    if valid_images:
+                        # Load metadata if exists
+                        metadata = {}
+                        meta_file = subdir_path / "metadata.json"
+                        if meta_file.exists():
+                            try:
+                                with open(meta_file, "r", encoding="utf-8") as mf:
+                                    metadata = json.load(mf)
+                            except Exception:
+                                pass
+
+                        # Load link if exists
+                        link = metadata.get("link", "")
+                        link_file = subdir_path / "link.txt"
+                        if not link and link_file.exists():
+                            try:
+                                with open(link_file, "r", encoding="utf-8") as lf:
+                                    link = lf.read().strip()
+                            except Exception:
+                                pass
+
+                        products.append({
+                            "is_folder": True,
+                            "folder_path": str(subdir_path),
+                            "name": metadata.get("product_name") or entry.name,
+                            "images": valid_images,
+                            "link": link,
+                            "metadata": metadata
+                        })
+                elif entry.is_file() and entry.name.lower().endswith(VALID_EXTS):
+                    name_lower = entry.name.lower()
+                    if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                        continue
+                    if has_validator:
+                        check = validate_product_image(entry.path)
+                        if not check.get("valid"):
+                            continue
+                    else:
+                        if entry.stat().st_size < 30000:
+                            continue
+
+                    stem = Path(entry.name).stem
+                    products.append({
+                        "is_folder": False,
+                        "folder_path": None,
+                        "name": stem,
+                        "images": [entry.path],
+                        "link": "",
+                        "metadata": {}
+                    })
+    except OSError as e:
+        log(f"[!] Error reading input directory {INPUT_DIR}: {e}")
     
     log("[+] Discovered {} structured products".format(len(products)))
     return products
@@ -566,12 +570,15 @@ def copy_source_images(curation_dir: Path, output_dir: Path):
         return
     
     try:
-        for f in curation_dir.iterdir():
-            if f.suffix.lower() in source_extensions and any(f.stem.startswith(p) for p in source_prefixes):
-                dest = output_dir / f"source_{f.name}"
-                if not dest.exists():
-                    shutil.copy2(str(f), str(dest))
-                    log(f"  [+] Copied source image: {f.name}")
+        with os.scandir(curation_dir) as scanner:
+            for entry in scanner:
+                if entry.is_file():
+                    path_obj = Path(entry.name)
+                    if path_obj.suffix.lower() in source_extensions and any(path_obj.stem.startswith(p) for p in source_prefixes):
+                        dest = output_dir / f"source_{entry.name}"
+                        if not dest.exists():
+                            shutil.copy2(entry.path, str(dest))
+                            log(f"  [+] Copied source image: {entry.name}")
     except Exception as e:
         log(f"  [!] Error copying source images: {e}")
 
