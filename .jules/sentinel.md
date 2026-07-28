@@ -1,0 +1,4 @@
+## 2024-05-18 - [CRITICAL] Fix command injection in user input flows
+**Vulnerability:** Found `os.system` being used with string concatenation (e.g., `cmd = f'python compile_ugc_ad.py --prompt "{prompt}"'`) incorporating untrusted user inputs directly into the shell command. This allows attackers to execute arbitrary commands by appending shell metacharacters (like `;` or `&&`).
+**Learning:** Python's `os.system` evaluates strings in the system shell. When user input flows directly into these strings, it creates a severe command injection vector.
+**Prevention:** Always use `subprocess.run` (or similar `subprocess` methods) passing arguments as a list (e.g., `subprocess.run([sys.executable, "compile_ugc_ad.py", "--prompt", prompt])`). This bypasses the shell completely and passes arguments directly to the program, neutralizing shell metacharacters.
