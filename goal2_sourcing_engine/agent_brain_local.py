@@ -423,7 +423,18 @@ class LocalBrain:
         try:
             # Find the latest generated products to list
             output_dir = BASE_DIR / "output_ugc"
-            recent_images = sorted(output_dir.glob("*.png"), key=os.path.getmtime, reverse=True)[:4]
+
+            # ⚡ Performance: Use os.scandir to avoid N+1 stat calls when sorting by mtime
+            recent_images = []
+            if output_dir.exists():
+                try:
+                    with os.scandir(output_dir) as scanner:
+                        entries = [e for e in scanner if e.is_file() and e.name.endswith(".png")]
+                        entries.sort(key=lambda e: e.stat().st_mtime, reverse=True)
+                        recent_images = [Path(e.path) for e in entries[:4]]
+                except OSError as err:
+                    log(f"   [!] Error scanning output_ugc: {err}")
+
             image_paths = [str(img) for img in recent_images]
             
             if not image_paths:
