@@ -1,0 +1,5 @@
+
+## 2026-06-05 - Fix Command Injection in start_engine.py
+**Vulnerability:** Command injection via `os.system` and string interpolation in `goal2_sourcing_engine/start_engine.py`. User input (like prompt and script) was directly interpolated into the command string passed to `os.system`.
+**Learning:** Using `os.system` with string concatenated inputs is inherently insecure. An attacker could provide a malicious input string with a semicolon or `&&` to run arbitrary commands on the system. Even seemingly harmless CLI tools that take user input can be entry points if not handled properly.
+**Prevention:** Always use `subprocess.run` with a list of arguments instead of a concatenated string. When passing variables representing space-separated user inputs, ensure they are passed as a list of strings (using `.split()` if necessary). Use `sys.executable` instead of explicitly hardcoding `'python'` to ensure the correct virtual environment interpreter is used and to mitigate PATH hijacking risks.

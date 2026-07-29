@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import subprocess
 
 def print_banner():
     print("=" * 60)
@@ -42,44 +43,45 @@ def main():
 
             if choice == '1':
                 print("\n[*] Launching Social Media Login...")
-                os.system("python login_socials.py")
+                subprocess.run([sys.executable, "login_socials.py"])
             elif choice == '2':
                 print("\n[*] Launching Kling AI Login...")
-                os.system("python login_video.py")
+                subprocess.run([sys.executable, "login_video.py"])
             elif choice == '3':
                 print("\n[*] Setting up OBSCURA branding on all platforms...")
-                os.system("python profile_setup.py")
+                subprocess.run([sys.executable, "profile_setup.py"])
             elif choice == '4':
                 print("\n[*] Running Competitor Spy...")
-                os.system("python competitor_spy.py")
+                subprocess.run([sys.executable, "competitor_spy.py"])
             elif choice == '5':
                 print("\n[*] Running Factory Hunter...")
-                os.system("python factory_hunter.py")
+                subprocess.run([sys.executable, "factory_hunter.py"])
             elif choice == '6':
                 print("\n[!!!] INITIATING 24/7 OBSCURA AUTONOMOUS ENGINE [!!!]")
                 time.sleep(2)
-                os.system("python agent_brain_local.py")
+                subprocess.run([sys.executable, "agent_brain_local.py"])
             elif choice == '7':
                 print("\n[*] Pushing to VPS...")
-                os.system("push_to_vps.bat")
+                subprocess.run(["push_to_vps.bat"])
             elif choice == '8':
                 print("\n[*] Running End-to-End Pipeline Test...")
-                os.system("python pipeline_test_runner.py --self-heal")
+                subprocess.run([sys.executable, "pipeline_test_runner.py", "--self-heal"])
                 input("\nPress Enter to return to main menu...")
             elif choice == '9':
                 print("\n[*] Running Stock Sync...")
-                os.system("python auto_stock_sync.py")
+                subprocess.run([sys.executable, "auto_stock_sync.py"])
                 input("\nPress Enter to return to main menu...")
             elif choice == '10':
                 print("\n[*] UNIFIED UGC AD CREATOR [*]")
                 prompt = input("Enter video prompt (e.g. Model wearing black hoodie walking down NYC street): ").strip()
                 script = input("Enter narration script (e.g. Get the new Obscura heavy weight basic hoodie now): ").strip()
                 refs = input("Enter reference image paths (optional, space separated): ").strip()
-                cmd = f'python compile_ugc_ad.py --prompt "{prompt}" --script "{script}"'
+                cmd_args = [sys.executable, "compile_ugc_ad.py", "--prompt", prompt, "--script", script]
                 if refs:
-                    cmd += f' --refs {refs}'
-                print(f"\n[*] Executing: {cmd}")
-                os.system(cmd)
+                    cmd_args.append("--refs")
+                    cmd_args.extend(refs.split())
+                print(f"\n[*] Executing: {' '.join(cmd_args)}")
+                subprocess.run(cmd_args)
                 input("\nPress Enter to return to main menu...")
             elif choice == '11':
                 print("Exiting...")
