@@ -1,0 +1,4 @@
+## 2024-05-15 - [CRITICAL] Fix command injection in engine control center
+**Vulnerability:** Found a command injection vulnerability in `goal2_sourcing_engine/start_engine.py` where user inputs for video prompt, script, and reference images were concatenated directly into a string and passed to `os.system()`.
+**Learning:** This pattern is dangerous because an attacker could enter a prompt containing shell metacharacters and execute arbitrary commands on the host system.
+**Prevention:** Always use `subprocess.run()` with a list of arguments instead of a single string, and avoid `shell=True`. Additionally, use `sys.executable` when invoking Python scripts to ensure the correct virtual environment is used and to mitigate PATH hijacking risks.
