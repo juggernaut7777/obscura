@@ -1,9 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product, index = 0 }) {
+// ⚡ Bolt Optimization: Added React.memo()
+// Rationale: In list/grid contexts, ProductCard receives stable props (product data).
+// Trade-offs: The shallow comparison of props takes a tiny bit of CPU time, but saves
+// significant React reconciliation effort (O(N) re-renders) when parent global states
+// (like CartContext opening/closing) trigger layout updates.
+// Expected Impact: Prevents unnecessary O(N) DOM reconciliation loops for the product grid,
+// ensuring smooth 60fps animations when toggling global layout elements.
+const ProductCard = memo(function ProductCard({ product, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -76,4 +83,6 @@ export default function ProductCard({ product, index = 0 }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductCard;

@@ -1,3 +1,6 @@
 ## 2025-02-28 - [Avoid N+1 Stat Calls with os.scandir]
 **Learning:** Using `pathlib.Path.iterdir()` combined with `.stat().st_mtime` to sort files by modification time leads to N+1 system calls (one for reading the directory and N for stat). `os.scandir()` caches file attributes, making it significantly faster for this operation (~50% faster in a directory of 100 files). This is a codebase-specific performance pattern to watch for, especially when dealing with many files.
 **Action:** Use `os.scandir()` instead of `iterdir()` when iterating over directories and immediately accessing file attributes like `st_mtime`.
+## 2026-08-01 - [Prevent O(N) Re-renders with React.memo]
+**Learning:** In the Next.js `storefront` application, list and grid components like `ProductCard` receive stable props (product data). When parent components (such as a global layout or `CartContext`) update their state, it can trigger an O(N) re-render of all items in the grid, degrading performance. Wrapping these components with `React.memo()` prevents this unnecessary reconciliation by performing a shallow comparison of props.
+**Action:** Use `React.memo()` to wrap list/grid item components (e.g., `ProductCard`) that receive stable props to ensure smooth animations and avoid performance bottlenecks when global states toggle.
