@@ -834,7 +834,8 @@ if __name__ == "__main__":
         import httpx
     except ImportError:
         print("Installing httpx...")
-        os.system("pip install httpx")
+        import subprocess
+        subprocess.run([sys.executable, "-m", "pip", "install", "httpx"], check=True)
         import httpx
 
     asyncio.run(main())
