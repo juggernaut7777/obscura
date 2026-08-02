@@ -1,9 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product, index = 0 }) {
+/*
+ * ⚡ Bolt: Performance Optimization
+ * Memoized ProductCard to prevent O(N) re-renders when parent layouts
+ * (like the global CartContext or page wrappers) trigger state updates.
+ * Product props are stable arrays/objects from the catalog.
+ */
+const ProductCard = memo(function ProductCard({ product, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -76,4 +82,6 @@ export default function ProductCard({ product, index = 0 }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductCard;
