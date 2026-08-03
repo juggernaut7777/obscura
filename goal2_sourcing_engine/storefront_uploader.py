@@ -121,64 +121,91 @@ def extract_metadata_from_campaign(campaign_dir):
         "size_charts": 0
     }
     
-    # Check for metadata.json (from Discord bot / staging copy)
-    for f in campaign_dir.iterdir():
-        if f.suffix == ".json" and f.name != "checkout_links.json" and f.name != "outfit_metadata.json":
-            try:
-                with open(f, "r", encoding="utf-8") as mf:
-                    meta = json.load(mf)
-                    metadata["product_name"] = meta.get("product_name") or meta.get("name")
-                    metadata["color"] = meta.get("color")
-                    metadata["part"] = meta.get("part")  # "top", "bottom", or None
-                    metadata["is_set"] = meta.get("is_set", False)
-                    metadata["set_partner"] = meta.get("set_partner")
-                    metadata["link"] = meta.get("link", "") or meta.get("url", "")
-                    metadata["price"] = meta.get("price_cny") or meta.get("price") or 0
-                    metadata["category"] = meta.get("category", "")
-                    metadata["currency"] = meta.get("currency") or ("USD" if "$" in str(metadata["price"]) else "CNY")
-                    metadata["size_info"] = meta.get("size_info")
-                    metadata["size_charts"] = meta.get("size_charts", 0)
-                    # Enriched fields from Phase 1 scraper
-                    metadata["material"] = meta.get("material", "")
-                    metadata["weight_gsm"] = meta.get("weight_gsm", 0)
-                    metadata["measurements"] = meta.get("measurements", {})
-                    metadata["model_info"] = meta.get("model_info", "")
-                    metadata["care_instructions"] = meta.get("care_instructions", "")
-                    metadata["brand_name"] = meta.get("brand_name", "")
-                    metadata["product_category"] = meta.get("product_category", "")
-                    metadata["variant_mappings"] = meta.get("variant_mappings", {})
-                    metadata["item_id"] = meta.get("item_id", "")
-                    metadata["platform"] = meta.get("platform", "")
-                    metadata["seller"] = meta.get("seller", {})
-                    metadata["stock_status"] = meta.get("stock_status", {})
-                    metadata["description"] = meta.get("description", "")
-            except Exception:
-                pass
+    # Optimize: single pass directory scan caching attributes using os.scandir
+    metadata_file_path = None
+    checkout_file_path = None
+    image_files = []
+    source_image_files = []
     
-    # Check checkout_links.txt for the link
-    checkout_file = campaign_dir / "checkout_links.txt"
-    if checkout_file.exists() and not metadata["link"]:
-        content = checkout_file.read_text(encoding="utf-8")
-        link_match = re.search(r'(?:Kakobuy Checkout|Raw Link): (https?://\S+)', content)
-        if link_match:
-            metadata["link"] = link_match.group(1)
-    
-    # Collect generated images (the AI shots, not the source product photos)
-    for f in sorted(campaign_dir.iterdir()):
-        if f.suffix in {".png", ".jpg", ".jpeg", ".webp"}:
-            # Only include generated shots (01_editorial, 02_lifestyle, etc.)
-            if any(tag in f.name for tag in ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
-                                              "flat_lay", "mannequin", "hanger", "detail", "hero",
-                                              "on_foot", "unboxing", "set_flat", "product_")):
-                metadata["images"].append(f)
-    
-    # Collect original source images (Yupoo/Weidian scraped photos)
-    metadata["source_images"] = []
+    valid_image_exts = (".png", ".jpg", ".jpeg", ".webp")
+    generated_tags = ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
+                      "flat_lay", "mannequin", "hanger", "detail", "hero",
+                      "on_foot", "unboxing", "set_flat", "product_")
     source_prefixes = ("front_angle", "back_angle", "side_angle", "angle_", "source_")
-    for f in sorted(campaign_dir.iterdir()):
-        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-            if f.stem.startswith(source_prefixes):
-                metadata["source_images"].append(f)
+    
+    try:
+        with os.scandir(campaign_dir) as scanner:
+            for entry in scanner:
+                if not entry.is_file():
+                    continue
+                name = entry.name
+
+                if name.endswith(".json") and name not in {"checkout_links.json", "outfit_metadata.json"}:
+                    metadata_file_path = entry.path
+                elif name == "checkout_links.txt":
+                    checkout_file_path = entry.path
+                elif name.lower().endswith(valid_image_exts):
+                    name_lower = name.lower()
+
+                    # Generated image check
+                    is_generated = False
+                    for tag in generated_tags:
+                        if tag in name:
+                            is_generated = True
+                            break
+                    if is_generated:
+                        image_files.append(Path(entry.path))
+
+                    # Source image check
+                    if name_lower.startswith(source_prefixes):
+                        source_image_files.append(Path(entry.path))
+    except Exception:
+        pass
+
+    if metadata_file_path:
+        try:
+            with open(metadata_file_path, "r", encoding="utf-8") as mf:
+                meta = json.load(mf)
+                metadata["product_name"] = meta.get("product_name") or meta.get("name")
+                metadata["color"] = meta.get("color")
+                metadata["part"] = meta.get("part")  # "top", "bottom", or None
+                metadata["is_set"] = meta.get("is_set", False)
+                metadata["set_partner"] = meta.get("set_partner")
+                metadata["link"] = meta.get("link", "") or meta.get("url", "")
+                metadata["price"] = meta.get("price_cny") or meta.get("price") or 0
+                metadata["category"] = meta.get("category", "")
+                metadata["currency"] = meta.get("currency") or ("USD" if "$" in str(metadata["price"]) else "CNY")
+                metadata["size_info"] = meta.get("size_info")
+                metadata["size_charts"] = meta.get("size_charts", 0)
+                # Enriched fields from Phase 1 scraper
+                metadata["material"] = meta.get("material", "")
+                metadata["weight_gsm"] = meta.get("weight_gsm", 0)
+                metadata["measurements"] = meta.get("measurements", {})
+                metadata["model_info"] = meta.get("model_info", "")
+                metadata["care_instructions"] = meta.get("care_instructions", "")
+                metadata["brand_name"] = meta.get("brand_name", "")
+                metadata["product_category"] = meta.get("product_category", "")
+                metadata["variant_mappings"] = meta.get("variant_mappings", {})
+                metadata["item_id"] = meta.get("item_id", "")
+                metadata["platform"] = meta.get("platform", "")
+                metadata["seller"] = meta.get("seller", {})
+                metadata["stock_status"] = meta.get("stock_status", {})
+                metadata["description"] = meta.get("description", "")
+        except Exception:
+            pass
+    
+    if checkout_file_path and not metadata["link"]:
+        try:
+            with open(checkout_file_path, "r", encoding="utf-8") as cf:
+                text_content = cf.read()
+                link_match = re.search(r'(?:Kakobuy Checkout|Raw Link): (https?://\S+)', text_content)
+                if link_match:
+                    metadata["link"] = link_match.group(1)
+        except Exception:
+            pass
+
+    metadata["images"] = sorted(image_files)
+    metadata["source_images"] = sorted(source_image_files)
     
     return metadata
 
