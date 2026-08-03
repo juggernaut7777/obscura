@@ -56,3 +56,6 @@ playwright_profile/
 test_mem.json
 benchmark*.py
 output.txt
+test_campaign_perf/
+test_campaign/
+test_uploader_perf2.py
