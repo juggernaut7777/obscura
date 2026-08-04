@@ -7,7 +7,6 @@ stock states from Weidian, and updates the storefront database in place.
 
 Can be run weekly as a cron schedule or triggered manually via CLI.
 """
-import os
 import re
 import json
 import asyncio
