@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).parent
 def run_command(cmd, desc):
     print(f"[*] {desc}...")
     try:
-        subprocess.run(cmd, check=True, shell=True)
+        subprocess.run(cmd, check=True)
         print(f"  [OK] {desc} successful.")
     except subprocess.CalledProcessError as e:
         print(f"  [FAIL] {desc} failed: {e}")
@@ -24,12 +24,12 @@ def main():
     print(f"[*] Checking Python version: {sys.version.split()[0]}")
 
     # 2. Install requirements
-    if not run_command("pip install -r requirements.txt", "Installing dependencies from requirements.txt"):
+    if not run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], "Installing dependencies from requirements.txt"):
         print("[!] Stopping setup due to dependency failure.")
         return
 
     # 3. Install Playwright browsers
-    if not run_command("python -m playwright install chromium", "Installing Playwright Chromium browser"):
+    if not run_command([sys.executable, "-m", "playwright", "install", "chromium"], "Installing Playwright Chromium browser"):
         print("[!] Stopping setup due to Playwright installation failure.")
         return
 
