@@ -1245,26 +1245,30 @@ def cleanup_old_reviews(max_age_days: int = 3):
     now = datetime.now()
     count = 0
     urls_to_preserve = []
-    for filename in os.listdir(REVIEW_PENDING_DIR):
-        if filename.endswith(".json"):
-            filepath = os.path.join(REVIEW_PENDING_DIR, filename)
-            try:
-                file_time = datetime.fromtimestamp(os.path.getmtime(filepath))
-                age = now - file_time
-                if age.days >= max_age_days:
-                    # CRITICAL FIX: Extract album URL BEFORE deleting the file
-                    try:
-                        with open(filepath, "r", encoding="utf-8") as f:
-                            data = json.load(f)
-                            album_url = data.get("album_url")
-                            if album_url:
-                                urls_to_preserve.append(album_url)
-                    except:
-                        pass
-                    os.remove(filepath)
-                    count += 1
-            except Exception as e:
-                safe_print(f"  [!] Error cleaning up {filename}: {e}")
+    # Optimization: Use os.scandir() instead of os.listdir() + os.path.getmtime()
+    # to avoid N+1 system calls when retrieving file attributes.
+    try:
+        for entry in os.scandir(REVIEW_PENDING_DIR):
+            if entry.is_file() and entry.name.endswith(".json"):
+                try:
+                    file_time = datetime.fromtimestamp(entry.stat().st_mtime)
+                    age = now - file_time
+                    if age.days >= max_age_days:
+                        # CRITICAL FIX: Extract album URL BEFORE deleting the file
+                        try:
+                            with open(entry.path, "r", encoding="utf-8") as f:
+                                data = json.load(f)
+                                album_url = data.get("album_url")
+                                if album_url:
+                                    urls_to_preserve.append(album_url)
+                        except Exception:
+                            pass
+                        os.remove(entry.path)
+                        count += 1
+                except Exception as e:
+                    safe_print(f"  [!] Error cleaning up {entry.name}: {e}")
+    except OSError as e:
+        safe_print(f"  [!] Could not scan directory {REVIEW_PENDING_DIR}: {e}")
     # Save all extracted URLs to permanent history before they're lost forever
     if urls_to_preserve:
         _save_batch_to_persistent_history(urls_to_preserve)
