@@ -15,6 +15,7 @@ import socket
 import threading
 import time
 import uuid
+import asyncio
 import subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
@@ -254,11 +255,11 @@ class Handler(BaseHTTPRequestHandler):
                     log(f"   With {len(ref_paths)} reference image(s): {[os.path.basename(p) for p in ref_paths]}")
 
                 # 3. Generate Image (with reference image uploads)
-                result_paths = generate_image(
+                result_paths = asyncio.run(generate_image(
                     TOKENS["bearer"], TOKENS["recaptcha"], prompt, 
                     ref_url, aspect, ref_b64, 
                     ref_image_paths=ref_paths
-                )
+                ))
 
                 # 4. Return Response — always send raw PNG bytes back
                 if result_paths and len(result_paths) > 0:
@@ -482,7 +483,7 @@ def upload_reference_image(image_path, bearer, pid):
         return None
 
 
-def generate_image(bearer, recaptcha, prompt, reference_url="", aspect="PORTRAIT_THREE_FOUR", reference_b64="", ref_image_paths=None):
+async def generate_image(bearer, recaptcha, prompt, reference_url="", aspect="PORTRAIT_THREE_FOUR", reference_b64="", ref_image_paths=None):
     """Generate an image with optional reference images (model + product).
     
     ref_image_paths: list of local file paths to upload as references.
@@ -551,16 +552,19 @@ def generate_image(bearer, recaptcha, prompt, reference_url="", aspect="PORTRAIT
     if not hasattr(generate_image, '_consecutive_403s'):
         generate_image._consecutive_403s = 0
     
+    # ⚡ Performance optimization
+    # Why: time.sleep() blocks the entire process/thread. Using asyncio.sleep() allows non-blocking execution in potentially async web servers.
+    # What: Replaced time.sleep with await asyncio.sleep in generate_image coroutine.
     if generate_image._consecutive_403s >= 3:
         log("EMERGENCY BRAKE: 3 consecutive 403s detected. Cooling down 30 min...")
-        time.sleep(1800)
+        await asyncio.sleep(1800)
         generate_image._consecutive_403s = 0
         log("Cooldown complete. Resuming...")
     
     # Human simulation delay
     pre_delay = random.uniform(2.0, 5.0)
     log(f"   Human-sim delay: {pre_delay:.1f}s before API call...")
-    time.sleep(pre_delay)
+    await asyncio.sleep(pre_delay)
     
     # --- SMART RETRY ---
     max_retries = 3
@@ -581,7 +585,10 @@ def generate_image(bearer, recaptcha, prompt, reference_url="", aspect="PORTRAIT
         
         if resp.status_code == 403:
             generate_image._consecutive_403s += 1
-            if generate_image._consecutive_403s >= 3:
+            # ⚡ Performance optimization
+    # Why: time.sleep() blocks the entire process/thread. Using asyncio.sleep() allows non-blocking execution in potentially async web servers.
+    # What: Replaced time.sleep with await asyncio.sleep in generate_image coroutine.
+    if generate_image._consecutive_403s >= 3:
                 log("EMERGENCY: 3 consecutive 403s. Aborting.")
                 log(f"ERROR: {resp.text[:300]}")
                 return None
@@ -590,7 +597,7 @@ def generate_image(bearer, recaptcha, prompt, reference_url="", aspect="PORTRAIT
                 jitter = random.uniform(-15, 30)
                 wait_secs = base_wait + jitter
                 log(f"reCAPTCHA cooldown. Waiting {wait_secs:.0f}s...")
-                time.sleep(wait_secs)
+                await asyncio.sleep(wait_secs)
                 log("Requesting fresh token before retry...")
                 TOKEN_NEEDED.set()
                 TOKEN_EVENT.clear()
