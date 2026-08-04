@@ -263,8 +263,18 @@ Rules:
             text = text.split("```json")[1].split("```")[0]
         elif "```" in text:
             text = text.split("```")[1].split("```")[0]
+        else:
+            # Fallback to extract content between outermost { and }
+            start = text.find("{")
+            end = text.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                text = text[start:end+1]
         
         fix = json.loads(text.strip())
+
+        if not isinstance(fix, dict):
+            raise ValueError(f"Expected dictionary, got {type(fix).__name__}")
+
         diagnosis = fix.get("diagnosis", "Unknown")
         find_block = fix.get("find", "")
         replace_block = fix.get("replace", "")
@@ -272,7 +282,7 @@ Rules:
         if not find_block or not replace_block:
             return {"success": False, "diagnosis": f"Incomplete fix: {diagnosis}", "file_changed": ""}
 
-        # Apply the fix
+        # Apply the parsed fix to the source code file.
         with open(source_path, "r") as f:
             current_code = f.read()
 
@@ -307,7 +317,7 @@ Rules:
             "diagnosis": diagnosis,
             "file_changed": source_file,
         }
-    except (json.JSONDecodeError, KeyError, IndexError) as e:
+    except Exception as e:
         return {
             "success": False, 
             "diagnosis": f"Could not parse Gemini fix: {e}. Raw: {api_result['output'][:300]}",
@@ -352,9 +362,20 @@ async def discover_free_tools(client: httpx.AsyncClient = None) -> dict:
             text = text.split("```json")[1].split("```")[0]
         elif "```" in text:
             text = text.split("```")[1].split("```")[0]
+        else:
+            # Fallback to extract content between outermost [ and ]
+            start = text.find("[")
+            end = text.rfind("]")
+            if start != -1 and end != -1 and end > start:
+                text = text[start:end+1]
+
         tools = json.loads(text.strip())
+
+        if not isinstance(tools, list):
+            raise ValueError(f"Expected list, got {type(tools).__name__}")
+
         return {"success": True, "tools": tools, "count": len(tools)}
-    except:
+    except Exception as e:
         return {"success": True, "tools": [], "raw_response": result["output"][:1000]}
 
 
