@@ -260,19 +260,40 @@ async def setup_browser():
             log(f"[!] Navigation fallback failed: {e}")
 
     if not captured_bearer["token"]:
-        log("[*] Trying session endpoint fallback...")
-        bearer_fallback = await page.evaluate("""async () => {
-            try {
-                const req = await fetch('https://labs.google/fx/api/auth/session', {credentials:'include'});
-                if (!req.ok) return "HTTP_" + req.status;
-                const auth = await req.json();
-                return auth.access_token || JSON.stringify(auth);
-            } catch (err) { return "ERROR_" + err.message; }
-        }""")
-        if bearer_fallback and bearer_fallback.startswith("ya29."):
-            captured_bearer["token"] = bearer_fallback
-        else:
-            log(f"[?] Session fallback result: {bearer_fallback}")
+        log("[*] Trying OAuth refresh token fallback...")
+        try:
+            token_file = BASE_DIR / "google_refresh_token.json"
+            if token_file.exists():
+                with open(token_file, "r") as f:
+                    token_data = json.load(f)
+
+                refresh_token = token_data.get("refresh_token")
+                client_id = os.environ.get("GOOGLE_CLIENT_ID")
+                client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+
+                if refresh_token and client_id and client_secret:
+                    import httpx
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.post("https://oauth2.googleapis.com/token", data={
+                            "client_id": client_id,
+                            "client_secret": client_secret,
+                            "refresh_token": refresh_token,
+                            "grant_type": "refresh_token"
+                        })
+
+                    if resp.status_code == 200:
+                        new_token = resp.json().get("access_token")
+                        if new_token:
+                            captured_bearer["token"] = new_token
+                            log("[+] Successfully obtained fresh token via OAuth")
+                    else:
+                        log(f"[!] OAuth fallback failed: {resp.status_code}")
+                else:
+                    log("[!] Missing refresh token or credentials for OAuth fallback.")
+            else:
+                log("[!] No google_refresh_token.json found for OAuth fallback.")
+        except Exception as e:
+            log(f"[!] OAuth fallback error: {e}")
 
     bearer = captured_bearer["token"]
     if not bearer:
