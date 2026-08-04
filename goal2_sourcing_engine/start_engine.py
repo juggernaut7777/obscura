@@ -1,6 +1,8 @@
 import os
 import sys
 import time
+import subprocess
+import shlex
 
 def print_banner():
     print("=" * 60)
@@ -75,11 +77,13 @@ def main():
                 prompt = input("Enter video prompt (e.g. Model wearing black hoodie walking down NYC street): ").strip()
                 script = input("Enter narration script (e.g. Get the new Obscura heavy weight basic hoodie now): ").strip()
                 refs = input("Enter reference image paths (optional, space separated): ").strip()
-                cmd = f'python compile_ugc_ad.py --prompt "{prompt}" --script "{script}"'
+
+                cmd_list = [sys.executable, "compile_ugc_ad.py", "--prompt", prompt, "--script", script]
                 if refs:
-                    cmd += f' --refs {refs}'
-                print(f"\n[*] Executing: {cmd}")
-                os.system(cmd)
+                    cmd_list.extend(["--refs"] + shlex.split(refs))
+
+                print(f"\n[*] Executing: {' '.join(shlex.quote(arg) for arg in cmd_list)}")
+                subprocess.run(cmd_list)
                 input("\nPress Enter to return to main menu...")
             elif choice == '11':
                 print("Exiting...")
