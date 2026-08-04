@@ -1147,26 +1147,39 @@ async def tool_download_product_image(product: dict, memory: AgentMemory) -> dic
     
     dest_path = os.path.join(download_dir, f"{safe_name}_{int(time.time())}.jpg")
     
-    def _download():
-        import requests
+    # ⚡ Bolt: Performance optimization
+    # Why: Using synchronous requests.get inside asyncio.to_thread blocks threads in the ThreadPoolExecutor,
+    # causing N+1 bottlenecks when scraping multiple images concurrently.
+    # What: Replaced requests with aiohttp for true asynchronous non-blocking I/O during downloads.
+    async def _download():
+        import aiohttp
+        import asyncio
+        
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-        resp = requests.get(img_url, headers=headers, timeout=30)
-        resp.raise_for_status()
-        
-        # Validate it's actually an image (not an HTML error page)
-        content_type = resp.headers.get("content-type", "")
-        if "image" not in content_type and len(resp.content) < 5000:
-            raise ValueError(f"Response is not an image. Content-Type: {content_type}, Size: {len(resp.content)}")
-        
-        if len(resp.content) < 5000:
-            raise ValueError(f"Image too small ({len(resp.content)} bytes) — likely corrupted or placeholder")
-        
-        with open(dest_path, "wb") as f:
-            f.write(resp.content)
-        return dest_path
+        async with aiohttp.ClientSession() as session:
+            async with session.get(img_url, headers=headers, timeout=30) as resp:
+                resp.raise_for_status()
+
+                content_type = resp.headers.get("content-type", "")
+
+                content_bytes = await resp.read()
+
+                # Validate it's actually an image (not an HTML error page)
+                if "image" not in content_type and len(content_bytes) < 5000:
+                    raise ValueError(f"Response is not an image. Content-Type: {content_type}, Size: {len(content_bytes)}")
+
+                if len(content_bytes) < 5000:
+                    raise ValueError(f"Image too small ({len(content_bytes)} bytes) — likely corrupted or placeholder")
+
+                def write_file():
+                    with open(dest_path, "wb") as f:
+                        f.write(content_bytes)
+
+                await asyncio.to_thread(write_file)
+                return dest_path
     
     try:
-        path = await asyncio.to_thread(_download)
+        path = await _download()
         size_kb = os.path.getsize(path) // 1024
         print(f"   [DOWNLOAD] Saved product image: {os.path.basename(path)} ({size_kb}KB)")
         memory.log_action("download_product_image", f"Downloaded {safe_name} ({size_kb}KB)")
