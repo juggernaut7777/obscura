@@ -1,9 +1,9 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function POST(request) {
   try {
@@ -21,10 +21,9 @@ export async function POST(request) {
     
     // Execute python script
     const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
-    const command = `python order_fulfillment.py --checkout-file "${tempFile}"`;
     
-    console.log(`[API CHECKOUT] Executing: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    console.log(`[API CHECKOUT] Executing order_fulfillment.py with --checkout-file "${tempFile}"`);
+    const { stdout, stderr } = await execFileAsync("python", ["order_fulfillment.py", "--checkout-file", tempFile], { cwd });
     
     // Clean up temporary file
     try {
@@ -35,7 +34,7 @@ export async function POST(request) {
     
     if (stderr && !stdout) {
       console.error("[API CHECKOUT] Python stderr:", stderr);
-      return Response.json({ success: false, error: stderr }, { status: 500 });
+      return Response.json({ success: false, error: "An internal error occurred during checkout processing." }, { status: 500 });
     }
     
     // Find SUCCESS_ORDER_ID in stdout
@@ -48,10 +47,10 @@ export async function POST(request) {
       console.error("[API CHECKOUT] Python execution did not output order ID. stdout:", stdout);
       const errMatch = stdout.match(/ERROR:(.+)/);
       const errMsg = errMatch ? errMatch[1].trim() : "Unknown error in fulfillment engine";
-      return Response.json({ success: false, error: errMsg }, { status: 500 });
+      return Response.json({ success: false, error: "An internal error occurred during checkout processing." }, { status: 500 });
     }
   } catch (error) {
     console.error("[API CHECKOUT] Route handler error:", error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: "An internal error occurred during checkout processing." }, { status: 500 });
   }
 }
