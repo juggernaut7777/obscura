@@ -11,7 +11,7 @@ Two caption modes:
 Also generates A/B test hook variations and trending hashtag sets.
 """
 import random
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 # ==========================================
 # BRAND-SAFE CODE WORDS (TikTok Safe)
