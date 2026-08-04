@@ -1,0 +1,4 @@
+## 2025-02-23 - Command Injection in Unified UGC Ad Creator
+**Vulnerability:** Unsanitized user inputs (prompt, script, refs) in `goal2_sourcing_engine/start_engine.py` were directly interpolated into a command string passed to `os.system`, allowing arbitrary shell command execution.
+**Learning:** Command execution using `os.system` with user-provided strings is inherently unsafe because it invokes the system shell which parses shell metacharacters (like `;`, `&&`, `|`).
+**Prevention:** Always use the `subprocess` module and pass arguments as a list (e.g., `subprocess.run([sys.executable, 'script.py', arg1, arg2])`). When handling space-separated paths or multiple arguments provided in a single input string, use `.split()` and `.extend()` to ensure each piece is treated as a discrete argument rather than a single quoted block.
