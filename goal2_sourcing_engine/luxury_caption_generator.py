@@ -43,14 +43,24 @@ BRAND_CODES = {
 }
 
 
+import re
+
+# Build a case-insensitive dictionary map in case any keys in BRAND_CODES are mixed-case
+_LOWER_BRAND_CODES = {k.lower(): v for k, v in BRAND_CODES.items()}
+
+# Compile regex pattern once to match any brand at word boundaries.
+# We sort by length descending so longer brand names are matched before shorter ones
+# (e.g. "louis vuitton" before "lv" if both could match).
+_BRAND_PATTERN_STR = r'\b(' + '|'.join(re.escape(k) for k in sorted(_LOWER_BRAND_CODES.keys(), key=len, reverse=True)) + r')\b'
+_BRAND_PATTERN = re.compile(_BRAND_PATTERN_STR, flags=re.IGNORECASE)
+
+
 def sanitize_for_tiktok(text: str) -> str:
     """Remove brand names from text, replace with coded language."""
-    result = text
-    for brand, code in BRAND_CODES.items():
-        # Case-insensitive replacement
-        import re
-        result = re.sub(re.escape(brand), code, result, flags=re.IGNORECASE)
-    return result
+    if not text:
+        return text
+
+    return _BRAND_PATTERN.sub(lambda m: _LOWER_BRAND_CODES[m.group(1).lower()], text)
 
 
 # ==========================================
