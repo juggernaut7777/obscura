@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import time
+import concurrent.futures
 
 BRIDGE_URL = "http://localhost:9877"
 OUTPUT_DIR = os.path.join(os.getcwd(), "models", "character_sheets")
@@ -96,10 +97,15 @@ def main():
         
         body_prompt = f"Professional character reference sheet, 3 full-body views arranged side by side horizontally on a pure white background. {desc} Wearing {attire} to show body proportions clearly. LEFT VIEW: Front-facing full body standing straight. CENTER VIEW: Side profile full body. RIGHT VIEW: Back view full body. The exact SAME person with identical height, weight, and build in all three views. {PHOTO_TECH}"
         
-        # Generate them
-        success_face = generate_sheet(model_id, face_prompt, "face")
-        if success_face:
-            success_body = generate_sheet(model_id, body_prompt, "body")
+        # Generate them concurrently
+        # ⚡ Bolt: Performance optimization
+        # Why: API supports concurrent generation, sequential calls waste time
+        # What: Execute face and body generation concurrently using ThreadPoolExecutor
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_face = executor.submit(generate_sheet, model_id, face_prompt, "face")
+            future_body = executor.submit(generate_sheet, model_id, body_prompt, "body")
+            success_face = future_face.result()
+            success_body = future_body.result()
             
         print("-" * 50)
         print("⏳ Waiting 25 seconds to prevent reCAPTCHA 'Unusual Activity' bans...")
