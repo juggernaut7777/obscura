@@ -266,13 +266,14 @@ async def setup_browser():
                 const req = await fetch('https://labs.google/fx/api/auth/session', {credentials:'include'});
                 if (!req.ok) return "HTTP_" + req.status;
                 const auth = await req.json();
-                return auth.access_token || JSON.stringify(auth);
+                return auth.access_token || null;
             } catch (err) { return "ERROR_" + err.message; }
         }""")
         if bearer_fallback and bearer_fallback.startswith("ya29."):
             captured_bearer["token"] = bearer_fallback
         else:
-            log(f"[?] Session fallback result: {bearer_fallback}")
+            masked_fallback = (str(bearer_fallback)[:10] + '***') if bearer_fallback else str(bearer_fallback)
+            log(f"[?] Session fallback result: {masked_fallback}")
 
     bearer = captured_bearer["token"]
     if not bearer:
