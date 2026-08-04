@@ -1439,6 +1439,44 @@ async def main():
     safe_print("\n[OK] Contact sheets sent to Discord! Reply with your picks to download HQ images.")
 
 
+async def run_loop_mode(interval_hours: int):
+    """
+    Runs the scraper in a continuous loop, avoiding event loop recreation
+    and using asyncio.sleep instead of blocking time.sleep.
+    Optimization: Event loop starts once, sleep is non-blocking.
+    """
+    import random
+    run_count = 0
+    while True:
+        run_count += 1
+        safe_print(f"\n{'='*60}")
+        safe_print(f"  SCRAPING SESSION #{run_count} — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        safe_print(f"{'='*60}")
+        try:
+            await main()
+        except asyncio.CancelledError:
+            safe_print("\n[LOOP] Cancelled.")
+            break
+        except Exception as e:
+            safe_print(f"[LOOP] Session #{run_count} error: {e}")
+
+        # ── STEP 4: Brand Website Sourcing Integration ──
+        safe_print("\n[BRAND SOURCER] Running autonomous brand website scraping...")
+        try:
+            from auto_brand_sourcer import scrape_all_brands
+            await scrape_all_brands(limit_per_brand=3)
+        except Exception as e:
+            safe_print(f"[BRAND SOURCER] Error during brand scraping: {e}")
+
+        # Sleep with jitter to avoid predictable patterns
+        sleep_secs = interval_hours * 3600 + random.randint(-300, 300)
+        safe_print(f"\n[LOOP] Session #{run_count} complete. Sleeping {sleep_secs // 3600}h {(sleep_secs % 3600) // 60}m until next run...")
+        try:
+            await asyncio.sleep(sleep_secs)
+        except asyncio.CancelledError:
+            safe_print("\n[LOOP] Cancelled during sleep.")
+            break
+
 if __name__ == "__main__":
     import sys
 
@@ -1455,38 +1493,12 @@ if __name__ == "__main__":
         safe_print(f"[LOOP] Starting continuous scraping mode. Interval: {interval_hours} hours.")
         safe_print(f"[LOOP] Press Ctrl+C to stop.\n")
 
-        import random
-
-        run_count = 0
-        while True:
-            run_count += 1
-            safe_print(f"\n{'='*60}")
-            safe_print(f"  SCRAPING SESSION #{run_count} — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-            safe_print(f"{'='*60}")
-            try:
-                asyncio.run(main())
-            except KeyboardInterrupt:
-                safe_print("\n[LOOP] Stopped by user.")
-                break
-            except Exception as e:
-                safe_print(f"[LOOP] Session #{run_count} error: {e}")
-
-            # ── STEP 4: Brand Website Sourcing Integration ──
-            safe_print("\n[BRAND SOURCER] Running autonomous brand website scraping...")
-            try:
-                from auto_brand_sourcer import scrape_all_brands
-                asyncio.run(scrape_all_brands(limit_per_brand=3))
-            except Exception as e:
-                safe_print(f"[BRAND SOURCER] Error during brand scraping: {e}")
-
-            # Sleep with jitter to avoid predictable patterns
-            sleep_secs = interval_hours * 3600 + random.randint(-300, 300)
-            safe_print(f"\n[LOOP] Session #{run_count} complete. Sleeping {sleep_secs // 3600}h {(sleep_secs % 3600) // 60}m until next run...")
-            try:
-                import time
-                time.sleep(sleep_secs)
-            except KeyboardInterrupt:
-                safe_print("\n[LOOP] Stopped by user during sleep.")
-                break
+        try:
+            asyncio.run(run_loop_mode(interval_hours))
+        except KeyboardInterrupt:
+            safe_print("\n[LOOP] Stopped by user globally.")
     else:
-        asyncio.run(main())
+        try:
+            asyncio.run(main())
+        except KeyboardInterrupt:
+            safe_print("\nStopped by user.")
