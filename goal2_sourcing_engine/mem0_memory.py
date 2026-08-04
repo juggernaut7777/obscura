@@ -320,15 +320,13 @@ class Mem0Memory:
 
             existing_urls = set()
             if urls:
-                placeholders = ",".join("?" for _ in urls)
-                cursor.execute(f"SELECT productUrl FROM products WHERE productUrl IN ({placeholders})", urls)
+                cursor.execute("SELECT productUrl FROM products WHERE productUrl IN (SELECT value FROM json_each(?))", (json.dumps(urls),))
                 existing_urls = {row[0] for row in cursor.fetchall() if row[0]}
 
             existing_names = set()
             if names:
-                placeholders = ",".join("?" for _ in names)
                 names_lower = [n.lower() for n in names]
-                cursor.execute(f"SELECT LOWER(productName) FROM products WHERE LOWER(productName) IN ({placeholders})", names_lower)
+                cursor.execute("SELECT LOWER(productName) FROM products WHERE LOWER(productName) IN (SELECT value FROM json_each(?))", (json.dumps(names_lower),))
                 existing_names = {row[0] for row in cursor.fetchall() if row[0]}
 
             to_insert = []
