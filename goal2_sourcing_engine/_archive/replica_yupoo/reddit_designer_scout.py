@@ -16,6 +16,15 @@ if sys.platform.startswith("win"):
 def safe_print(msg: str):
     print(msg, flush=True)
 
+# Pre-compile regex patterns globally for better performance
+# Not using re.IGNORECASE as it causes significant performance degradation on these specific patterns
+LINK_PATTERNS = [
+    re.compile(r'https?://[a-zA-Z0-9.-]*weidian\.com/[a-zA-Z0-9_.-/?=&]*'),
+    re.compile(r'https?://[a-zA-Z0-9.-]*taobao\.com/[a-zA-Z0-9_.-/?=&]*'),
+    re.compile(r'https?://[a-zA-Z0-9.-]*tmall\.com/[a-zA-Z0-9_.-/?=&]*'),
+    re.compile(r'https?://[a-zA-Z0-9.-]*1688\.com/[a-zA-Z0-9_.-/?=&]*')
+]
+
 class RedditDesignerScout:
     def __init__(self):
         self.headers = {
@@ -96,17 +105,9 @@ class RedditDesignerScout:
         if not text:
             return []
         
-        # Regex to find Taobao, Weidian, and 1688 URLs
-        patterns = [
-            r'https?://[a-zA-Z0-9.-]*weidian\.com/[a-zA-Z0-9_.-/?=&]*',
-            r'https?://[a-zA-Z0-9.-]*taobao\.com/[a-zA-Z0-9_.-/?=&]*',
-            r'https?://[a-zA-Z0-9.-]*tmall\.com/[a-zA-Z0-9_.-/?=&]*',
-            r'https?://[a-zA-Z0-9.-]*1688\.com/[a-zA-Z0-9_.-/?=&]*'
-        ]
-        
         found = []
-        for pat in patterns:
-            matches = re.findall(pat, text)
+        for pat in LINK_PATTERNS:
+            matches = pat.findall(text)
             for m in matches:
                 # Clean markdown links (like [link](url))
                 clean_url = m.split(')')[0].split(']')[0].strip()
