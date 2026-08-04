@@ -39,7 +39,7 @@ async def run_batch():
                 "models/character_sheets/f1_1.png",
                 "test_products/red_hoodie.png",
             ],
-            "output_prefix": "f1_red_hoodie",
+            "output_prefix": "f1_streetwear",
         },
         # ── Add more jobs below ──
         # {
@@ -49,7 +49,7 @@ async def run_batch():
         #         "models/character_sheets/f1_body.png",
         #         "test_products/black_jacket.png",
         #     ],
-        #     "output_prefix": "f1_black_jacket",
+        #     "output_prefix": "f1_leather_jacket", # or another scene/style name
         # },
     ]
 
