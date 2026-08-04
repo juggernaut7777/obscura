@@ -187,6 +187,8 @@ class OrderFulfiller:
     def __init__(self):
         self.orders_file = ORDERS_DIR / "active_orders.json"
         self.orders = self._load_orders()
+        # O(1) lookup index for orders by ID
+        self._orders_by_id = {o["order_id"]: o for o in self.orders}
 
     def _load_orders(self) -> list:
         if self.orders_file.exists():
@@ -268,6 +270,7 @@ class OrderFulfiller:
         }
 
         self.orders.append(order)
+        self._orders_by_id[order["order_id"]] = order
         self._save_orders()
 
         log.info(f"📦 Order {order_id} created | {len(ddp_items)} DDP items ({ddp_weight:.2f}kg) | {len(cj_items)} CJ items")
@@ -494,9 +497,10 @@ class OrderFulfiller:
         return counts
 
     def _find(self, order_id: str) -> dict:
-        for o in self.orders:
-            if o["order_id"] == order_id:
-                return o
+        # OPTIMIZATION: Use O(1) dictionary lookup instead of O(N) list traversal
+        order = self._orders_by_id.get(order_id)
+        if order is not None:
+            return order
         log.warning(f"Order {order_id} not found")
         return None
 
