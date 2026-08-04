@@ -272,7 +272,7 @@ Rules:
         if not find_block or not replace_block:
             return {"success": False, "diagnosis": f"Incomplete fix: {diagnosis}", "file_changed": ""}
 
-        # Apply the fix
+        # Apply the parsed fix to the source code file.
         with open(source_path, "r") as f:
             current_code = f.read()
 
