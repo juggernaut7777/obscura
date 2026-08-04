@@ -15,7 +15,6 @@ import sys
 import logging
 import requests
 from typing import List, Dict, Optional
-from pathlib import Path
 
 # ── Safe print for Windows cp1252 ──────────────────────────────────────────
 def safe_print(*args, **kwargs):
