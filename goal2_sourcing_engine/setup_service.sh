@@ -19,6 +19,18 @@ VENV_PATH="$BRAIN_DIR/venv"
 SERVICE_NAME="ai-brain"
 LOG_DIR="$BRAIN_DIR/logs"
 
+# Validate inputs to prevent path traversal and command injection
+if [[ ! "$BRAIN_DIR" =~ ^/[a-zA-Z0-9_/-]+$ ]] || [[ "$BRAIN_DIR" == *..* ]]; then
+    echo "Error: Invalid BRAIN_DIR path" >&2
+    exit 1
+fi
+
+if [[ ! "$BRAIN_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+    echo "Error: Invalid BRAIN_USER" >&2
+    exit 1
+fi
+
+
 echo "🧠 Setting up AI Brain 24/7 service..."
 
 # Create log directory
@@ -26,7 +38,7 @@ mkdir -p "$LOG_DIR"
 chown "$BRAIN_USER:$BRAIN_USER" "$LOG_DIR"
 
 # ── 1. Create the systemd service ──
-cat > /etc/systemd/system/${SERVICE_NAME}.service << 'EOF'
+cat > /etc/systemd/system/${SERVICE_NAME}.service << EOF
 [Unit]
 Description=AI Fashion Ad Brain — Autonomous Agent
 After=network.target
@@ -34,22 +46,22 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=user
-Group=user
-WorkingDirectory=/home/user/ai-ugc
-Environment="PATH=/home/user/ai-ugc/venv/bin:/usr/local/bin:/usr/bin:/bin"
-Environment="HOME=/home/user"
+User=${BRAIN_USER}
+Group=${BRAIN_USER}
+WorkingDirectory=${BRAIN_DIR}
+Environment="PATH=${BRAIN_DIR}/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="HOME=/home/${BRAIN_USER}"
 Environment="DISPLAY=:99"
-ExecStartPre=/bin/bash -c 'source /home/user/ai-ugc/venv/bin/activate'
-ExecStart=/home/user/ai-ugc/venv/bin/python3 /home/user/ai-ugc/agent_brain.py --run-hours 6
+ExecStartPre=/bin/bash -c 'source ${BRAIN_DIR}/venv/bin/activate'
+ExecStart=${BRAIN_DIR}/venv/bin/python3 ${BRAIN_DIR}/agent_brain.py --run-hours 6
 Restart=always
 RestartSec=60
 StartLimitInterval=3600
 StartLimitBurst=20
 
 # Logging
-StandardOutput=append:/home/user/ai-ugc/logs/brain.log
-StandardError=append:/home/user/ai-ugc/logs/brain_error.log
+StandardOutput=append:${BRAIN_DIR}/logs/brain.log
+StandardError=append:${BRAIN_DIR}/logs/brain_error.log
 
 # Memory limits (prevent runaway)
 MemoryMax=1.5G
@@ -65,10 +77,10 @@ EOF
 echo "✅ Systemd service created"
 
 # ── 2. Create a wrapper script that resets daily counters ──
-cat > "$BRAIN_DIR/run_brain.sh" << 'RUNEOF'
+cat > "$BRAIN_DIR/run_brain.sh" << RUNEOF
 #!/bin/bash
 # Wrapper script — called by systemd
-cd /home/user/ai-ugc
+cd ${BRAIN_DIR}
 source venv/bin/activate
 
 # Load .env
@@ -78,7 +90,7 @@ set +a
 
 echo ""
 echo "============================================================"
-echo "  🧠 AI BRAIN SESSION START: $(date)"
+echo "  🧠 AI BRAIN SESSION START: \$(date)"
 echo "============================================================"
 
 # Run the brain for 6 hours, then systemd restarts it
@@ -86,20 +98,20 @@ python3 agent_brain.py --run-hours 6
 
 echo ""
 echo "============================================================"
-echo "  🛑 SESSION END: $(date) — Systemd will restart in 60s"
+echo "  🛑 SESSION END: \$(date) — Systemd will restart in 60s"
 echo "============================================================"
 RUNEOF
 chmod +x "$BRAIN_DIR/run_brain.sh"
 chown "$BRAIN_USER:$BRAIN_USER" "$BRAIN_DIR/run_brain.sh"
 
 # Update service to use wrapper
-sed -i "s|ExecStart=.*|ExecStart=/bin/bash /home/user/ai-ugc/run_brain.sh|" /etc/systemd/system/${SERVICE_NAME}.service
+sed -i "s|ExecStart=.*|ExecStart=/bin/bash ${BRAIN_DIR}/run_brain.sh|" /etc/systemd/system/${SERVICE_NAME}.service
 
 echo "✅ Wrapper script created"
 
 # ── 3. Set up log rotation ──
 cat > /etc/logrotate.d/ai-brain << EOF
-/home/user/ai-ugc/logs/*.log {
+${BRAIN_DIR}/logs/*.log {
     daily
     rotate 7
     compress
@@ -152,7 +164,7 @@ chown "$BRAIN_USER:$BRAIN_USER" "$BRAIN_DIR/clean_memory.py"
 
 # Add cron job for memory cleanup (3am daily)
 (crontab -u "$BRAIN_USER" -l 2>/dev/null | grep -v clean_memory; \
- echo "0 3 * * * cd /home/user/ai-ugc && /home/user/ai-ugc/venv/bin/python3 clean_memory.py >> logs/cleanup.log 2>&1") \
+ echo "0 3 * * * cd ${BRAIN_DIR} && ${BRAIN_DIR}/venv/bin/python3 clean_memory.py >> logs/cleanup.log 2>&1") \
  | crontab -u "$BRAIN_USER" -
 
 echo "✅ Daily memory cleanup cron set (3am UTC)"
@@ -191,8 +203,8 @@ echo "  Commands:"
 echo "    Start:   sudo systemctl start ai-brain"
 echo "    Stop:    sudo systemctl stop ai-brain"
 echo "    Status:  sudo systemctl status ai-brain"
-echo "    Logs:    tail -f ~/ai-ugc/logs/brain.log"
-echo "    Errors:  tail -f ~/ai-ugc/logs/brain_error.log"
+echo "    Logs:    tail -f ${BRAIN_DIR}/logs/brain.log"
+echo "    Errors:  tail -f ${BRAIN_DIR}/logs/brain_error.log"
 echo ""
 echo "  The brain will:"
 echo "    - Run 6-hour sessions, auto-restart between sessions"
@@ -201,5 +213,5 @@ echo "    - Clean duplicate learnings daily at 3am"
 echo "    - Rotate logs (keep 7 days)"
 echo ""
 echo "  ⚠️  Before starting, make sure FlowBridge cookies are valid:"
-echo "    sudo -u user bash -c 'cd ~/ai-ugc && source venv/bin/activate && python3 flow_bridge.py login'"
+echo "    sudo -u ${BRAIN_USER} bash -c 'cd ${BRAIN_DIR} && source venv/bin/activate && python3 flow_bridge.py login'"
 echo ""
