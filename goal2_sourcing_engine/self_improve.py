@@ -263,8 +263,18 @@ Rules:
             text = text.split("```json")[1].split("```")[0]
         elif "```" in text:
             text = text.split("```")[1].split("```")[0]
+        else:
+            # Fallback to extract the outermost JSON object if no markdown is found
+            start = text.find("{")
+            end = text.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                text = text[start:end+1]
         
         fix = json.loads(text.strip())
+
+        if not isinstance(fix, dict):
+            raise ValueError(f"Expected a dictionary, got {type(fix).__name__}")
+
         diagnosis = fix.get("diagnosis", "Unknown")
         find_block = fix.get("find", "")
         replace_block = fix.get("replace", "")
@@ -307,7 +317,7 @@ Rules:
             "diagnosis": diagnosis,
             "file_changed": source_file,
         }
-    except (json.JSONDecodeError, KeyError, IndexError) as e:
+    except Exception as e:
         return {
             "success": False, 
             "diagnosis": f"Could not parse Gemini fix: {e}. Raw: {api_result['output'][:300]}",
