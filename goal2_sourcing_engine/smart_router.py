@@ -10,7 +10,6 @@ show the EXACT original design on the model.
 """
 
 import os
-import sys
 import time
 import random
 from pathlib import Path
