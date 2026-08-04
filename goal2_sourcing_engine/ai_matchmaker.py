@@ -15,7 +15,7 @@ import json
 import shutil
 from pathlib import Path
 from datetime import datetime
-from inventory_manager import load_inventory, get_available_pool
+from inventory_manager import get_available_pool
 
 # CONFIG
 POOL_DIR = Path("output/scraped_products")
