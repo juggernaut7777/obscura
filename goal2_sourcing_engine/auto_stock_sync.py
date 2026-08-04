@@ -107,20 +107,9 @@ async def sync_stock(product_id=None, dry_run=False):
     log(f"[*] Processing stock checks for {len(target_products)} target product(s)...")
     
     agent = ChineseSourcingAgent(headless=True)
-    changes_made = 0
     
-    for prod in target_products:
+    async def process_product(prod, mapping, url):
         p_id = prod["id"]
-        mapping = supplier_mappings.get(p_id)
-        if not mapping:
-            log(f"  [SKIP] {p_id} — No supplier mapping found.")
-            continue
-            
-        url = mapping.get("source_url")
-        if not url:
-            log(f"  [SKIP] {p_id} — No source_url mapped.")
-            continue
-            
         log(f"  [*] Re-scraping stock status for '{prod['name']}' ({p_id})")
         log(f"      Source URL: {url[:80]}...")
         
@@ -129,7 +118,7 @@ async def sync_stock(product_id=None, dry_run=False):
             res = await agent.scrape_product(url, generate_contact_sheet=False)
             if not res or not isinstance(res, dict):
                 log(f"    [!] Scraper failed to fetch results for {p_id}.")
-                continue
+                return 0
                 
             meta = res.get("metadata", {})
             new_stock = meta.get("stock_status", {})
@@ -149,11 +138,12 @@ async def sync_stock(product_id=None, dry_run=False):
                     state_new = "IN STOCK" if new_val else "OUT OF STOCK"
                     stock_diffs.append(f"      * Variant '{key}': {state_old} → {state_new}")
             
+            changes = 0
             if stock_diffs:
                 log(f"    [!] Detected variant stock status changes:")
                 for diff in stock_diffs:
                     print(diff)
-                changes_made += 1
+                changes = 1
             else:
                 log("    [OK] No changes in variant stock status.")
                 
@@ -163,9 +153,30 @@ async def sync_stock(product_id=None, dry_run=False):
                 # Update supplier mappings entry
                 mapping["stock_status"] = new_stock
                 mapping["last_sync"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            return changes
                 
         except Exception as e:
             log(f"    [ERROR] Failed to check stock for {p_id}: {e}")
+            return 0
+
+    tasks = []
+    for prod in target_products:
+        p_id = prod["id"]
+        mapping = supplier_mappings.get(p_id)
+        if not mapping:
+            log(f"  [SKIP] {p_id} — No supplier mapping found.")
+            continue
+
+        url = mapping.get("source_url")
+        if not url:
+            log(f"  [SKIP] {p_id} — No source_url mapped.")
+            continue
+
+        # Optimization: Use asyncio tasks to scrape concurrently
+        tasks.append(process_product(prod, mapping, url))
+
+    results = await asyncio.gather(*tasks) if tasks else []
+    changes_made = sum(results)
             
     # Save results
     if changes_made > 0 and not dry_run:
