@@ -45,12 +45,21 @@ BRAND_CODES = {
 
 def sanitize_for_tiktok(text: str) -> str:
     """Remove brand names from text, replace with coded language."""
-    result = text
-    for brand, code in BRAND_CODES.items():
-        # Case-insensitive replacement
-        import re
-        result = re.sub(re.escape(brand), code, result, flags=re.IGNORECASE)
-    return result
+    if not text:
+        return text
+
+    import re
+    # Sort brands by length descending to match longest phrases first (e.g., 'louis vuitton' before 'lv')
+    sorted_brands = sorted(BRAND_CODES.keys(), key=len, reverse=True)
+
+    # Create a single regex pattern matching any of the brands with word boundaries
+    pattern = r'\b(' + '|'.join(re.escape(b) for b in sorted_brands) + r')\b'
+
+    def repl(match):
+        # Match dictionary keys exactly by lowering the matched string
+        return BRAND_CODES[match.group(0).lower()]
+
+    return re.sub(pattern, repl, text, flags=re.IGNORECASE)
 
 
 # ==========================================
