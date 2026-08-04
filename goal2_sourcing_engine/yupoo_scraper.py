@@ -19,7 +19,7 @@ import logging
 import requests
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
-from urllib.parse import urljoin, quote
+from urllib.parse import quote
 
 # ── Safe print for Windows cp1252 ──────────────────────────────────────────
 def safe_print(*args, **kwargs):
