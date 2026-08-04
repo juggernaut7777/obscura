@@ -17,6 +17,7 @@ import json
 import time
 import logging
 import requests
+import concurrent.futures
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 from urllib.parse import urljoin, quote
@@ -425,17 +426,32 @@ class YupooScraper:
         # Optionally fetch detail pages for Weidian links
         if fetch_details and all_albums:
             safe_print(f"[Yupoo] Fetching detail pages for {len(all_albums)} albums...")
-            for i, album in enumerate(all_albums):
-                detail = self.scrape_album_detail(album['album_url'])
-                album['weidian_link'] = detail['weidian_link']
-                album['platform'] = detail['platform']
-                album['images'] = detail['images']
-                album['description'] = detail['description']
+
+            # PERFORMANCE OPTIMIZATION: Process detail pages in concurrent batches to avoid N+1 requests bottleneck
+            # Max workers bounded to 5 to avoid 429 Too Many Requests errors.
+            batch_size = 5
+
+            def fetch_detail_for_album(album_data):
+                detail_data = self.scrape_album_detail(album_data['album_url'])
+                return album_data, detail_data
+
+            for batch_start in range(0, len(all_albums), batch_size):
+                batch = all_albums[batch_start:batch_start + batch_size]
+                with concurrent.futures.ThreadPoolExecutor(max_workers=batch_size) as executor:
+                    futures = {executor.submit(fetch_detail_for_album, album): album for album in batch}
+                    for future in concurrent.futures.as_completed(futures):
+                        album, detail = future.result()
+                        album['weidian_link'] = detail['weidian_link']
+                        album['platform'] = detail['platform']
+                        album['images'] = detail['images']
+                        album['description'] = detail['description']
                 
-                if (i + 1) % 10 == 0:
-                    safe_print(f"[Yupoo] Progress: {i+1}/{len(all_albums)} detail pages fetched")
+                processed = min(batch_start + batch_size, len(all_albums))
+                if processed % 10 == 0 or processed == len(all_albums):
+                    safe_print(f"[Yupoo] Progress: {processed}/{len(all_albums)} detail pages fetched")
                 
-                time.sleep(detail_delay)
+                if processed < len(all_albums):
+                    time.sleep(detail_delay)
         
         # Summary
         with_links = sum(1 for a in all_albums if a.get('weidian_link'))
