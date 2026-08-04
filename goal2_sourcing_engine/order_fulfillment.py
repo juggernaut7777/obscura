@@ -188,17 +188,18 @@ class OrderFulfiller:
         self.orders_file = ORDERS_DIR / "active_orders.json"
         self.orders = self._load_orders()
 
-    def _load_orders(self) -> list:
+    def _load_orders(self) -> dict:
         if self.orders_file.exists():
             try:
-                return json.loads(self.orders_file.read_text(encoding="utf-8"))
+                orders_list = json.loads(self.orders_file.read_text(encoding="utf-8"))
+                return {o["order_id"]: o for o in orders_list}
             except Exception:
                 pass
-        return []
+        return {}
 
     def _save_orders(self):
         self.orders_file.write_text(
-            json.dumps(self.orders, indent=2, ensure_ascii=False, default=str),
+            json.dumps(list(self.orders.values()), indent=2, ensure_ascii=False, default=str),
             encoding="utf-8"
         )
 
@@ -267,7 +268,7 @@ class OrderFulfiller:
             "history": [{"timestamp": datetime.now().isoformat(), "event": "Order created from checkout"}],
         }
 
-        self.orders.append(order)
+        self.orders[order_id] = order
         self._save_orders()
 
         log.info(f"📦 Order {order_id} created | {len(ddp_items)} DDP items ({ddp_weight:.2f}kg) | {len(cj_items)} CJ items")
@@ -472,31 +473,31 @@ class OrderFulfiller:
             "total":      len(self.orders),
             "by_status":  self._count_by("status"),
             "pipelines":  {
-                "ddp_agent": len([o for o in self.orders if o["pipelines"].get("ddp_agent", {}).get("items")]),
-                "cj":        len([o for o in self.orders if o["pipelines"].get("cj", {}).get("items")]),
-                "mixed":     len([o for o in self.orders if o.get("is_mixed")]),
+                "ddp_agent": len([o for o in self.orders.values() if o["pipelines"].get("ddp_agent", {}).get("items")]),
+                "cj":        len([o for o in self.orders.values() if o["pipelines"].get("cj", {}).get("items")]),
+                "mixed":     len([o for o in self.orders.values() if o.get("is_mixed")]),
             },
             "pending_purchase": [
-                o["order_id"] for o in self.orders
+                o["order_id"] for o in self.orders.values()
                 if o["pipelines"].get("ddp_agent", {}).get("status") == "awaiting_purchase"
             ],
             "in_warehouse": [
-                o["order_id"] for o in self.orders
+                o["order_id"] for o in self.orders.values()
                 if o["status"] == OrderStatus.IN_WAREHOUSE.value
             ],
         }
 
     def _count_by(self, field: str) -> dict:
         counts = {}
-        for o in self.orders:
+        for o in self.orders.values():
             v = o.get(field, "unknown")
             counts[v] = counts.get(v, 0) + 1
         return counts
 
     def _find(self, order_id: str) -> dict:
-        for o in self.orders:
-            if o["order_id"] == order_id:
-                return o
+        order = self.orders.get(order_id)
+        if order:
+            return order
         log.warning(f"Order {order_id} not found")
         return None
 
