@@ -113,7 +113,6 @@ class AutoCaptioner:
 
         try:
             print(f"[Captioner] Running FFmpeg burn-in...")
-            # Use shell=True on Windows to ensure ffmpeg is found correctly in environment
             result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                 print(f"[+] Subtitles burned in successfully: {output_path}")
