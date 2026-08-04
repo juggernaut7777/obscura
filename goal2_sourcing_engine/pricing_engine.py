@@ -14,6 +14,7 @@ Strategy: "Higher price = Higher absolute gain"
 """
 
 import math
+import functools
 
 # CONFIGURATION
 CNY_TO_USD_RATE = 7.2       # current market rate
@@ -101,6 +102,10 @@ class PricingEngine:
     def calculate_final_price(self, price, currency="CNY"):
         return calculate_final_price(price, currency)
 
+    # ⚡ Bolt: Performance optimization
+    # Why: Speed up repeated pricing calculations across many items.
+    # What: Add LRU caching to the pricing calculations.
+    @functools.lru_cache(maxsize=1024)
     def calculate_physical_retail_price(self, supplier_cost, category="apparel"):
         # Use USD flow since supplier_cost is in USD
         res = calculate_final_price(supplier_cost, "USD")
