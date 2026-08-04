@@ -20,6 +20,7 @@ import json
 import asyncio
 import smtplib
 import requests
+import aiohttp
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
@@ -139,15 +140,17 @@ class EmailExtractor:
     """Extracts contact emails from brand websites found in ads."""
 
     @staticmethod
-    def extract_email_from_url(url: str) -> str:
-        """Scrapes a website landing page for a contact/business email."""
+    async def extract_email_from_url(url: str) -> str:
+        """Scrapes a website landing page for a contact/business email using non-blocking aiohttp."""
         if not url:
             return ""
         try:
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-            r = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(url, timeout=10, allow_redirects=True) as r:
+                    text = await r.text()
             # Find all email patterns in the page source
-            emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', r.text)
+            emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', text)
             # Filter out common junk emails
             junk = ["wixpress", "sentry", "example", "test", "noreply", "cdn", "webpack", "schema"]
             valid = [e for e in emails if not any(j in e.lower() for j in junk)]
@@ -296,7 +299,7 @@ async def hunt_for_leads(keyword: str, send_emails: bool = False, scan_only: boo
         contact_email = ""
         if external_link:
             print(f"   🔍 Scraping email from: {external_link[:50]}...")
-            contact_email = email_extractor.extract_email_from_url(external_link)
+            contact_email = await email_extractor.extract_email_from_url(external_link)
             if contact_email:
                 print(f"   📧 Found email: {contact_email}")
             else:
