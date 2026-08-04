@@ -17,6 +17,7 @@ import time
 import os
 import sys
 import requests
+import asyncio
 
 BRIDGE_URL = "http://127.0.0.1:9877"
 RESULTS_FILE = "rate_limit_results.json"
@@ -39,15 +40,17 @@ def save_results(data):
         json.dump(data, f, indent=2)
 
 
-def test_single_generation():
-    """Send one generation request and return the result."""
+async def test_single_generation_async(i, count):
+    """Send one generation request asynchronously and return the result."""
+    print(f"  [Attempt {i}/{count}] GET {BRIDGE_URL}/generate")
     start = time.time()
+    loop = asyncio.get_running_loop()
     try:
-        resp = requests.post(
+        resp = await loop.run_in_executor(None, lambda: requests.post(
             f"{BRIDGE_URL}/generate",
             json={"prompt": TEST_PROMPT},
             timeout=120
-        )
+        ))
         elapsed = time.time() - start
         return {
             "status": resp.status_code,
@@ -66,6 +69,10 @@ def test_single_generation():
             "response_snippet": str(e)[:200],
         }
 
+def test_single_generation():
+    """Send one generation request synchronously and return the result."""
+    return asyncio.run(test_single_generation_async(1, 1))
+
 
 def run_interval_test(interval_seconds: int, count: int = 5):
     """Test a specific interval between generations."""
@@ -81,27 +88,43 @@ def run_interval_test(interval_seconds: int, count: int = 5):
     successes = 0
     failures = 0
 
-    for i in range(1, count + 1):
-        print(f"\n  [{i}/{count}] Generating...")
-        result = test_single_generation()
-        test_results.append(result)
+    if interval_seconds == 0:
+        print(f"  Running {count} requests concurrently...")
+        async def run_concurrently():
+            tasks = []
+            for i in range(1, count + 1):
+                tasks.append(test_single_generation_async(i, count))
+            return await asyncio.gather(*tasks)
+        test_results = asyncio.run(run_concurrently())
+        for i, result in enumerate(test_results, 1):
+            if result["success"]:
+                successes += 1
+                print(f"  [{i}/{count}] OK ({result['elapsed_seconds']}s)")
+            else:
+                failures += 1
+                print(f"  [{i}/{count}] FAILED: {result['status']} - {result['response_snippet'][:80]}")
+    else:
+        for i in range(1, count + 1):
+            print(f"\n  [{i}/{count}] Generating...")
+            result = asyncio.run(test_single_generation_async(i, count))
+            test_results.append(result)
 
-        if result["success"]:
-            successes += 1
-            print(f"  OK ({result['elapsed_seconds']}s)")
-        else:
-            failures += 1
-            print(f"  FAILED: {result['status']} - {result['response_snippet'][:80]}")
-            # If we get a 403, log it and stop
-            if result["status"] == 403:
-                print(f"\n  403 DETECTED at generation #{i}!")
-                print(f"  The limit at {interval_seconds}s spacing is approximately {i-1} generations.")
-                break
+            if result["success"]:
+                successes += 1
+                print(f"  OK ({result['elapsed_seconds']}s)")
+            else:
+                failures += 1
+                print(f"  FAILED: {result['status']} - {result['response_snippet'][:80]}")
+                # If we get a 403, log it and stop
+                if result["status"] == 403:
+                    print(f"\n  403 DETECTED at generation #{i}!")
+                    print(f"  The limit at {interval_seconds}s spacing is approximately {i-1} generations.")
+                    break
 
-        # Wait for next attempt (except after last one)
-        if i < count:
-            print(f"  Waiting {interval_seconds}s...")
-            time.sleep(interval_seconds)
+            # Wait for next attempt (except after last one)
+            if i < count:
+                print(f"  Waiting {interval_seconds}s...")
+                time.sleep(interval_seconds)
 
     # Save results
     results["tests"].append({
