@@ -241,9 +241,9 @@ find output/ -name "*.png" | wc -l
 ## API Keys Required (.env)
 
 ```
-GROQ_API_KEY=gsk_xxxxx           # Free at console.groq.com
-XAI_API_KEY=xai-xxxxx           # $25 free credit at x.ai
-NVIDIA_NIM_API_KEY=nvapi-xxxxx  # Free tier at build.nvidia.com
+GROQ_API_KEY=<your_groq_api_key_here>           # Free at console.groq.com
+XAI_API_KEY=<your_xai_api_key_here>           # $25 free credit at x.ai
+NVIDIA_NIM_API_KEY=<your_nvidia_api_key_here>  # Free tier at build.nvidia.com
 ```
 
 ## Troubleshooting
