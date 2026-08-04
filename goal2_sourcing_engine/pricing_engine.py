@@ -14,6 +14,7 @@ Strategy: "Higher price = Higher absolute gain"
 """
 
 import math
+import functools
 
 # CONFIGURATION
 CNY_TO_USD_RATE = 7.2       # current market rate
@@ -23,6 +24,7 @@ DDP_HANDLING_FEE = 3.00     # $3.00 per item (DDP agent purchasing + QC + consol
 CRYPTO_FEE = 1.50           # $1.50 estimated USDT fee for agent payment
 BUFFER_FEE = 2.00           # $2.00 for customs variance / exchange rate drift / misc
 
+@functools.lru_cache(maxsize=1024)
 def calculate_final_price(price, currency="CNY"):
     """
     Calculates the final retail price in USD.
@@ -101,6 +103,7 @@ class PricingEngine:
     def calculate_final_price(self, price, currency="CNY"):
         return calculate_final_price(price, currency)
 
+    @functools.lru_cache(maxsize=1024)
     def calculate_physical_retail_price(self, supplier_cost, category="apparel"):
         # Use USD flow since supplier_cost is in USD
         res = calculate_final_price(supplier_cost, "USD")
