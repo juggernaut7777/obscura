@@ -20,6 +20,7 @@ import os
 import sys
 import json
 import asyncio
+import re
 import subprocess
 import time
 from datetime import datetime
@@ -239,7 +240,12 @@ Rules:
 
     # Classify error type — don't try to fix code when it's a login/cookie issue
     login_keywords = ["cookie", "login", "auth", "session", "sign in", "403", "401", "not logged"]
-    if any(kw in error_msg.lower() for kw in login_keywords):
+    # Compile a regex with word boundaries at the start to prevent matching inside unrelated words,
+    # but allowing it as a prefix (e.g., catching 'authentication' with 'auth')
+    sorted_keywords = sorted(login_keywords, key=len, reverse=True)
+    pattern = re.compile(r'\b(?:' + '|'.join(map(re.escape, sorted_keywords)) + r')', re.IGNORECASE)
+
+    if pattern.search(error_msg):
         return {
             "success": False,
             "diagnosis": f"Not a code bug — {tool_name} needs login/cookies. Upload cookies to fix.",
