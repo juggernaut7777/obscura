@@ -103,17 +103,16 @@ class AutoCaptioner:
             f"Alignment=2,MarginV=40'"
         )
 
-        cmd = [
-            "ffmpeg", "-y",
-            "-i", video_path,
-            "-vf", vf_filter,
-            "-c:a", "copy",
-            output_path
-        ]
-
         try:
             print(f"[Captioner] Running FFmpeg burn-in...")
-            # Use shell=True on Windows to ensure ffmpeg is found correctly in environment
+            # Ensure cmd is a list and shell=False to prevent command injection
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", video_path,
+                "-vf", vf_filter,
+                "-c:a", "copy",
+                output_path
+            ]
             result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                 print(f"[+] Subtitles burned in successfully: {output_path}")
