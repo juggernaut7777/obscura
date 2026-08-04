@@ -22,6 +22,7 @@ import json
 import shutil
 import hashlib
 import time
+import asyncio
 from pathlib import Path
 from datetime import datetime
 from pricing_engine import calculate_final_price
@@ -842,13 +843,19 @@ def scan_and_upload():
     log(f"[OK] Upload log saved. {len(uploaded)} total campaigns processed.")
 
 
+# ⚡ Bolt: Performance optimization
+# Why: Using a synchronous loop with time.sleep consumes the main thread and blocks the event loop.
+# What: Refactored the while True loop into an async function using asyncio.to_thread and asyncio.sleep.
+async def watch_loop():
+    log("Watching OUTPUT_READY_FOR_SALE for new campaigns...")
+    while True:
+        await asyncio.to_thread(scan_and_upload)
+        await asyncio.sleep(30)
+
 if __name__ == "__main__":
     import sys
     
     if "--watch" in sys.argv:
-        log("Watching OUTPUT_READY_FOR_SALE for new campaigns...")
-        while True:
-            scan_and_upload()
-            time.sleep(30)
+        asyncio.run(watch_loop())
     else:
         scan_and_upload()
