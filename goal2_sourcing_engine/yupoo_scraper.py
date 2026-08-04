@@ -13,7 +13,6 @@ Usage:
 """
 
 import re
-import json
 import time
 import logging
 import requests
