@@ -287,7 +287,21 @@ async def run_reddit_scout(max_sellers: int = 30, min_relevance: float = 0.3) ->
         safe_print(f"   [r/{subreddit}] Got {len(posts)} posts — scanning all for Yupoo links")
         total_posts_scanned += len(posts)
         
-        for post in posts:
+        # ⚡ Bolt: Use a semaphore to limit concurrency for comment fetching to prevent rate limiting
+        semaphore = asyncio.Semaphore(5)
+
+        async def fetch_comments_for_post(post):
+            relevance = score_post_relevance(post)
+            post_id = post.get("id", "")
+            if relevance >= min_relevance and post_id:
+                async with semaphore:
+                    return await fetch_post_comments(subreddit, post_id, limit=50)
+            return []
+
+        # ⚡ Bolt: Execute comment fetching concurrently instead of sequentially to eliminate N+1 bottleneck
+        all_post_comments = await asyncio.gather(*(fetch_comments_for_post(post) for post in posts))
+
+        for post, comments in zip(posts, all_post_comments):
             title = post.get("title", "")
             raw_body = post.get("selftext", "")
             post_id = post.get("id", "")
@@ -320,22 +334,19 @@ async def run_reddit_scout(max_sellers: int = 30, min_relevance: float = 0.3) ->
                     })
             
             # ── Mine comments on high-relevance posts ──
-            relevance = score_post_relevance(post)
-            if relevance >= min_relevance and post_id:
-                comments = await fetch_post_comments(subreddit, post_id, limit=50)
-                for comment in comments:
-                    comment_text = strip_html(comment)
-                    sellers_in_comment = extract_yupoo_sellers_from_text(comment_text)
-                    for s in sellers_in_comment:
-                        subdomain = s["subdomain"]
-                        if subdomain not in known_subdomains and subdomain not in new_sellers:
-                            new_sellers[subdomain] = {
-                                **s,
-                                "source": f"r/{subreddit} [comment]",
-                                "post_title": title[:80],
-                                "discovered_at": datetime.now().isoformat()
-                            }
-                            safe_print(f"   [NEW SELLER via comment] {subdomain}.x.yupoo.com")
+            for comment in comments:
+                comment_text = strip_html(comment)
+                sellers_in_comment = extract_yupoo_sellers_from_text(comment_text)
+                for s in sellers_in_comment:
+                    subdomain = s["subdomain"]
+                    if subdomain not in known_subdomains and subdomain not in new_sellers:
+                        new_sellers[subdomain] = {
+                            **s,
+                            "source": f"r/{subreddit} [comment]",
+                            "post_title": title[:80],
+                            "discovered_at": datetime.now().isoformat()
+                        }
+                        safe_print(f"   [NEW SELLER via comment] {subdomain}.x.yupoo.com")
             
             # ── Capture trending W2C searches ──
             title_lower = title.lower()
