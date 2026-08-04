@@ -1,14 +1,26 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const activeOrdersPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\data\\orders\\active_orders.json";
 const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      console.error("[API ADMIN ORDERS GET] Server misconfiguration: ADMIN_SECRET not set.");
+      return Response.json({ success: false, error: "Server misconfiguration" }, { status: 500 });
+    }
+
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || authHeader !== `Bearer ${adminSecret}`) {
+      console.warn("[API ADMIN ORDERS GET] Unauthorized attempt.");
+      return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!fs.existsSync(activeOrdersPath)) {
       return Response.json([]);
     }
@@ -25,27 +37,39 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      console.error("[API ADMIN ORDERS POST] Server misconfiguration: ADMIN_SECRET not set.");
+      return Response.json({ success: false, error: "Server misconfiguration" }, { status: 500 });
+    }
+
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || authHeader !== `Bearer ${adminSecret}`) {
+      console.warn("[API ADMIN ORDERS POST] Unauthorized attempt.");
+      return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const { orderId, action, tracking, pipeline } = await request.json();
     if (!orderId || !action) {
       return Response.json({ success: false, error: "Missing orderId or action" }, { status: 400 });
     }
 
-    let command = "";
+    let args = [];
     if (action === "mark-paid") {
-      command = `python order_fulfillment.py --mark-paid "${orderId}"`;
+      args = ["order_fulfillment.py", "--mark-paid", orderId];
     } else if (action === "mark-combining") {
-      command = `python order_fulfillment.py --mark-combining "${orderId}"`;
+      args = ["order_fulfillment.py", "--mark-combining", orderId];
     } else if (action === "mark-shipped") {
       if (!tracking || !pipeline) {
         return Response.json({ success: false, error: "Missing tracking or pipeline info for shipping" }, { status: 400 });
       }
-      command = `python order_fulfillment.py --mark-shipped "${orderId}" "${tracking}" "${pipeline}"`;
+      args = ["order_fulfillment.py", "--mark-shipped", orderId, tracking, pipeline];
     } else {
       return Response.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
 
-    console.log(`[API ADMIN ORDERS POST] Executing: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    console.log(`[API ADMIN ORDERS POST] Executing python with args: ${JSON.stringify(args)}`);
+    const { stdout, stderr } = await execFileAsync("python", args, { cwd });
 
     if (stderr && !stdout) {
       console.error("[API ADMIN ORDERS POST] Stderr output:", stderr);

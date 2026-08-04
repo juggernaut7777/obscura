@@ -15,6 +15,10 @@ export default function AdminPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncOutput, setSyncOutput] = useState("");
   
+  // Authentication state
+  const [adminSecret, setAdminSecret] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   // Shipping Modal states
   const [shippingModalOpen, setShippingModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState("");
@@ -23,14 +27,34 @@ export default function AdminPage() {
   const [isShippingSubmit, setIsShippingSubmit] = useState(false);
 
   useEffect(() => {
-    fetchOrders();
-    fetchStagedItems();
-  }, []);
+    if (isAuthenticated) {
+      fetchOrders();
+      fetchStagedItems();
+    }
+  }, [isAuthenticated]);
+
+  const getAuthHeaders = () => ({
+    "Authorization": `Bearer ${adminSecret}`
+  });
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (adminSecret.trim()) {
+      setIsAuthenticated(true);
+    }
+  };
 
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      const res = await fetch("/api/admin/orders");
+      const res = await fetch("/api/admin/orders", {
+        headers: getAuthHeaders()
+      });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        alert("Unauthorized or Invalid Admin Secret.");
+        return;
+      }
       const data = await res.json();
       if (Array.isArray(data)) {
         setOrders(data);
@@ -45,7 +69,14 @@ export default function AdminPage() {
   const fetchStagedItems = async () => {
     setLoadingStaged(true);
     try {
-      const res = await fetch("/api/admin/warehouse");
+      const res = await fetch("/api/admin/warehouse", {
+        headers: getAuthHeaders()
+      });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        alert("Unauthorized or Invalid Admin Secret.");
+        return;
+      }
       const data = await res.json();
       if (Array.isArray(data)) {
         setStagedItems(data);
@@ -74,13 +105,23 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({
           orderId,
           action,
           ...extraParams
         })
       });
+
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        alert("Unauthorized or Session Expired.");
+        return;
+      }
+
       const result = await res.json();
       if (result.success) {
         alert("Order updated successfully!");
@@ -123,7 +164,17 @@ export default function AdminPage() {
     setIsSyncing(true);
     setSyncOutput("Initializing Catalog Sync...\nScanning OUTPUT_READY_FOR_SALE folder...\n");
     try {
-      const res = await fetch("/api/admin/upload", { method: "POST" });
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: getAuthHeaders()
+      });
+
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        alert("Unauthorized or Session Expired.");
+        return;
+      }
+
       const data = await res.json();
       if (data.success) {
         setSyncOutput(prev => prev + "\n[SUCCESS] Sync complete!\n\n" + data.output);
@@ -159,11 +210,40 @@ export default function AdminPage() {
       <main className={styles.main}>
         <div className={`container ${styles.adminContainer}`}>
           
+          {!isAuthenticated ? (
+            <div style={{ maxWidth: '400px', margin: '4rem auto', textAlign: 'center' }}>
+              <h1 className={styles.title} style={{ marginBottom: '1.5rem' }}>Admin Login</h1>
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <input
+                  type="password"
+                  placeholder="Enter Admin Secret"
+                  value={adminSecret}
+                  onChange={(e) => setAdminSecret(e.target.value)}
+                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '1rem' }}
+                  required
+                />
+                <button
+                  type="submit"
+                  className={styles.sysBtn}
+                >
+                  Access Dashboard
+                </button>
+              </form>
+            </div>
+          ) : (
+            <>
           {/* Header section */}
           <header className={styles.header}>
             <div>
               <span className="text-caption">OBSCURA Console</span>
               <h1 className={styles.title}>Admin Panel</h1>
+              <button
+                onClick={() => setIsAuthenticated(false)}
+                className={styles.sysBtn}
+                style={{ marginTop: '0.5rem', padding: '0.25rem 0.75rem', fontSize: '0.8rem', backgroundColor: '#666' }}
+              >
+                Logout
+              </button>
             </div>
             
             <nav className={styles.navTabs}>
@@ -457,6 +537,8 @@ export default function AdminPage() {
                 </div>
               </div>
             </section>
+          )}
+            </>
           )}
 
         </div>

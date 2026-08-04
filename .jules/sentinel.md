@@ -1,0 +1,4 @@
+## 2026-08-04 - Secure Admin API Endpoints with Authentication and Input Sanitization
+**Vulnerability:** Unauthenticated API endpoints (`/api/admin/upload`, `/orders`, `/warehouse`) allowing unauthorized remote execution of backend Python scripts, coupled with a Command Injection vulnerability due to unsanitized user input in `child_process.exec`.
+**Learning:** Relying on implicit obscurity for admin routes is insecure. Additionally, using string interpolation with `child_process.exec` allows attackers to append arbitrary shell commands via API payload variables.
+**Prevention:** Always require strong authentication (like an `ADMIN_SECRET` Bearer token) for privileged routes. Use `child_process.execFile` passing arguments as an array instead of `exec` to safely execute scripts without invoking a shell.

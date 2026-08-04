@@ -3,8 +3,20 @@ import path from "path";
 
 const manualCurationPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\MANUAL_CURATION";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      console.error("[API ADMIN WAREHOUSE GET] Server misconfiguration: ADMIN_SECRET not set.");
+      return Response.json({ success: false, error: "Server misconfiguration" }, { status: 500 });
+    }
+
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || authHeader !== `Bearer ${adminSecret}`) {
+      console.warn("[API ADMIN WAREHOUSE GET] Unauthorized attempt.");
+      return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!fs.existsSync(manualCurationPath)) {
       return Response.json([]);
     }
