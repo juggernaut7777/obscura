@@ -225,7 +225,6 @@ async def setup_browser():
             auth_header = request.headers.get("authorization", "")
             if auth_header.startswith("Bearer ya29.") and not captured_bearer["token"]:
                 captured_bearer["token"] = auth_header.replace("Bearer ", "")
-                log("[+] Captured REAL ya29 Bearer token from network!")
 
     page.on("request", on_request)
 
@@ -272,7 +271,8 @@ async def setup_browser():
         if bearer_fallback and bearer_fallback.startswith("ya29."):
             captured_bearer["token"] = bearer_fallback
         else:
-            log(f"[?] Session fallback result: {bearer_fallback}")
+            masked_fallback = (bearer_fallback[:10] + '***') if isinstance(bearer_fallback, str) else bearer_fallback
+            log(f"[?] Session fallback result: {masked_fallback}")
 
     bearer = captured_bearer["token"]
     if not bearer:
