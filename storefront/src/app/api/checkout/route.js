@@ -1,30 +1,26 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function POST(request) {
   try {
     const body = await request.json();
     
-    // Ensure data directory exists
-    const ordersDir = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\data\\orders";
-    if (!fs.existsSync(ordersDir)) {
-      fs.mkdirSync(ordersDir, { recursive: true });
-    }
-    
     // Create temporary file path
-    const tempFile = path.join(ordersDir, `temp_checkout_${Date.now()}.json`);
+    const tempFile = path.join(os.tmpdir(), `temp_checkout_${Date.now()}.json`);
     fs.writeFileSync(tempFile, JSON.stringify(body, null, 2), "utf-8");
     
     // Execute python script
-    const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
-    const command = `python order_fulfillment.py --checkout-file "${tempFile}"`;
+    const cwd = path.resolve(process.cwd(), "..", "goal2_sourcing_engine");
+    const pythonCmd = process.platform === "win32" ? "python" : "python3";
+    const args = ["order_fulfillment.py", "--checkout-file", tempFile];
     
-    console.log(`[API CHECKOUT] Executing: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    console.log(`[API CHECKOUT] Executing: ${pythonCmd} ${args.join(" ")} in ${cwd}`);
+    const { stdout, stderr } = await execFileAsync(pythonCmd, args, { cwd });
     
     // Clean up temporary file
     try {
