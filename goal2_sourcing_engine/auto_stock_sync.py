@@ -14,7 +14,6 @@ import asyncio
 import argparse
 from datetime import datetime
 from pathlib import Path
-from bs4 import BeautifulSoup
 
 # Setup local paths
 BASE_DIR = Path(__file__).resolve().parent
