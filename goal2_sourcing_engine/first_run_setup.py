@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import shlex
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -8,7 +9,7 @@ BASE_DIR = Path(__file__).parent
 def run_command(cmd, desc):
     print(f"[*] {desc}...")
     try:
-        subprocess.run(cmd, check=True, shell=True)
+        subprocess.run(shlex.split(cmd), check=True, shell=False)
         print(f"  [OK] {desc} successful.")
     except subprocess.CalledProcessError as e:
         print(f"  [FAIL] {desc} failed: {e}")
