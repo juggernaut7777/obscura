@@ -168,7 +168,7 @@ async def run_vton_test():
         print(f"   [{status}] {img}")
 
     # Use the scene name for output prefix — NOT a garment description
-    # This prevents the "grey hoodie called black hoodie" bug
+    # This avoids hardcoding garment descriptions in the file prefix
     output_name = f"f1_{scene['name']}"
 
     print(f"\n   Output prefix: {output_name}")
