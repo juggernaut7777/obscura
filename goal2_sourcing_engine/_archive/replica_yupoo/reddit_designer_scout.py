@@ -13,6 +13,11 @@ if sys.platform.startswith("win"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+# Pre-compile the regex to find Taobao, Weidian, Tmall, and 1688 URLs.
+# This improves performance by avoiding repeated regex compilation and combining 4 string regex loops into 1.
+# See .jules/bolt.md for more details on this optimization pattern.
+LINK_PATTERN = re.compile(r'https?://[a-zA-Z0-9.-]*(?:weidian|taobao|tmall|1688)\.com/[a-zA-Z0-9_.-/?=&]*', re.IGNORECASE)
+
 def safe_print(msg: str):
     print(msg, flush=True)
 
@@ -96,22 +101,13 @@ class RedditDesignerScout:
         if not text:
             return []
         
-        # Regex to find Taobao, Weidian, and 1688 URLs
-        patterns = [
-            r'https?://[a-zA-Z0-9.-]*weidian\.com/[a-zA-Z0-9_.-/?=&]*',
-            r'https?://[a-zA-Z0-9.-]*taobao\.com/[a-zA-Z0-9_.-/?=&]*',
-            r'https?://[a-zA-Z0-9.-]*tmall\.com/[a-zA-Z0-9_.-/?=&]*',
-            r'https?://[a-zA-Z0-9.-]*1688\.com/[a-zA-Z0-9_.-/?=&]*'
-        ]
-        
         found = []
-        for pat in patterns:
-            matches = re.findall(pat, text)
-            for m in matches:
-                # Clean markdown links (like [link](url))
-                clean_url = m.split(')')[0].split(']')[0].strip()
-                if clean_url not in found:
-                    found.append(clean_url)
+        matches = LINK_PATTERN.findall(text)
+        for m in matches:
+            # Clean markdown links (like [link](url))
+            clean_url = m.split(')')[0].split(']')[0].strip()
+            if clean_url not in found:
+                found.append(clean_url)
         return found
 
     def fetch_comments_links(self, subreddit: str, permalink: str) -> list:
