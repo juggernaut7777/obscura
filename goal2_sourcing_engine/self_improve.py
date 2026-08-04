@@ -238,7 +238,10 @@ Rules:
 - If it's a missing library/import, add the import"""
 
     # Classify error type — don't try to fix code when it's a login/cookie issue
-    login_keywords = ["cookie", "login", "auth", "session", "sign in", "403", "401", "not logged"]
+    login_keywords = [
+        "cookie", "login", "auth", "session", "sign in", "403", "401", "not logged",
+        "expired", "token", "unauthorized", "forbidden", "credentials"
+    ]
     if any(kw in error_msg.lower() for kw in login_keywords):
         return {
             "success": False,
