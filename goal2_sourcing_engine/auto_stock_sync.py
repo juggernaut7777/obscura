@@ -107,65 +107,78 @@ async def sync_stock(product_id=None, dry_run=False):
     log(f"[*] Processing stock checks for {len(target_products)} target product(s)...")
     
     agent = ChineseSourcingAgent(headless=True)
-    changes_made = 0
     
-    for prod in target_products:
+    # ⚡ Performance Optimization: Implement concurrent scraping with asyncio.gather
+    # Rationale: Checking stock sequentially for N products scales linearly and takes O(N) time.
+    # By using asyncio.gather, we can make concurrent requests and drastically reduce scraping time,
+    # limited by a Semaphore to avoid overwhelming the system/network or memory.
+    semaphore = asyncio.Semaphore(5)
+
+    async def process_product(prod):
         p_id = prod["id"]
         mapping = supplier_mappings.get(p_id)
         if not mapping:
             log(f"  [SKIP] {p_id} — No supplier mapping found.")
-            continue
+            return False
             
         url = mapping.get("source_url")
         if not url:
             log(f"  [SKIP] {p_id} — No source_url mapped.")
-            continue
+            return False
             
         log(f"  [*] Re-scraping stock status for '{prod['name']}' ({p_id})")
         log(f"      Source URL: {url[:80]}...")
         
-        try:
-            # Execute headless scrape (generate_contact_sheet=False for speed)
-            res = await agent.scrape_product(url, generate_contact_sheet=False)
-            if not res or not isinstance(res, dict):
-                log(f"    [!] Scraper failed to fetch results for {p_id}.")
-                continue
+        async with semaphore:
+            try:
+                # Execute headless scrape (generate_contact_sheet=False for speed)
+                res = await agent.scrape_product(url, generate_contact_sheet=False)
+                if not res or not isinstance(res, dict):
+                    log(f"    [!] Scraper failed to fetch results for {p_id}.")
+                    return False
+
+                meta = res.get("metadata", {})
+                new_stock = meta.get("stock_status", {})
                 
-            meta = res.get("metadata", {})
-            new_stock = meta.get("stock_status", {})
-            
-            # Compare stock status changes
-            old_stock = prod.get("stock_status", {})
-            log(f"    - Current Stock Map: {old_stock}")
-            log(f"    - New Sourced Stock Map: {new_stock}")
-            
-            stock_diffs = []
-            all_keys = set(old_stock.keys()).union(set(new_stock.keys()))
-            for key in all_keys:
-                old_val = old_stock.get(key)
-                new_val = new_stock.get(key)
-                if old_val != new_val:
-                    state_old = "IN STOCK" if old_val else "OUT OF STOCK"
-                    state_new = "IN STOCK" if new_val else "OUT OF STOCK"
-                    stock_diffs.append(f"      * Variant '{key}': {state_old} → {state_new}")
-            
-            if stock_diffs:
-                log(f"    [!] Detected variant stock status changes:")
-                for diff in stock_diffs:
-                    print(diff)
-                changes_made += 1
-            else:
-                log("    [OK] No changes in variant stock status.")
+                # Compare stock status changes
+                old_stock = prod.get("stock_status", {})
+                log(f"    - Current Stock Map: {old_stock}")
+                log(f"    - New Sourced Stock Map: {new_stock}")
                 
-            if not dry_run:
-                # Update products.js entry
-                prod["stock_status"] = new_stock
-                # Update supplier mappings entry
-                mapping["stock_status"] = new_stock
-                mapping["last_sync"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                stock_diffs = []
+                all_keys = set(old_stock.keys()).union(set(new_stock.keys()))
+                for key in all_keys:
+                    old_val = old_stock.get(key)
+                    new_val = new_stock.get(key)
+                    if old_val != new_val:
+                        state_old = "IN STOCK" if old_val else "OUT OF STOCK"
+                        state_new = "IN STOCK" if new_val else "OUT OF STOCK"
+                        stock_diffs.append(f"      * Variant '{key}': {state_old} → {state_new}")
                 
-        except Exception as e:
-            log(f"    [ERROR] Failed to check stock for {p_id}: {e}")
+                changed = False
+                if stock_diffs:
+                    log(f"    [!] Detected variant stock status changes:")
+                    for diff in stock_diffs:
+                        print(diff)
+                    changed = True
+                else:
+                    log("    [OK] No changes in variant stock status.")
+
+                if not dry_run:
+                    # Update products.js entry
+                    prod["stock_status"] = new_stock
+                    # Update supplier mappings entry
+                    mapping["stock_status"] = new_stock
+                    mapping["last_sync"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                return changed
+
+            except Exception as e:
+                log(f"    [ERROR] Failed to check stock for {p_id}: {e}")
+                return False
+
+    results = await asyncio.gather(*(process_product(prod) for prod in target_products))
+    changes_made = sum(1 for r in results if r)
             
     # Save results
     if changes_made > 0 and not dry_run:
