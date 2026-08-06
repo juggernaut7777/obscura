@@ -423,8 +423,17 @@ class LocalBrain:
         try:
             # Find the latest generated products to list
             output_dir = BASE_DIR / "output_ugc"
-            recent_images = sorted(output_dir.glob("*.png"), key=os.path.getmtime, reverse=True)[:4]
-            image_paths = [str(img) for img in recent_images]
+            image_paths = []
+            if output_dir.exists():
+                # ⚡ Performance optimization
+                # Why: Avoids N+1 system calls from glob + getmtime.
+                # What: Uses os.scandir to cache file attributes.
+                recent_images = sorted(
+                    [f for f in os.scandir(output_dir) if f.name.endswith(".png")],
+                    key=lambda f: f.stat().st_mtime,
+                    reverse=True
+                )[:4]
+                image_paths = [f.path for f in recent_images]
             
             if not image_paths:
                 log("   [!] No generated images found to list.")
