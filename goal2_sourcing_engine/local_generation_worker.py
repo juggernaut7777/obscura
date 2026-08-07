@@ -114,25 +114,29 @@ def discover_products():
         has_validator = False
     
     # 1. Discover subdirectories (folder-grouped products)
-    for subdir in INPUT_DIR.iterdir():
-        if subdir.is_dir() and subdir.name not in ("outfit_grid", "_rejected", "__pycache__"):
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
-            
-            # Filter/Validate images in the folder
-            valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
-                if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-                    continue
-                if has_validator:
-                    check = validate_product_image(str(img))
-                    if check.get("valid"):
-                        valid_images.append(str(img))
-                else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
+    with os.scandir(INPUT_DIR) as input_scanner:
+        for subdir_entry in input_scanner:
+            if subdir_entry.is_dir() and subdir_entry.name not in ("outfit_grid", "_rejected", "__pycache__"):
+                subdir = Path(subdir_entry.path)
+                valid_images = []
+
+                with os.scandir(subdir_entry.path) as subdir_scanner:
+                    for entry in subdir_scanner:
+                        if not entry.is_file():
+                            continue
+                        name_lower = entry.name.lower()
+                        if not name_lower.endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                            continue
+                        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                            continue
+
+                        if has_validator:
+                            check = validate_product_image(entry.path)
+                            if check.get("valid"):
+                                valid_images.append(entry.path)
+                        else:
+                            if entry.stat().st_size >= 30000:
+                                valid_images.append(entry.path)
             
             if valid_images:
                 # Load metadata if exists
@@ -165,27 +169,30 @@ def discover_products():
                 })
 
     # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
-        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-            continue
-        if has_validator:
-            check = validate_product_image(str(img))
-            if not check.get("valid"):
+    with os.scandir(INPUT_DIR) as scanner:
+        for entry in scanner:
+            if not entry.is_file():
                 continue
-        else:
-            if img.stat().st_size < 30000:
+            name_lower = entry.name.lower()
+            if not name_lower.endswith(('.png', '.jpg', '.jpeg', '.webp')):
                 continue
-        
-        products.append({
-            "is_folder": False,
-            "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
+
+            if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                continue
+
+            if has_validator:
+                check = validate_product_image(entry.path)
+                if not check.get("valid"):
+                    continue
+            else:
+                if entry.stat().st_size < 30000:
+                    continue
+
+            products.append({
+                "is_folder": False,
+                "folder_path": None,
+                "name": entry.name.rsplit('.', 1)[0],
+                "images": [entry.path],
             "link": "",
             "metadata": {}
         })

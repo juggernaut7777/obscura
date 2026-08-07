@@ -122,38 +122,39 @@ def extract_metadata_from_campaign(campaign_dir):
     }
     
     # Check for metadata.json (from Discord bot / staging copy)
-    for f in campaign_dir.iterdir():
-        if f.suffix == ".json" and f.name != "checkout_links.json" and f.name != "outfit_metadata.json":
-            try:
-                with open(f, "r", encoding="utf-8") as mf:
-                    meta = json.load(mf)
-                    metadata["product_name"] = meta.get("product_name") or meta.get("name")
-                    metadata["color"] = meta.get("color")
-                    metadata["part"] = meta.get("part")  # "top", "bottom", or None
-                    metadata["is_set"] = meta.get("is_set", False)
-                    metadata["set_partner"] = meta.get("set_partner")
-                    metadata["link"] = meta.get("link", "") or meta.get("url", "")
-                    metadata["price"] = meta.get("price_cny") or meta.get("price") or 0
-                    metadata["category"] = meta.get("category", "")
-                    metadata["currency"] = meta.get("currency") or ("USD" if "$" in str(metadata["price"]) else "CNY")
-                    metadata["size_info"] = meta.get("size_info")
-                    metadata["size_charts"] = meta.get("size_charts", 0)
-                    # Enriched fields from Phase 1 scraper
-                    metadata["material"] = meta.get("material", "")
-                    metadata["weight_gsm"] = meta.get("weight_gsm", 0)
-                    metadata["measurements"] = meta.get("measurements", {})
-                    metadata["model_info"] = meta.get("model_info", "")
-                    metadata["care_instructions"] = meta.get("care_instructions", "")
-                    metadata["brand_name"] = meta.get("brand_name", "")
-                    metadata["product_category"] = meta.get("product_category", "")
-                    metadata["variant_mappings"] = meta.get("variant_mappings", {})
-                    metadata["item_id"] = meta.get("item_id", "")
-                    metadata["platform"] = meta.get("platform", "")
-                    metadata["seller"] = meta.get("seller", {})
-                    metadata["stock_status"] = meta.get("stock_status", {})
-                    metadata["description"] = meta.get("description", "")
-            except Exception:
-                pass
+    with os.scandir(campaign_dir) as scanner:
+        for entry in scanner:
+            if entry.name.endswith(".json") and entry.name != "checkout_links.json" and entry.name != "outfit_metadata.json":
+                try:
+                    with open(entry.path, "r", encoding="utf-8") as mf:
+                        meta = json.load(mf)
+                        metadata["product_name"] = meta.get("product_name") or meta.get("name")
+                        metadata["color"] = meta.get("color")
+                        metadata["part"] = meta.get("part")  # "top", "bottom", or None
+                        metadata["is_set"] = meta.get("is_set", False)
+                        metadata["set_partner"] = meta.get("set_partner")
+                        metadata["link"] = meta.get("link", "") or meta.get("url", "")
+                        metadata["price"] = meta.get("price_cny") or meta.get("price") or 0
+                        metadata["category"] = meta.get("category", "")
+                        metadata["currency"] = meta.get("currency") or ("USD" if "$" in str(metadata["price"]) else "CNY")
+                        metadata["size_info"] = meta.get("size_info")
+                        metadata["size_charts"] = meta.get("size_charts", 0)
+                        # Enriched fields from Phase 1 scraper
+                        metadata["material"] = meta.get("material", "")
+                        metadata["weight_gsm"] = meta.get("weight_gsm", 0)
+                        metadata["measurements"] = meta.get("measurements", {})
+                        metadata["model_info"] = meta.get("model_info", "")
+                        metadata["care_instructions"] = meta.get("care_instructions", "")
+                        metadata["brand_name"] = meta.get("brand_name", "")
+                        metadata["product_category"] = meta.get("product_category", "")
+                        metadata["variant_mappings"] = meta.get("variant_mappings", {})
+                        metadata["item_id"] = meta.get("item_id", "")
+                        metadata["platform"] = meta.get("platform", "")
+                        metadata["seller"] = meta.get("seller", {})
+                        metadata["stock_status"] = meta.get("stock_status", {})
+                        metadata["description"] = meta.get("description", "")
+                except Exception:
+                    pass
     
     # Check checkout_links.txt for the link
     checkout_file = campaign_dir / "checkout_links.txt"
@@ -164,21 +165,25 @@ def extract_metadata_from_campaign(campaign_dir):
             metadata["link"] = link_match.group(1)
     
     # Collect generated images (the AI shots, not the source product photos)
-    for f in sorted(campaign_dir.iterdir()):
-        if f.suffix in {".png", ".jpg", ".jpeg", ".webp"}:
-            # Only include generated shots (01_editorial, 02_lifestyle, etc.)
-            if any(tag in f.name for tag in ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
-                                              "flat_lay", "mannequin", "hanger", "detail", "hero",
-                                              "on_foot", "unboxing", "set_flat", "product_")):
-                metadata["images"].append(f)
-    
+    with os.scandir(campaign_dir) as scanner:
+        entries = [e for e in scanner if e.name.endswith((".png", ".jpg", ".jpeg", ".webp"))]
+        entries.sort(key=lambda e: e.name)
+        for entry in entries:
+            if any(tag in entry.name for tag in ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
+                                                  "flat_lay", "mannequin", "hanger", "detail", "hero",
+                                                  "on_foot", "unboxing", "set_flat", "product_")):
+                metadata["images"].append(Path(entry.path))
+
     # Collect original source images (Yupoo/Weidian scraped photos)
     metadata["source_images"] = []
     source_prefixes = ("front_angle", "back_angle", "side_angle", "angle_", "source_")
-    for f in sorted(campaign_dir.iterdir()):
-        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-            if f.stem.startswith(source_prefixes):
-                metadata["source_images"].append(f)
+    with os.scandir(campaign_dir) as scanner:
+        entries = [e for e in scanner if e.name.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
+        entries.sort(key=lambda e: e.name)
+        for entry in entries:
+            # os.DirEntry does not have .stem, so we check if it starts with the prefix directly
+            if any(entry.name.startswith(prefix) for prefix in source_prefixes):
+                metadata["source_images"].append(Path(entry.path))
     
     return metadata
 
@@ -189,17 +194,19 @@ def copy_size_charts_to_public(campaign_dir, product_slug):
     product_dir.mkdir(parents=True, exist_ok=True)
     
     web_paths = []
-    for f in campaign_dir.iterdir():
-        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-            if any(k in f.name.lower() for k in ("chart", "size", "guide")):
-                # Clean or preserve name
-                dest_name = f"size_guide_{f.name}"
-                dest_path = product_dir / dest_name
-                try:
-                    shutil.copy(str(f), str(dest_path))
-                    web_paths.append(f"/products/{product_slug}/{dest_name}")
-                except Exception as e:
-                    log(f"  [!] Error copying size chart {f.name}: {e}")
+    with os.scandir(campaign_dir) as scanner:
+        for entry in scanner:
+            name_lower = entry.name.lower()
+            if name_lower.endswith((".png", ".jpg", ".jpeg", ".webp")):
+                if any(k in name_lower for k in ("chart", "size", "guide")):
+                    # Clean or preserve name
+                    dest_name = f"size_guide_{entry.name}"
+                    dest_path = product_dir / dest_name
+                    try:
+                        shutil.copy(entry.path, str(dest_path))
+                        web_paths.append(f"/products/{product_slug}/{dest_name}")
+                    except Exception as e:
+                        log(f"  [!] Error copying size chart {entry.name}: {e}")
     return web_paths
 
 
@@ -439,16 +446,18 @@ def check_and_register_outfit(campaign_dir, final_products):
             
     # Determine the lookbook image for the outfit (first editorial image)
     outfit_images = []
-    for f in sorted(campaign_dir.iterdir()):
-        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-            if any(t in f.name.lower() for t in ("editorial", "lifestyle", "urban")):
+    with os.scandir(campaign_dir) as scanner:
+        entries = [e for e in scanner if e.name.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
+        entries.sort(key=lambda e: e.name)
+        for entry in entries:
+            if any(t in entry.name.lower() for t in ("editorial", "lifestyle", "urban")):
                 # Copy to public
                 dest_dir = PUBLIC_DIR / "outfits"
                 dest_dir.mkdir(parents=True, exist_ok=True)
-                dest_path = dest_dir / f.name
+                dest_path = dest_dir / entry.name
                 try:
-                    shutil.copy(str(f), str(dest_path))
-                    outfit_images.append(f"/products/outfits/{f.name}")
+                    shutil.copy(entry.path, str(dest_path))
+                    outfit_images.append(f"/products/outfits/{entry.name}")
                 except:
                     pass
                     
@@ -481,7 +490,8 @@ def scan_and_upload():
         log("No OUTPUT_READY_FOR_SALE directory found.")
         return
     
-    campaigns = [d for d in READY_DIR.iterdir() if d.is_dir()]
+    with os.scandir(READY_DIR) as scanner:
+        campaigns = [Path(e.path) for e in scanner if e.is_dir()]
     if not campaigns:
         log("No campaigns to upload.")
         return
