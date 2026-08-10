@@ -49,10 +49,19 @@ def main():
     if not has_products and test_dir.exists():
         print("[*] input_sourcing is empty. Copying test products...")
         import shutil
-        for f in test_dir.glob("*"):
-            if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp') and f.stat().st_size > 30000:
-                shutil.copy(f, input_dir / f.name)
-                print(f"  [+] Copied {f.name}")
+        # ⚡ Performance optimization
+        # Why: Avoid N+1 stat calls when checking file sizes
+        # What: Use os.scandir which caches file attributes
+        import os
+        try:
+            with os.scandir(test_dir) as it:
+                for entry in it:
+                    if entry.is_file() and entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) and entry.stat().st_size > 30000:
+                        f = Path(entry.path)
+                        shutil.copy(f, input_dir / f.name)
+                        print(f"  [+] Copied {f.name}")
+        except Exception:
+            pass
 
     print("\n" + "=" * 50)
     print("SETUP COMPLETE. YOU ARE READY TO RUN.")
