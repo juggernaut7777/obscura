@@ -273,6 +273,9 @@ def get_warehouse_summary() -> str:
         return "Total products in warehouse: 0"
 
     try:
+        # ⚡ Performance optimization
+        # Why: Avoid redundant stat system calls inside the sort lambda
+        # What: os.scandir DirEntry caches stat(), making sorting much faster
         with os.scandir(MANUAL_CURATION_DIR) as scanner:
             entries = [e for e in scanner if e.is_dir()]
             entries.sort(key=lambda e: e.stat().st_mtime, reverse=True)

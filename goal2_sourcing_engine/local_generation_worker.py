@@ -166,21 +166,31 @@ def discover_products():
 
     # 2. Discover loose files directly in INPUT_DIR root
     loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
+    # ⚡ Performance optimization
+    # Why: Avoid N+1 stat calls when checking file sizes
+    # What: Use os.scandir which caches file attributes
+    try:
+        with os.scandir(INPUT_DIR) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                    loose_images.append(entry)
+    except Exception:
+        pass
+
+    for entry in loose_images:
+        name_lower = entry.name.lower()
         if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
             continue
         if has_validator:
-            check = validate_product_image(str(img))
+            check = validate_product_image(entry.path)
             if not check.get("valid"):
                 continue
         else:
-            if img.stat().st_size < 30000:
+            if entry.stat().st_size < 30000:
                 continue
         
+        img = Path(entry.path)
+
         products.append({
             "is_folder": False,
             "folder_path": None,
@@ -658,10 +668,18 @@ async def main():
         test_dir = BASE_DIR / "test_products"
         if test_dir.exists():
             import shutil
-            for f in test_dir.glob("*"):
-                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp') and f.stat().st_size > 30000:
-                    shutil.copy(f, INPUT_DIR / f.name)
-                    log(f"  [+] Copied fallback product: {f.name}")
+            # ⚡ Performance optimization
+            # Why: Avoid N+1 stat calls when checking file sizes
+            # What: Use os.scandir which caches file attributes
+            try:
+                with os.scandir(test_dir) as it:
+                    for entry in it:
+                        if entry.is_file() and entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) and entry.stat().st_size > 30000:
+                            f = Path(entry.path)
+                            shutil.copy(f, INPUT_DIR / f.name)
+                            log(f"  [+] Copied fallback product: {f.name}")
+            except Exception:
+                pass
             products = discover_products()
         if not products:
             log("[!] No products anywhere. Drop images into input_sourcing/ and restart.")
