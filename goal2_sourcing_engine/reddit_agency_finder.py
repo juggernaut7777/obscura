@@ -196,7 +196,7 @@ async def main():
         safe_print("[*] No target agency owners found in this run.")
         return
 
-    # Draft AI pitches for the first few (or all if not test mode)
+    # Draft AI pitches for a subset of leads, or all leads when not testing
     limit_ai = 3 if test_mode else len(all_leads)
     safe_print(f"\n[*] Drafting AI pitches for the top {limit_ai} leads...")
     
