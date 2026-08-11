@@ -58,8 +58,11 @@ def start_tunnel():
     try:
         log("☁️ Starting Ngrok tunnel...")
         # Fix: Using correct production token
-        ngrok_token = os.getenv("NGROK_AUTH_TOKEN", "3CcirWo5RC3C0VxrZCPpxShwdhf_2iMxjnr1D9SGtwq54Gta3")
-        ngrok.set_auth_token(ngrok_token)
+        ngrok_token = os.getenv("NGROK_AUTH_TOKEN")
+        if ngrok_token:
+            ngrok.set_auth_token(ngrok_token)
+        else:
+            log("WARNING: NGROK_AUTH_TOKEN environment variable is not set. Proceeding without explicit auth token.")
         tunnel = ngrok.connect(BRIDGE_PORT, "http")
         PUBLIC_URL = tunnel.public_url
         log(f"🚀 PUBLIC URL: {PUBLIC_URL}")
