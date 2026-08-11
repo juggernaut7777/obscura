@@ -379,8 +379,11 @@ class Mem0Memory:
                 )
 
             if self.mem0 and mem0_messages:
-                for msg in mem0_messages:
-                    self.mem0.add(msg, user_id="sourcing_agent")
+                # ⚡ Performance optimization
+                # Why: Sequential mem0.add operations result in N+1 I/O blocking calls, significantly slowing down product insertion.
+                # What: Format the strings into role/content dicts and pass as a single list, allowing mem0 to batch embeddings and vector store inserts.
+                batched_msgs = [{"role": "user", "content": msg} for msg in mem0_messages]
+                self.mem0.add(batched_msgs, user_id="sourcing_agent")
 
         conn.commit()
         conn.close()
