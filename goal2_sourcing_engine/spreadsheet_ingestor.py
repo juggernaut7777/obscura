@@ -193,7 +193,6 @@ class SpreadsheetIngestor:
             # Try to detect header row
             if row_num == 1:
                 header_row = row
-                # Check if this row is actually a header (no URLs in it)
                 row_text = ' '.join(row)
                 if not MARKETPLACE_URL_PATTERN.search(row_text) and not AGENT_URL_PATTERN.search(row_text):
                     continue
