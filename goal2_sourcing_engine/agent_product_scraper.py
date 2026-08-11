@@ -353,21 +353,20 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                 # Delete the garbage image
                 try:
                     os.remove(local_path)
-                except:
+                except OSError:
                     pass
                 return None  # Skip this product entirely
             
             # Use Gemini's detected gender (more accurate than text guessing)
             if check.get("detected_gender") in ["male", "female"]:
                 gender = check["detected_gender"]
-                # Rename file with correct gender if it changed
                 new_filename = f"{gender}_{category}_{safe_title}_{int(datetime.now().timestamp())}.png"
                 new_path = os.path.join(INPUT_SOURCING_DIR, new_filename)
                 if new_path != local_path:
                     try:
                         os.rename(local_path, new_path)
                         local_path = new_path
-                    except:
+                    except OSError:
                         pass
             
             print(f"      [APPROVED] {check['reason']} (Gender: {gender})")
