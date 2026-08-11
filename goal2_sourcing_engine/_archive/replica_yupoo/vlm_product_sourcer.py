@@ -1261,8 +1261,10 @@ def cleanup_old_reviews(max_age_days: int = 3):
                                 urls_to_preserve.append(album_url)
                     except:
                         pass
-                    os.remove(filepath)
-                    count += 1
+                    finally:
+                        if os.path.exists(filepath):
+                            os.remove(filepath)
+                        count += 1
             except Exception as e:
                 safe_print(f"  [!] Error cleaning up {filename}: {e}")
     # Save all extracted URLs to permanent history before they're lost forever
