@@ -169,7 +169,7 @@ class YupooScraper:
         seen_urls = set()
 
         # ── Strategy 1: Classic template (album__main + album__title) ──────
-        # Pattern: <a href="/albums/123?uid=1"> ... <div class="album__title">Title</div>
+        # Pattern: href="/albums/..." followed by album__title class elements
         classic_albums = re.findall(
             r'href="(/albums/\d+\?[^"]+)"',
             html
@@ -180,9 +180,9 @@ class YupooScraper:
         )
 
         # ── Strategy 2: Modern template (album3__) ────────────────────────
-        # In modern template, titles are in <span/div> elements with 'title' class
-        # or in the `title` attribute of <a> tags
-        # Pattern for title attribute: <a ... href="/albums/123?uid=1&..." ... title="89¥ ...">
+        # In modern template, titles are in span/div elements with 'title' class
+        # or in the title attribute of anchor tags
+        # Pattern for title attribute: href="/albums/..." with title="89¥ ..."
         modern_matches = re.findall(
             r'<a[^>]*href="(/albums/\d+\?[^"]+)"[^>]*title="([^"]*)"',
             html
@@ -197,7 +197,7 @@ class YupooScraper:
         all_modern += [(url, title) for title, url in modern_matches_rev]
 
         # ── Strategy 3: Title class elements (newest Yupoo template) ──────
-        # Some templates use <span/div/p class="...title..."> for album titles
+        # Some templates use span/div/p elements with title class for album titles
         title_class_elements = re.findall(
             r'<(?:span|p|div)[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)',
             html
@@ -211,7 +211,7 @@ class YupooScraper:
 
         # ── Strategy 3: Extract image thumbnails ──────────────────────────
         # Both templates use photo.yupoo.com image URLs
-        # Classic: src="https://photo.yupoo.com/seller/hash/medium.jpg"
+        # Classic: img source pointing to photo.yupoo.com medium image
         # Modern: data-src or src with lazy loading
         all_imgs = re.findall(
             r'(?:src|data-src)="(https://photo\.yupoo\.com/[^"]+(?:medium|small|square)\.[^"]+)"',
@@ -355,7 +355,7 @@ class YupooScraper:
             result['platform'] = self._detect_platform(result['weidian_link'])
 
         # ── Extract description ───────────────────────────────────────────
-        # Classic: <div class="showalbum__des">...</div>
+        # Classic: element with showalbum__des class
         desc_matches = re.findall(r'showalbum__des[^>]*>(.*?)</div>', html, re.DOTALL)
         if desc_matches:
             # Clean HTML tags from description
