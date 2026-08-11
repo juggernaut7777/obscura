@@ -1253,14 +1253,17 @@ def cleanup_old_reviews(max_age_days: int = 3):
                 age = now - file_time
                 if age.days >= max_age_days:
                     # CRITICAL FIX: Extract album URL BEFORE deleting the file
+                    extracted_album_url = None
                     try:
                         with open(filepath, "r", encoding="utf-8") as f:
                             data = json.load(f)
-                            album_url = data.get("album_url")
-                            if album_url:
-                                urls_to_preserve.append(album_url)
-                    except:
+                            extracted_album_url = data.get("album_url")
+                    except Exception:
                         pass
+
+                    if extracted_album_url:
+                        urls_to_preserve.append(extracted_album_url)
+
                     os.remove(filepath)
                     count += 1
             except Exception as e:
