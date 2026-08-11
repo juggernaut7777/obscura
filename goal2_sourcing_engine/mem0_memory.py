@@ -9,6 +9,8 @@ import os
 import sqlite3
 import json
 import functools
+import concurrent.futures
+import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -379,8 +381,24 @@ class Mem0Memory:
                 )
 
             if self.mem0 and mem0_messages:
-                for msg in mem0_messages:
-                    self.mem0.add(msg, user_id="sourcing_agent")
+                # ⚡ Performance optimization
+                # Why: Sequential mem0.add operations are I/O bound and slow down batch processing significantly.
+                # What: Use ThreadPoolExecutor to parallelize mem0 additions, staggering submissions to avoid rate limits.
+                with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+                    active_futures = set()
+                    for idx, msg in enumerate(mem0_messages):
+                        if idx > 0 and idx % 20 == 0:
+                            time.sleep(0.5)  # Rate limiting
+                        fut = executor.submit(self.mem0.add, msg, user_id="sourcing_agent")
+                        active_futures.add(fut)
+
+                        done = {f for f in active_futures if f.done()}
+                        active_futures.difference_update(done)
+                        for f in done:
+                            f.result()
+
+                    for f in concurrent.futures.as_completed(active_futures):
+                        f.result()
 
         conn.commit()
         conn.close()
