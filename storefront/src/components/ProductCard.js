@@ -2,10 +2,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import styles from "./ProductCard.module.css";
+import { useCart } from "../context/CartContext";
 
 export default function ProductCard({ product, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { addToCart, setIsSidebarOpen } = useCart();
 
   const {
     id,
@@ -22,6 +24,12 @@ export default function ProductCard({ product, index = 0 }) {
   const discount = comparePrice
     ? Math.round(((comparePrice - price) / comparePrice) * 100)
     : 0;
+
+  const handleAddToCart = (e) => {
+    e.preventDefault(); // Prevent navigating to the product page
+    addToCart(product);
+    setIsSidebarOpen(true);
+  };
 
   return (
     <div
@@ -57,7 +65,7 @@ export default function ProductCard({ product, index = 0 }) {
 
         {/* Quick Add */}
         <div className={`${styles.quickAdd} ${isHovered ? styles.quickAddVisible : ""}`}>
-          <button className={styles.quickAddBtn}>Quick Add</button>
+          <button className={styles.quickAddBtn} onClick={handleAddToCart}>Quick Add</button>
         </div>
       </Link>
 
