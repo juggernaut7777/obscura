@@ -1245,6 +1245,7 @@ def cleanup_old_reviews(max_age_days: int = 3):
     now = datetime.now()
     count = 0
     urls_to_preserve = []
+    files_to_delete = []
     for filename in os.listdir(REVIEW_PENDING_DIR):
         if filename.endswith(".json"):
             filepath = os.path.join(REVIEW_PENDING_DIR, filename)
@@ -1261,14 +1262,22 @@ def cleanup_old_reviews(max_age_days: int = 3):
                                 urls_to_preserve.append(album_url)
                     except:
                         pass
-                    os.remove(filepath)
-                    count += 1
+                    files_to_delete.append(filepath)
             except Exception as e:
-                safe_print(f"  [!] Error cleaning up {filename}: {e}")
+                safe_print(f"  [!] Error inspecting {filename}: {e}")
+
     # Save all extracted URLs to permanent history before they're lost forever
     if urls_to_preserve:
         _save_batch_to_persistent_history(urls_to_preserve)
         safe_print(f"  [PRESERVED] Saved {len(urls_to_preserve)} album URLs to permanent history before cleanup")
+
+    for filepath in files_to_delete:
+        try:
+            os.remove(filepath)
+            count += 1
+        except Exception as e:
+            safe_print(f"  [!] Error cleaning up {filepath}: {e}")
+
     if count > 0:
         safe_print(f"  [OK] Cleaned up {count} stale mapping files.")
     else:
