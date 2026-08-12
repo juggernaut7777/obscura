@@ -894,6 +894,7 @@ async def tool_browse_instagram(
         return {"success": False, "error": str(e)}
 
 
+# pylint: disable=too-many-arguments
 async def tool_generate_ad(
     product_name: str, product_type: str,
     model_id: str, ad_styles: list, memory: AgentMemory,
@@ -1384,6 +1385,7 @@ async def tool_use_free_ai(
         return {"success": False, "error": str(e)}
 
 
+# pylint: disable=too-many-arguments
 def tool_create_digital_product(
     product_type: str, title: str, price: str,
     description: str = "", content_outline: list = None,
@@ -1509,6 +1511,7 @@ def tool_create_digital_product(
     return {"success": True, "file": filepath, "type": product_type, "title": title}
 
 
+# pylint: disable=too-many-arguments
 async def tool_list_on_gumroad(
     product_title: str, product_file_path: str, price_usd: float,
     cover_image_path: str = "", description: str = "",
