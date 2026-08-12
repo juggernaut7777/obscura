@@ -12,6 +12,15 @@ Also generates A/B test hook variations and trending hashtag sets.
 """
 import random
 from typing import List, Dict, Tuple
+from dataclasses import dataclass
+
+@dataclass
+class CaptionOptions:
+    price: str = ""
+    category: str = "general"
+    platform: str = "tiktok"
+    affiliate_link: str = "Link in bio"
+    num_variants: int = 3
 
 # ==========================================
 # BRAND-SAFE CODE WORDS (TikTok Safe)
@@ -153,52 +162,47 @@ class CaptionGenerator:
     def generate_caption(
         self,
         product_name: str,
-        price: str = "",
-        category: str = "general",
-        platform: str = "tiktok",
-        affiliate_link: str = "Link in bio",
-        num_variants: int = 3,
+        options: CaptionOptions = None
     ) -> List[Dict]:
         """
         Generate multiple caption variants for A/B testing.
 
         Args:
             product_name: Name of the product
-            price: Price string (e.g. "$22")
-            category: Product category (shoes, clothing, accessories)
-            platform: Target platform (tiktok, instagram, external_store)
-            affiliate_link: The link or CTA
-            num_variants: Number of variants to generate
+            options: CaptionOptions dataclass containing optional generation parameters
 
         Returns:
             List of caption dicts with hook, body, hashtags
         """
+        if options is None:
+            options = CaptionOptions()
+
         variants = []
 
         # Get hooks for this category
-        hook_list = HOOKS.get(category, HOOKS["general"])
+        hook_list = HOOKS.get(options.category, HOOKS["general"])
 
         # Get hashtags for platform
-        if platform == "tiktok":
-            hashtags = HASHTAG_SETS.get(f"{category}_tiktok",
+        if options.platform == "tiktok":
+            hashtags = HASHTAG_SETS.get(f"{options.category}_tiktok",
                                         HASHTAG_SETS.get("clothing_tiktok"))
         else:
-            hashtags = HASHTAG_SETS.get(f"{category}_instagram",
+            hashtags = HASHTAG_SETS.get(f"{options.category}_instagram",
                                         HASHTAG_SETS.get("clothing_instagram"))
 
         # Get caption templates
-        if platform == "tiktok":
+        if options.platform == "tiktok":
             templates = CAPTION_TEMPLATES["tiktok_safe"]
-        elif platform == "instagram":
+        elif options.platform == "instagram":
             templates = CAPTION_TEMPLATES["instagram"]
         else:
             templates = CAPTION_TEMPLATES["external_store"]
 
         # Sanitize product name for TikTok
-        safe_name = sanitize_for_tiktok(product_name) if platform == "tiktok" else product_name
+        safe_name = sanitize_for_tiktok(product_name) if options.platform == "tiktok" else product_name
         description = f"Quality: 🔥🔥🔥\nFit: True to size\nMaterial: Premium"
 
-        for i in range(num_variants):
+        for i in range(options.num_variants):
             hook = random.choice(hook_list)
             template = random.choice(templates)
 
@@ -206,8 +210,8 @@ class CaptionGenerator:
                 hook=hook,
                 product_name=safe_name,
                 description=description,
-                price=price or "Check link",
-                link=affiliate_link,
+                price=options.price or "Check link",
+                link=options.affiliate_link,
                 brand_hint=safe_name,
                 hashtags=hashtags,
             )
@@ -216,9 +220,9 @@ class CaptionGenerator:
                 "variant": i + 1,
                 "hook": hook,
                 "caption": caption,
-                "platform": platform,
-                "category": category,
-                "is_brand_safe": platform == "tiktok",
+                "platform": options.platform,
+                "category": options.category,
+                "is_brand_safe": options.platform == "tiktok",
             })
 
         self.generated_count += len(variants)
@@ -241,11 +245,13 @@ class CaptionGenerator:
 
             captions = self.generate_caption(
                 product_name=name,
-                price=f"${price}" if price else "",
-                category=category,
-                platform=platform,
-                affiliate_link=link,
-                num_variants=3,
+                options=CaptionOptions(
+                    price=f"${price}" if price else "",
+                    category=category,
+                    platform=platform,
+                    affiliate_link=link,
+                    num_variants=3,
+                )
             )
 
             product["captions"] = captions
@@ -282,9 +288,11 @@ if __name__ == "__main__":
         # TikTok (brand-safe)
         tiktok_captions = gen.generate_caption(
             product_name=product["productName"],
-            price=f"${product['price']}",
-            category=product["category"],
-            platform="tiktok",
+            options=CaptionOptions(
+                price=f"${product['price']}",
+                category=product["category"],
+                platform="tiktok",
+            )
         )
         print(f"\n  🎵 TikTok Caption (Brand-Safe):")
         print(f"  {tiktok_captions[0]['caption'][:150]}...")
@@ -292,9 +300,11 @@ if __name__ == "__main__":
         # Instagram (can mention brands)
         ig_captions = gen.generate_caption(
             product_name=product["productName"],
-            price=f"${product['price']}",
-            category=product["category"],
-            platform="instagram",
+            options=CaptionOptions(
+                price=f"${product['price']}",
+                category=product["category"],
+                platform="instagram",
+            )
         )
         print(f"\n  📸 Instagram Caption:")
         print(f"  {ig_captions[0]['caption'][:150]}...")
