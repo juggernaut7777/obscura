@@ -36,7 +36,7 @@ def download_yupoo_album_hq(album_url, output_dir="input_sourcing"):
 
     download_count = 0
     for item in image_items:
-        img_tag = item.find('img') if hasattr(item, 'find') else item
+        img_tag = item.find('img') if hasattr(item, 'find') and item.name != 'img' else item
         if not img_tag: continue
         
         # Look for the source. Yupoo often uses data-src for lazy loading
