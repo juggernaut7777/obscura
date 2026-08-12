@@ -240,7 +240,7 @@ class YupooScraper:
                     'platform': None,
                 })
         
-        # If classic albums with title-class elements (newest template)
+        # Handling classic albums with title-class elements, newest template.
         elif classic_albums and title_class_elements and not classic_titles:
             for i, album_path in enumerate(classic_albums):
                 if album_path in seen_urls:
