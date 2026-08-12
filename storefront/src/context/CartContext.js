@@ -10,21 +10,21 @@ export function CartProvider({ children }) {
   // Load from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("obscura_cart");
+      const saved = localStorage.getItem("cart");
       if (saved) {
         setCartItems(JSON.parse(saved));
       }
     } catch (e) {
-      console.error("Error parsing cart data", e);
+      console.error("Error loading cart:", e);
     }
   }, []);
 
   // Save to localStorage when updated
   useEffect(() => {
     try {
-      localStorage.setItem("obscura_cart", JSON.stringify(cartItems));
+      localStorage.setItem("cart", JSON.stringify(cartItems));
     } catch (e) {
-      console.error("Error saving cart data", e);
+      console.error("Error saving cart data:", e);
     }
   }, [cartItems]);
 
