@@ -154,12 +154,14 @@ def reverse_map_to_chinese(product_id: str, color: str, size: str) -> dict:
     chinese_color = color_mappings.get(color, "")
     chinese_size = size_mappings.get(size, "")
     
-    # Case-insensitive fallback
+    # Case-insensitive fallback for color
     if not chinese_color:
         for en, zh in color_mappings.items():
             if en.lower() == color.lower():
                 chinese_color = zh
                 break
+
+    # Case-insensitive fallback for size
     if not chinese_size:
         for en, zh in size_mappings.items():
             if en.lower() == size.lower():
