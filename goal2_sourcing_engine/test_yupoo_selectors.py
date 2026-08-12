@@ -9,7 +9,7 @@ def safe_print(text: str):
     except UnicodeEncodeError:
         try:
             print(text.encode(sys.stdout.encoding or "utf-8", errors="replace").decode(sys.stdout.encoding or "utf-8"))
-        except:
+        except Exception:
             print(text.encode("utf-8", errors="ignore").decode("ascii", errors="ignore"))
 
 async def main():
