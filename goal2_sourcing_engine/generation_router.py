@@ -691,7 +691,7 @@ class GenerationRouter:
                         safe_print(f"   [!] Bridge returned error: {err}")
                         self._mark_provider_failed("bridge")
                         return []
-                    except:
+                    except Exception:
                         pass
                 
                 filepath = os.path.join(self.dest_dir, f"{output_prefix}_{int(time.time())}.png")
