@@ -235,12 +235,12 @@ class YupooScraper:
                     'album_url': f"{base_url}{album_path}",
                     'album_path': album_path,
                     'price_cny': price,
-                    'thumbnail': None,  # Will fill below
-                    'weidian_link': None,  # Needs detail page fetch
+                    'thumbnail': None,
+                    'weidian_link': None,
                     'platform': None,
                 })
         
-        # If classic albums with title-class elements (newest template)
+        # If classic albums with `title-class` elements (newest template)
         elif classic_albums and title_class_elements and not classic_titles:
             for i, album_path in enumerate(classic_albums):
                 if album_path in seen_urls:

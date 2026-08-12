@@ -88,7 +88,7 @@ def save_generated_images(result: dict, model_id: str, product_name: str, source
     for sp in source_products:
         try:
             shutil.copy(sp, campaign_dir / Path(sp).name)
-        except:
+        except OSError:
             pass
 
     # Copy metadata.json, outfit_metadata.json, link.txt and size charts from the source folder
@@ -101,7 +101,7 @@ def save_generated_images(result: dict, model_id: str, product_name: str, source
             if meta_file.exists():
                 try:
                     shutil.copy(str(meta_file), str(campaign_dir / meta_name))
-                except:
+                except OSError:
                     pass
 
         # Copy size charts
@@ -110,7 +110,7 @@ def save_generated_images(result: dict, model_id: str, product_name: str, source
                 if any(k in f.name.lower() for k in ["chart", "size", "guide"]):
                     try:
                         shutil.copy(str(f), str(campaign_dir / f.name))
-                    except:
+                    except OSError:
                         pass
 
     saved = []
