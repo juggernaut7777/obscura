@@ -183,7 +183,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
             # Try to parse JSON from response
             try:
                 result = json_mod.loads(text)
-            except:
+            except Exception:
                 import re as re_mod
                 match = re_mod.search(r'\{.*\}', text, re_mod.DOTALL)
                 if match:
@@ -283,7 +283,6 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                         continue
                 break
 
-        # Fallback: extract from page content if no cards found
         if not products:
             products = await self._fallback_extract(page, platform_key, category)
 
@@ -353,7 +352,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                 # Delete the garbage image
                 try:
                     os.remove(local_path)
-                except:
+                except OSError:
                     pass
                 return None  # Skip this product entirely
             
@@ -367,7 +366,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                     try:
                         os.rename(local_path, new_path)
                         local_path = new_path
-                    except:
+                    except OSError:
                         pass
             
             print(f"      [APPROVED] {check['reason']} (Gender: {gender})")
