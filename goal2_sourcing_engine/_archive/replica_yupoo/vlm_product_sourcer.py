@@ -1442,16 +1442,7 @@ async def main():
 if __name__ == "__main__":
     import sys
 
-    if "--loop" in sys.argv:
-        # ── LOOP MODE: Run scraping sessions on a configurable interval ──
-        # Usage: python vlm_product_sourcer.py --loop [--interval 4]
-        interval_hours = 4  # Default: scrape every 4 hours
-        if "--interval" in sys.argv:
-            try:
-                idx = sys.argv.index("--interval")
-                interval_hours = int(sys.argv[idx + 1])
-            except (IndexError, ValueError):
-                pass
+    async def loop_mode(interval_hours):
         safe_print(f"[LOOP] Starting continuous scraping mode. Interval: {interval_hours} hours.")
         safe_print(f"[LOOP] Press Ctrl+C to stop.\n")
 
@@ -1464,8 +1455,8 @@ if __name__ == "__main__":
             safe_print(f"  SCRAPING SESSION #{run_count} — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
             safe_print(f"{'='*60}")
             try:
-                asyncio.run(main())
-            except KeyboardInterrupt:
+                await main()
+            except asyncio.CancelledError:
                 safe_print("\n[LOOP] Stopped by user.")
                 break
             except Exception as e:
@@ -1475,18 +1466,35 @@ if __name__ == "__main__":
             safe_print("\n[BRAND SOURCER] Running autonomous brand website scraping...")
             try:
                 from auto_brand_sourcer import scrape_all_brands
-                asyncio.run(scrape_all_brands(limit_per_brand=3))
+                await scrape_all_brands(limit_per_brand=3)
             except Exception as e:
                 safe_print(f"[BRAND SOURCER] Error during brand scraping: {e}")
 
+            # ⚡ Performance optimization
+            # Why: synchronous time.sleep blocks the thread and prevents concurrent execution if scaled.
+            # What: replaced with await asyncio.sleep() to yield the event loop properly.
             # Sleep with jitter to avoid predictable patterns
             sleep_secs = interval_hours * 3600 + random.randint(-300, 300)
             safe_print(f"\n[LOOP] Session #{run_count} complete. Sleeping {sleep_secs // 3600}h {(sleep_secs % 3600) // 60}m until next run...")
             try:
-                import time
-                time.sleep(sleep_secs)
-            except KeyboardInterrupt:
+                await asyncio.sleep(sleep_secs)
+            except asyncio.CancelledError:
                 safe_print("\n[LOOP] Stopped by user during sleep.")
                 break
+
+    if "--loop" in sys.argv:
+        # ── LOOP MODE: Run scraping sessions on a configurable interval ──
+        # Usage: python vlm_product_sourcer.py --loop [--interval 4]
+        interval_hours = 4  # Default: scrape every 4 hours
+        if "--interval" in sys.argv:
+            try:
+                idx = sys.argv.index("--interval")
+                interval_hours = int(sys.argv[idx + 1])
+            except (IndexError, ValueError):
+                pass
+        try:
+            asyncio.run(loop_mode(interval_hours))
+        except KeyboardInterrupt:
+            safe_print("\n[LOOP] Stopped by user.")
     else:
         asyncio.run(main())
