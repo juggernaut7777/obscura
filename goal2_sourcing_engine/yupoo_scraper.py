@@ -143,84 +143,18 @@ class YupooScraper:
 
         return categories
 
-    def scrape_album_list(self, subdomain: str, page: int = 1, category_id: Optional[str] = None) -> Tuple[List[Dict], bool]:
-        """Scrape the album listing page for a seller.
-        
-        Args:
-            subdomain: Yupoo seller subdomain (e.g., "goat-official")
-            page: Page number (1-indexed). Each page shows ~48 albums.
-            category_id: Optional category ID to filter by.
-            
-        Returns:
-            Tuple of (list of album dicts, has_more_pages bool)
-        """
-        base_url = f"https://{subdomain}.x.yupoo.com"
-        
-        if category_id:
-            url = f"{base_url}/categories/{category_id}?page={page}"
-        else:
-            url = f"{base_url}/albums?page={page}"
-        
-        html = self._get_page(url)
-        if not html:
-            return [], False
-
-        albums = []
-        seen_urls = set()
-
-        # ── Strategy 1: Classic template (album__main + album__title) ──────
-        # Pattern: <a href="/albums/123?uid=1"> ... <div class="album__title">Title</div>
-        classic_albums = re.findall(
-            r'href="(/albums/\d+\?[^"]+)"',
-            html
-        )
-        classic_titles = re.findall(
-            r'class="[^"]*album__title[^"]*"[^>]*>([^<]+)',
-            html
-        )
-
-        # ── Strategy 2: Modern template (album3__) ────────────────────────
-        # In modern template, titles are in <span/div> elements with 'title' class
-        # or in the `title` attribute of <a> tags
-        # Pattern for title attribute: <a ... href="/albums/123?uid=1&..." ... title="89¥ ...">
+    def _parse_modern_albums(self, html: str, base_url: str, seen_urls: set) -> List[Dict]:
+        """Extract albums using the modern template."""
         modern_matches = re.findall(
-            r'<a[^>]*href="(/albums/\d+\?[^"]+)"[^>]*title="([^"]*)"',
-            html
+            r'<a[^>]*href="(/albums/\d+\?[^"]+)"[^>]*title="([^"]*)"', html
         )
-        # Also try reversed order (title before href)
         modern_matches_rev = re.findall(
-            r'<a[^>]*title="([^"]*)"[^>]*href="(/albums/\d+\?[^"]+)"',
-            html
+            r'<a[^>]*title="([^"]*)"[^>]*href="(/albums/\d+\?[^"]+)"', html
         )
-        # Merge: modern_matches has (url, title), modern_matches_rev has (title, url)
-        all_modern = [(url, title) for url, title in modern_matches]
-        all_modern += [(url, title) for title, url in modern_matches_rev]
-
-        # ── Strategy 3: Title class elements (newest Yupoo template) ──────
-        # Some templates use <span/div/p class="...title..."> for album titles
-        title_class_elements = re.findall(
-            r'<(?:span|p|div)[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)',
-            html
-        )
-        # Filter out page-level titles (keep only product titles)
-        title_class_elements = [
-            t.strip() for t in title_class_elements
-            if t.strip() and 'Supplier' not in t and 'yupoo' not in t.lower()
-            and len(t.strip()) > 2
-        ]
-
-        # ── Strategy 3: Extract image thumbnails ──────────────────────────
-        # Both templates use photo.yupoo.com image URLs
-        # Classic: src="https://photo.yupoo.com/seller/hash/medium.jpg"
-        # Modern: data-src or src with lazy loading
-        all_imgs = re.findall(
-            r'(?:src|data-src)="(https://photo\.yupoo\.com/[^"]+(?:medium|small|square)\.[^"]+)"',
-            html
-        )
-
-        # ── Build album list from best available data ─────────────────────
+        all_modern = [(url, title) for url, title in modern_matches] + \
+                     [(url, title) for title, url in modern_matches_rev]
         
-        # If modern matches found, use those (most complete: has title + URL)
+        albums = []
         if all_modern:
             for album_path, title in all_modern:
                 if album_path in seen_urls:
@@ -235,80 +169,70 @@ class YupooScraper:
                     'album_url': f"{base_url}{album_path}",
                     'album_path': album_path,
                     'price_cny': price,
-                    'thumbnail': None,  # Will fill below
-                    'weidian_link': None,  # Needs detail page fetch
+                    'thumbnail': None,
+                    'weidian_link': None,
                     'platform': None,
                 })
+        return albums
+
+    def _parse_classic_albums(self, html: str, base_url: str, seen_urls: set) -> List[Dict]:
+        """Extract albums using the classic template or fallback."""
+        classic_albums = re.findall(r'href="(/albums/\d+\?[^"]+)"', html)
+        classic_titles = re.findall(r'class="[^"]*album__title[^"]*"[^>]*>([^<]+)', html)
         
-        # If classic albums with title-class elements (newest template)
-        elif classic_albums and title_class_elements and not classic_titles:
-            for i, album_path in enumerate(classic_albums):
-                if album_path in seen_urls:
-                    continue
-                seen_urls.add(album_path)
-                
+        title_class_elements = re.findall(
+            r'<(?:span|p|div)[^>]*class="[^"]*title[^"]*"[^>]*>([^<]+)', html
+        )
+        title_class_elements = [
+            t.strip() for t in title_class_elements
+            if t.strip() and 'Supplier' not in t and 'yupoo' not in t.lower()
+            and len(t.strip()) > 2
+        ]
+
+        albums = []
+        use_title_class = bool(title_class_elements and not classic_titles)
+        use_classic_titles = bool(classic_titles)
+
+        for i, album_path in enumerate(classic_albums):
+            if album_path in seen_urls:
+                continue
+            seen_urls.add(album_path)
+
+            if use_title_class:
                 title = title_class_elements[i].strip() if i < len(title_class_elements) else f"Album {i+1}"
                 price = self._extract_price(title)
-                
-                albums.append({
-                    'title': title,
-                    'album_url': f"{base_url}{album_path}",
-                    'album_path': album_path,
-                    'price_cny': price,
-                    'thumbnail': None,
-                    'weidian_link': None,
-                    'platform': None,
-                })
-        
-        # If classic template with separate album__title divs
-        elif classic_albums and classic_titles:
-            for i, album_path in enumerate(classic_albums):
-                if album_path in seen_urls:
-                    continue
-                seen_urls.add(album_path)
-                
+            elif use_classic_titles:
                 title = classic_titles[i].strip() if i < len(classic_titles) else f"Album {i+1}"
                 price = self._extract_price(title)
+            else:
+                title = f"Album {i+1}"
+                price = None
                 
-                albums.append({
-                    'title': title,
-                    'album_url': f"{base_url}{album_path}",
-                    'album_path': album_path,
-                    'price_cny': price,
-                    'thumbnail': None,
-                    'weidian_link': None,
-                    'platform': None,
-                })
-        
-        # Fallback: classic albums without titles
-        elif classic_albums:
-            for i, album_path in enumerate(classic_albums):
-                if album_path in seen_urls:
-                    continue
-                seen_urls.add(album_path)
-                
-                albums.append({
-                    'title': f"Album {i+1}",
-                    'album_url': f"{base_url}{album_path}",
-                    'album_path': album_path,
-                    'price_cny': None,
-                    'thumbnail': None,
-                    'weidian_link': None,
-                    'platform': None,
-                })
+            albums.append({
+                'title': title,
+                'album_url': f"{base_url}{album_path}",
+                'album_path': album_path,
+                'price_cny': price,
+                'thumbnail': None,
+                'weidian_link': None,
+                'platform': None,
+            })
+        return albums
 
-        # ── Assign thumbnails ─────────────────────────────────────────────
-        # Filter to unique thumbnails (deduplicate by hash)
+    def _extract_thumbnails(self, html: str, albums: List[Dict]) -> None:
+        """Extract thumbnails and assign them to the albums list in-place."""
+        all_imgs = re.findall(
+            r'(?:src|data-src)="(https://photo\.yupoo\.com/[^"]+(?:medium|small|square)\.[^"]+)"', html
+        )
+
         unique_imgs = []
         seen_hashes = set()
         for img in all_imgs:
-            # Extract the hash part: photo.yupoo.com/seller/HASH/size.ext
             hash_match = re.search(r'/([a-f0-9]+)/(?:medium|small|square)', img)
             if hash_match:
                 h = hash_match.group(1)
                 if h not in seen_hashes:
                     seen_hashes.add(h)
-                    # Upgrade to medium quality
                     medium_url = re.sub(r'/(small|square)\.', '/medium.', img)
                     unique_imgs.append(medium_url)
         
@@ -316,11 +240,43 @@ class YupooScraper:
             if i < len(unique_imgs):
                 album['thumbnail'] = unique_imgs[i]
 
-        # ── Detect pagination ─────────────────────────────────────────────
+    def _detect_pagination(self, html: str, page: int) -> bool:
+        """Detect if there are more pages."""
         has_more = bool(re.search(r'page=' + str(page + 1), html))
-        # Also check for "next page" or pagination indicators
         if not has_more:
             has_more = bool(re.search(r'class="[^"]*paginat[^"]*"', html, re.IGNORECASE))
+        return has_more
+
+    def scrape_album_list(self, subdomain: str, page: int = 1, category_id: Optional[str] = None) -> Tuple[List[Dict], bool]:
+        """Scrape the album listing page for a seller.
+
+        Args:
+            subdomain: Yupoo seller subdomain (e.g., "goat-official")
+            page: Page number (1-indexed). Each page shows ~48 albums.
+            category_id: Optional category ID to filter by.
+
+        Returns:
+            Tuple of (list of album dicts, has_more_pages bool)
+        """
+        base_url = f"https://{subdomain}.x.yupoo.com"
+
+        if category_id:
+            url = f"{base_url}/categories/{category_id}?page={page}"
+        else:
+            url = f"{base_url}/albums?page={page}"
+
+        html = self._get_page(url)
+        if not html:
+            return [], False
+
+        seen_urls = set()
+
+        albums = self._parse_modern_albums(html, base_url, seen_urls)
+        if not albums:
+            albums = self._parse_classic_albums(html, base_url, seen_urls)
+
+        self._extract_thumbnails(html, albums)
+        has_more = self._detect_pagination(html, page)
 
         safe_print(f"[Yupoo] {subdomain} page {page}: {len(albums)} albums, has_more={has_more}")
         return albums, has_more
