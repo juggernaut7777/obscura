@@ -115,7 +115,7 @@ class AgentPlatformScraper:
             if key2: self.gemini_keys.append(key2)
             
             if self.gemini_keys:
-                # Start with key 2 if available (spreads usage)
+                # `Start with key 2 if available (spreads usage)`
                 self._current_key_idx = min(1, len(self.gemini_keys) - 1)
                 genai.configure(api_key=self.gemini_keys[self._current_key_idx])
                 self.validator = genai.GenerativeModel('gemini-2.5-flash-lite')
@@ -183,7 +183,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
             # Try to parse JSON from response
             try:
                 result = json_mod.loads(text)
-            except:
+            except Exception:
                 import re as re_mod
                 match = re_mod.search(r'\{.*\}', text, re_mod.DOTALL)
                 if match:
@@ -353,7 +353,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                 # Delete the garbage image
                 try:
                     os.remove(local_path)
-                except:
+                except OSError:
                     pass
                 return None  # Skip this product entirely
             
@@ -367,7 +367,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                     try:
                         os.rename(local_path, new_path)
                         local_path = new_path
-                    except:
+                    except OSError:
                         pass
             
             print(f"      [APPROVED] {check['reason']} (Gender: {gender})")
