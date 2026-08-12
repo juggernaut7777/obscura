@@ -21,6 +21,7 @@ import re
 import sys
 import json
 import time
+import concurrent.futures
 import shutil
 import logging
 import requests
@@ -364,11 +365,25 @@ def run(max_suggestions: int = 10):
     log.info(f"Found {len(pairs)} possible pairs. Sending top {min(max_suggestions, len(pairs))} to Discord...")
 
     sent = 0
-    for score, pair_key, item_a, item_b in pairs[:max_suggestions]:
-        send_match_card(pair_key, item_a, item_b, score)
-        already_suggested.add(pair_key)
-        sent += 1
-        time.sleep(2)  # Rate limit
+
+    # ⚡ Performance optimization
+    # Why: Blocking requests in loop delay execution. Using ThreadPoolExecutor reduces loop wait time.
+    # What: Replace synchronous loop with ThreadPoolExecutor to perform requests in background.
+    max_workers = min(max(max_suggestions, 1), 20)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures_to_key = {}
+        for score, pair_key, item_a, item_b in pairs[:max_suggestions]:
+            future = executor.submit(send_match_card, pair_key, item_a, item_b, score)
+            futures_to_key[future] = pair_key
+            time.sleep(2)  # Rate limit
+
+        for future in concurrent.futures.as_completed(futures_to_key):
+            # We call result() to raise any exceptions that might have occurred,
+            # preserving original exception propagation if needed, although send_match_card
+            # internally catches and returns None, so it shouldn't raise here normally.
+            future.result()
+            already_suggested.add(futures_to_key[future])
+            sent += 1
 
     save_match_log(already_suggested)
     log.info(f"✅ Sent {sent} outfit match suggestions to Discord.")
