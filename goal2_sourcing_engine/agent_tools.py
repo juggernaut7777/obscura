@@ -33,7 +33,7 @@ from prompt_library import (
     CAMERA_PRESETS, ANTI_AI_MEDIUM, ANTI_AI_HEAVY,
     SCENE_PRESETS, get_random_scene, get_fabric_upgrade,
 )
-from luxury_caption_generator import CaptionGenerator
+from luxury_caption_generator import CaptionGenerator, CaptionOptions
 
 # ==========================================
 # TOOL REGISTRY — What the LLM can call
@@ -1342,10 +1342,12 @@ def tool_generate_caption(
     gen = CaptionGenerator()
     captions = gen.generate_caption(
         product_name=product_name,
-        price=price,
-        category=category,
-        platform=platform,
-        num_variants=3,
+        options=CaptionOptions(
+            price=price,
+            category=category,
+            platform=platform,
+            num_variants=3,
+        )
     )
     memory.log_action("generate_caption", f"Generated {len(captions)} captions for {product_name}")
     return {"success": True, "captions": captions}
