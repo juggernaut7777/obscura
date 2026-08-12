@@ -448,7 +448,7 @@ async def discover_brands(
         is_known = brand_key in KNOWN_PREMIUM_BRANDS
         is_existing = brand_key in {b.get("brand_name", "").lower() for b in existing.get("brands", [])}
 
-        # Confidence score: mentions * avg_relevance * subreddit_diversity
+        # Confidence score: `mentions * avg_relevance * subreddit_diversity`
         confidence = min(1.0, (mention_count / 10) * avg_score * (len(subs) / 3))
 
         discovery = {
