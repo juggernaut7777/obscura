@@ -17,6 +17,7 @@ import json
 import time
 import logging
 import requests
+import concurrent.futures
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 from urllib.parse import urljoin, quote
@@ -425,17 +426,43 @@ class YupooScraper:
         # Optionally fetch detail pages for Weidian links
         if fetch_details and all_albums:
             safe_print(f"[Yupoo] Fetching detail pages for {len(all_albums)} albums...")
-            for i, album in enumerate(all_albums):
-                detail = self.scrape_album_detail(album['album_url'])
-                album['weidian_link'] = detail['weidian_link']
-                album['platform'] = detail['platform']
-                album['images'] = detail['images']
-                album['description'] = detail['description']
+
+            # ⚡ Performance optimization
+            # Why: N+1 Query Pattern for Detail Pages iterates and sleeps sequentially
+            # What: Uses ThreadPoolExecutor to run requests concurrently, keeping sleep rate limit inside task submission loop.
+            def fetch_and_update(album_item):
+                try:
+                    detail = self.scrape_album_detail(album_item['album_url'])
+                    album_item['weidian_link'] = detail.get('weidian_link')
+                    album_item['platform'] = detail.get('platform')
+                    album_item['images'] = detail.get('images', [])
+                    album_item['description'] = detail.get('description', '')
+                except Exception as e:
+                    safe_print(f"[Yupoo] Error fetching detail for {album_item.get('album_url')}: {e}")
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(10, max(1, len(all_albums)))) as executor:
+                futures = set()
+                completed = 0
                 
-                if (i + 1) % 10 == 0:
-                    safe_print(f"[Yupoo] Progress: {i+1}/{len(all_albums)} detail pages fetched")
+                for album in all_albums:
+                    future = executor.submit(fetch_and_update, album)
+                    futures.add(future)
+
+                    time.sleep(detail_delay)
+
+                    # Handle progress tracking directly within submission phase
+                    done_futures = {f for f in futures if f.done()}
+                    for f in done_futures:
+                        completed += 1
+                        if completed % 10 == 0:
+                            safe_print(f"[Yupoo] Progress: {completed}/{len(all_albums)} detail pages fetched")
+                    futures -= done_futures
                 
-                time.sleep(detail_delay)
+                # Process remaining tasks
+                for future in concurrent.futures.as_completed(futures):
+                    completed += 1
+                    if completed % 10 == 0:
+                        safe_print(f"[Yupoo] Progress: {completed}/{len(all_albums)} detail pages fetched")
         
         # Summary
         with_links = sum(1 for a in all_albums if a.get('weidian_link'))
