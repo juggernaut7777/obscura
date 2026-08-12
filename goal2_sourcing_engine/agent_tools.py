@@ -1605,6 +1605,82 @@ async def tool_use_free_ai(
         return {"success": False, "error": str(e)}
 
 
+def _create_prompt_pack(title: str, description: str, filepath: str):
+    from prompt_library import (
+        CLOTHING_PROMPTS, SHOE_PROMPTS, ACCESSORY_PROMPTS,
+        BEAUTY_PROMPTS, WIG_PROMPTS, CHARACTER_SHEET_PROMPTS,
+        CANDID_FILTERS,
+    )
+    content = f"# {title}\n\n"
+    content += f"{description}\n\n"
+    content += "## 🔥 Anti-AI Detection Filter\n"
+    content += f"```\n{CANDID_FILTERS}\n```\n\n"
+
+    sections = {
+        "Clothing Ad Prompts": CLOTHING_PROMPTS,
+        "Shoe Ad Prompts": SHOE_PROMPTS,
+        "Accessory Prompts": ACCESSORY_PROMPTS,
+        "Beauty Prompts": BEAUTY_PROMPTS,
+        "Wig/Hair Prompts": WIG_PROMPTS,
+        "Character Sheet Prompts": CHARACTER_SHEET_PROMPTS,
+    }
+    for section_name, prompts in sections.items():
+        content += f"## {section_name}\n\n"
+        for name, prompt in prompts.items():
+            content += f"### {name.replace('_', ' ').title()}\n"
+            content += f"```\n{prompt}\n```\n\n"
+
+    with open(filepath, "w") as f:
+        f.write(content)
+
+def _create_course(title: str, price: str, description: str, content_outline: list, filepath: str):
+    outline = content_outline or [
+        "Module 1: Setting Up Your Free AI Tools",
+        "Module 2: Creating Consistent AI Models",
+        "Module 3: Generating Photorealistic Ads",
+        "Module 4: Writing Viral Captions",
+        "Module 5: Automating Social Media Posts",
+        "Module 6: Finding & Pitching Brands",
+        "Module 7: Scaling to $1K/Month",
+    ]
+    content = f"# {title}\n\n"
+    content += f"**Price: {price}**\n\n"
+    content += f"{description}\n\n"
+    content += "## Course Outline\n\n"
+    for i, module in enumerate(outline):
+        content += f"{i+1}. {module}\n"
+    content += "\n\n## What You'll Learn\n\n"
+    content += "- Generate unlimited photorealistic AI ads for FREE\n"
+    content += "- Create consistent AI model characters\n"
+    content += "- Automate posting to TikTok, Instagram, Facebook\n"
+    content += "- Build an AI ad agency from scratch\n"
+    content += "- Use free AI tools (no paid APIs needed)\n"
+
+    with open(filepath, "w") as f:
+        f.write(content)
+
+def _create_workflow_template(title: str, price: str, content_outline: list, filepath: str):
+    content = f"# {title}\n\n"
+    content += f"**Price: {price}**\n\n"
+    content += "## Included Workflows\n\n"
+    content += "1. Product Scraping (USFans/CNFans/Yupoo)\n"
+    content += "2. AI Image Generation (Google AI Studio)\n"
+    content += "3. Caption Generation (TikTok-safe)\n"
+    content += "4. Auto-Posting Pipeline\n"
+    content += "5. Brand Outreach Automation\n"
+    for item in (content_outline or []):
+        content += f"- {item}\n"
+
+    with open(filepath, "w") as f:
+        f.write(content)
+
+def _create_default_product(title: str, price: str, description: str, content_outline: list, filepath: str):
+    content = f"# {title}\n\n{description}\n\nPrice: {price}\n"
+    for item in (content_outline or []):
+        content += f"- {item}\n"
+    with open(filepath, "w") as f:
+        f.write(content)
+
 def tool_create_digital_product(
     product_type: str, title: str, price: str,
     description: str = "", content_outline: list = None,
@@ -1615,86 +1691,16 @@ def tool_create_digital_product(
     os.makedirs(output_dir, exist_ok=True)
 
     safe_title = title.replace(" ", "_")[:40].lower()
+    filepath = os.path.join(output_dir, f"{safe_title}.md")
 
     if product_type == "prompt_pack":
-        # Package prompts from prompt_library into a sellable format
-        from prompt_library import (
-            CLOTHING_PROMPTS, SHOE_PROMPTS, ACCESSORY_PROMPTS,
-            BEAUTY_PROMPTS, WIG_PROMPTS, CHARACTER_SHEET_PROMPTS,
-            CANDID_FILTERS,
-        )
-        content = f"# {title}\n\n"
-        content += f"{description}\n\n"
-        content += "## 🔥 Anti-AI Detection Filter\n"
-        content += f"```\n{CANDID_FILTERS}\n```\n\n"
-
-        sections = {
-            "Clothing Ad Prompts": CLOTHING_PROMPTS,
-            "Shoe Ad Prompts": SHOE_PROMPTS,
-            "Accessory Prompts": ACCESSORY_PROMPTS,
-            "Beauty Prompts": BEAUTY_PROMPTS,
-            "Wig/Hair Prompts": WIG_PROMPTS,
-            "Character Sheet Prompts": CHARACTER_SHEET_PROMPTS,
-        }
-        for section_name, prompts in sections.items():
-            content += f"## {section_name}\n\n"
-            for name, prompt in prompts.items():
-                content += f"### {name.replace('_', ' ').title()}\n"
-                content += f"```\n{prompt}\n```\n\n"
-
-        filepath = os.path.join(output_dir, f"{safe_title}.md")
-        with open(filepath, "w") as f:
-            f.write(content)
-
+        _create_prompt_pack(title, description, filepath)
     elif product_type == "course":
-        outline = content_outline or [
-            "Module 1: Setting Up Your Free AI Tools",
-            "Module 2: Creating Consistent AI Models",
-            "Module 3: Generating Photorealistic Ads",
-            "Module 4: Writing Viral Captions",
-            "Module 5: Automating Social Media Posts",
-            "Module 6: Finding & Pitching Brands",
-            "Module 7: Scaling to $1K/Month",
-        ]
-        content = f"# {title}\n\n"
-        content += f"**Price: {price}**\n\n"
-        content += f"{description}\n\n"
-        content += "## Course Outline\n\n"
-        for i, module in enumerate(outline):
-            content += f"{i+1}. {module}\n"
-        content += "\n\n## What You'll Learn\n\n"
-        content += "- Generate unlimited photorealistic AI ads for FREE\n"
-        content += "- Create consistent AI model characters\n"
-        content += "- Automate posting to TikTok, Instagram, Facebook\n"
-        content += "- Build an AI ad agency from scratch\n"
-        content += "- Use free AI tools (no paid APIs needed)\n"
-
-        filepath = os.path.join(output_dir, f"{safe_title}.md")
-        with open(filepath, "w") as f:
-            f.write(content)
-
+        _create_course(title, price, description, content_outline, filepath)
     elif product_type == "workflow_template":
-        content = f"# {title}\n\n"
-        content += f"**Price: {price}**\n\n"
-        content += "## Included Workflows\n\n"
-        content += "1. Product Scraping (USFans/CNFans/Yupoo)\n"
-        content += "2. AI Image Generation (Google AI Studio)\n"
-        content += "3. Caption Generation (TikTok-safe)\n"
-        content += "4. Auto-Posting Pipeline\n"
-        content += "5. Brand Outreach Automation\n"
-        for item in (content_outline or []):
-            content += f"- {item}\n"
-
-        filepath = os.path.join(output_dir, f"{safe_title}.md")
-        with open(filepath, "w") as f:
-            f.write(content)
+        _create_workflow_template(title, price, content_outline, filepath)
     else:
-        filepath = os.path.join(output_dir, f"{safe_title}.md")
-        content = f"# {title}\n\n{description}\n\nPrice: {price}\n"
-        for item in (content_outline or []):
-            content += f"- {item}\n"
-        with open(filepath, "w") as f:
-            f.write(content)
+        _create_default_product(title, price, description, content_outline, filepath)
 
     # Track in memory
     if memory:
