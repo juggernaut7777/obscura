@@ -439,6 +439,7 @@ async def discover_brands(
 
     # Build ranked results
     discoveries = []
+    existing_brands_set = {b.get("brand_name", "").lower() for b in existing.get("brands", [])}
     for brand_key, mention_count in all_brand_mentions.most_common(100):
         avg_score = sum(brand_scores.get(brand_key, [0])) / max(len(brand_scores.get(brand_key, [1])), 1)
         subs = list(brand_subreddits.get(brand_key, set()))
@@ -446,9 +447,9 @@ async def discover_brands(
 
         # Determine if this is a NEW discovery vs already known
         is_known = brand_key in KNOWN_PREMIUM_BRANDS
-        is_existing = brand_key in {b.get("brand_name", "").lower() for b in existing.get("brands", [])}
+        is_existing = brand_key in existing_brands_set
 
-        # Confidence score: mentions * avg_relevance * subreddit_diversity
+        # Confidence score: `mentions * avg_relevance * subreddit_diversity`
         confidence = min(1.0, (mention_count / 10) * avg_score * (len(subs) / 3))
 
         discovery = {
