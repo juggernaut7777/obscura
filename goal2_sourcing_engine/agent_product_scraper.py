@@ -183,7 +183,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
             # Try to parse JSON from response
             try:
                 result = json_mod.loads(text)
-            except:
+            except ValueError:
                 import re as re_mod
                 match = re_mod.search(r'\{.*\}', text, re_mod.DOTALL)
                 if match:
@@ -353,7 +353,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                 # Delete the garbage image
                 try:
                     os.remove(local_path)
-                except:
+                except OSError:
                     pass
                 return None  # Skip this product entirely
             
@@ -367,7 +367,7 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
                     try:
                         os.rename(local_path, new_path)
                         local_path = new_path
-                    except:
+                    except OSError:
                         pass
             
             print(f"      [APPROVED] {check['reason']} (Gender: {gender})")
@@ -430,7 +430,6 @@ REJECT if: the image is a screenshot, a cloud, a landscape, blurry, low-res, not
         numbers = re.findall(r"[\d.]+", price_text)
         if numbers:
             price = float(numbers[0])
-            # Convert Yuan to USD roughly if > 50 (likely Yuan)
             if price > 500:
                 price = price / 7.2  # Rough CNY→USD
             return round(price, 2)
