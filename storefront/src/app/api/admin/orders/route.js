@@ -1,25 +1,26 @@
-import { exec } from "child_process";
-import fs from "fs";
-import path from "path";
-import { promisify } from "util";
+import { NextResponse } from 'next/server';
+import { supabase } from '@/utils/supabase';
 
-const execAsync = promisify(exec);
-const activeOrdersPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\data\\orders\\active_orders.json";
-const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
+// Protect this route in a real app!
+// For now, we'll just allow it for the demo admin dashboard
 
-export async function GET() {
+export async function GET(request) {
   try {
-    if (!fs.existsSync(activeOrdersPath)) {
-      return Response.json([]);
+    // Fetch all orders
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("[API ADMIN ORDERS GET] Supabase error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
-    const data = fs.readFileSync(activeOrdersPath, "utf-8");
-    const orders = JSON.parse(data);
-    // Return sorted newest first
-    orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    return Response.json(orders);
+
+    return NextResponse.json(orders || []);
   } catch (error) {
     console.error("[API ADMIN ORDERS GET] Error:", error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
@@ -27,34 +28,37 @@ export async function POST(request) {
   try {
     const { orderId, action, tracking, pipeline } = await request.json();
     if (!orderId || !action) {
-      return Response.json({ success: false, error: "Missing orderId or action" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Missing orderId or action" }, { status: 400 });
     }
 
-    let command = "";
+    let updateData = {};
     if (action === "mark-paid") {
-      command = `python order_fulfillment.py --mark-paid "${orderId}"`;
+      updateData = { status: 'paid' };
     } else if (action === "mark-combining") {
-      command = `python order_fulfillment.py --mark-combining "${orderId}"`;
+      updateData = { status: 'combining' };
     } else if (action === "mark-shipped") {
       if (!tracking || !pipeline) {
-        return Response.json({ success: false, error: "Missing tracking or pipeline info for shipping" }, { status: 400 });
+        return NextResponse.json({ success: false, error: "Missing tracking or pipeline info for shipping" }, { status: 400 });
       }
-      command = `python order_fulfillment.py --mark-shipped "${orderId}" "${tracking}" "${pipeline}"`;
+      updateData = { status: 'shipped', tracking, pipeline };
     } else {
-      return Response.json({ success: false, error: "Invalid action" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
 
-    console.log(`[API ADMIN ORDERS POST] Executing: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    const { data, error } = await supabase
+      .from('orders')
+      .update(updateData)
+      .eq('id', orderId)
+      .select();
 
-    if (stderr && !stdout) {
-      console.error("[API ADMIN ORDERS POST] Stderr output:", stderr);
+    if (error) {
+      console.error("[API ADMIN ORDERS POST] Supabase error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    console.log(`[API ADMIN ORDERS POST] Execution complete. Output: ${stdout}`);
-    return Response.json({ success: true, output: stdout });
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("[API ADMIN ORDERS POST] Error:", error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
