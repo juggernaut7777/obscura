@@ -17,6 +17,7 @@ import json
 import time
 import logging
 import requests
+import concurrent.futures
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 from urllib.parse import urljoin, quote
@@ -424,18 +425,32 @@ class YupooScraper:
         
         # Optionally fetch detail pages for Weidian links
         if fetch_details and all_albums:
-            safe_print(f"[Yupoo] Fetching detail pages for {len(all_albums)} albums...")
-            for i, album in enumerate(all_albums):
-                detail = self.scrape_album_detail(album['album_url'])
-                album['weidian_link'] = detail['weidian_link']
-                album['platform'] = detail['platform']
-                album['images'] = detail['images']
-                album['description'] = detail['description']
+            # ⚡ Performance optimization
+            # Why: N+1 query problem, fetching each detail page sequentially is slow.
+            # What: Use ThreadPoolExecutor to fetch detail pages concurrently while respecting rate limit delay during task submission.
+            safe_print(f"[Yupoo] Fetching detail pages for {len(all_albums)} albums concurrently...")
+
+            def fetch_detail_task(album_dict):
+                return album_dict, self.scrape_album_detail(album_dict['album_url'])
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = []
+                for album in all_albums:
+                    futures.append(executor.submit(fetch_detail_task, album))
+                    if detail_delay > 0:
+                        time.sleep(detail_delay)
                 
-                if (i + 1) % 10 == 0:
-                    safe_print(f"[Yupoo] Progress: {i+1}/{len(all_albums)} detail pages fetched")
-                
-                time.sleep(detail_delay)
+                completed = 0
+                for future in concurrent.futures.as_completed(futures):
+                    album, detail = future.result()
+                    album['weidian_link'] = detail['weidian_link']
+                    album['platform'] = detail['platform']
+                    album['images'] = detail['images']
+                    album['description'] = detail['description']
+
+                    completed += 1
+                    if completed % 10 == 0:
+                        safe_print(f"[Yupoo] Progress: {completed}/{len(all_albums)} detail pages fetched")
         
         # Summary
         with_links = sum(1 for a in all_albums if a.get('weidian_link'))
