@@ -26,19 +26,13 @@ async def test_main_account():
 
     logging.info(f"🚀 Testing Main Account with Hero Shot:\n{hero_shot['prompt']}\n")
     
-    # We will just pass a placeholder reference URL for this quick test, 
-    # or skip it if we just want to test the API connection.
-    # Let's try without a reference image first to isolate the 403 issue.
-    # Actually, sending a real reference URL is better to test the full payload.
-    # Let's use a dummy image URL for the test if needed, or None.
-    
     try:
         # Call generation router (which calls the local bridge)
         logging.info("Sending request to generation router...")
         router = GenerationRouter()
         result = await router.generate_image(
             prompt=hero_shot["prompt"], 
-            reference_image_url=None, # Skipping reference for the very first connection test
+            reference_image_url=None,
             aspect="3:4"
         )
         
