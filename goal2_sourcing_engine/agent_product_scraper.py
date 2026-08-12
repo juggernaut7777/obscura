@@ -102,8 +102,8 @@ class AgentPlatformScraper:
         self.session = aiohttp.ClientSession()
         
         # Init Gemini Visual Validator
-        # gemini-3.1-flash-lite = 500 RPD per key, 15 RPM
-        # With 2 keys = 1000 RPD total
+        # gemini-3.1-flash-lite allows 500 RPD per key, 15 RPM
+        # With 2 keys we get 1000 RPD total
         try:
             import google.generativeai as genai
             from dotenv import load_dotenv
@@ -115,7 +115,7 @@ class AgentPlatformScraper:
             if key2: self.gemini_keys.append(key2)
             
             if self.gemini_keys:
-                # Start with key 2 if available (spreads usage)
+                # We start with the second key if it is available to spread usage
                 self._current_key_idx = min(1, len(self.gemini_keys) - 1)
                 genai.configure(api_key=self.gemini_keys[self._current_key_idx])
                 self.validator = genai.GenerativeModel('gemini-2.5-flash-lite')
