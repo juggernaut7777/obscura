@@ -1148,9 +1148,10 @@ async def on_message(message):
         status_msg = await message.reply(f"🔍 **Scraping latest albums from `{subdomain}.x.yupoo.com`...**")
         
         try:
-            from yupoo_scraper import YupooScraper
+            from yupoo_scraper import YupooScraper, YupooScrapeConfig
             scraper = YupooScraper()
-            albums = scraper.scrape_seller(subdomain, max_pages=1)
+            config = YupooScrapeConfig(max_pages=1)
+            albums = scraper.scrape_seller(subdomain, config=config)
             
             if not albums:
                 await message.remove_reaction("⏳", client.user)

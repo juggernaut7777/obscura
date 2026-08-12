@@ -6,9 +6,10 @@ Yupoo uses two template versions:
   - v2 (modern): album3__title, album3__main, title attributes on <a> tags
 
 Usage:
-    from yupoo_scraper import YupooScraper
+    from yupoo_scraper import YupooScraper, YupooScrapeConfig
     scraper = YupooScraper()
-    albums = scraper.scrape_seller("goat-official", page=1)
+    config = YupooScrapeConfig(max_pages=1)
+    albums = scraper.scrape_seller("goat-official", config=config)
     # albums = [{"title": "...", "album_url": "...", "thumbnail": "...", "weidian_link": "...", ...}, ...]
 """
 
@@ -57,6 +58,17 @@ PRICE_PATTERN = re.compile(
     r'(?:(\d+(?:\.\d+)?)\s*(?:¥|\uffe5|yuan|rmb|cny))|(?:(?:¥|\uffe5|yuan|rmb|cny)\s*(\d+(?:\.\d+)?))',
     re.IGNORECASE
 )
+
+
+from dataclasses import dataclass
+
+@dataclass
+class YupooScrapeConfig:
+    """Configuration for scraping a Yupoo seller's catalog."""
+    max_pages: int = 1
+    category_id: Optional[str] = None
+    fetch_details: bool = False
+    detail_delay: float = 0.5
 
 
 class YupooScraper:
@@ -397,20 +409,24 @@ class YupooScraper:
 
         return result
 
-    def scrape_seller(self, subdomain: str, max_pages: int = 1, category_id: Optional[str] = None,
-                      fetch_details: bool = False, detail_delay: float = 0.5) -> List[Dict]:
+    def scrape_seller(self, subdomain: str, config: Optional['YupooScrapeConfig'] = None) -> List[Dict]:
         """Full scrape of a seller's catalog.
         
         Args:
             subdomain: Yupoo seller subdomain.
-            max_pages: Maximum number of pages to scrape.
-            category_id: Optional category filter.
-            fetch_details: If True, also fetch each album's detail page for Weidian links.
-            detail_delay: Delay between detail page fetches (seconds).
+            config: Configuration object containing scraping options (max_pages, fetch_details, etc.).
             
         Returns:
             List of album dicts with all extracted data.
         """
+        if config is None:
+            config = YupooScrapeConfig()
+
+        max_pages = config.max_pages
+        category_id = config.category_id
+        fetch_details = config.fetch_details
+        detail_delay = config.detail_delay
+
         all_albums = []
         
         for page in range(1, max_pages + 1):
@@ -462,7 +478,8 @@ if __name__ == "__main__":
         safe_print(f"  [{c['id']}] {c['name']}")
     
     # Scrape first page
-    albums = scraper.scrape_seller(subdomain, max_pages=1, fetch_details=fetch_details)
+    config = YupooScrapeConfig(max_pages=1, fetch_details=fetch_details)
+    albums = scraper.scrape_seller(subdomain, config=config)
     
     safe_print(f"\n{'='*60}")
     safe_print(f"RESULTS: {len(albums)} albums from {subdomain}")
