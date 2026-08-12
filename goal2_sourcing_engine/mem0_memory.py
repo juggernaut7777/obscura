@@ -9,6 +9,7 @@ import os
 import sqlite3
 import json
 import functools
+import threading
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -28,13 +29,20 @@ class Mem0Memory:
     """
     def __init__(self, db_path: str = DB_FILE):
         self.db_path = db_path
+        self._local = threading.local()
         self._init_db()
         self.mem0 = None
         self._init_mem0()
 
+    @property
+    def _conn(self):
+        if not hasattr(self._local, "conn"):
+            self._local.conn = sqlite3.connect(self.db_path)
+        return self._local.conn
+
     def _init_db(self):
         """Creates SQLite tables for robust state persistence if they do not exist."""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         
         # State config table (phase, daily limit counters, etc.)
@@ -88,7 +96,6 @@ class Mem0Memory:
         cursor.execute("INSERT OR IGNORE INTO state_metadata (key, value) VALUES ('actions_today', '0')")
         
         conn.commit()
-        conn.close()
 
     def _init_mem0(self):
         """Initialise Mem0 client locally using qdrant in-memory vector store (zero-cost, no OpenAI required)."""
@@ -128,19 +135,17 @@ class Mem0Memory:
     # ─── DATABASE METADATA GETTERS & SETTERS ───
     
     def _get_metadata(self, key: str, default: str = "") -> str:
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute("SELECT value FROM state_metadata WHERE key = ?", (key,))
         row = cursor.fetchone()
-        conn.close()
         return row[0] if row else default
 
     def _set_metadata(self, key: str, value: str):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute("INSERT OR REPLACE INTO state_metadata (key, value) VALUES (?, ?)", (key, str(value)))
         conn.commit()
-        conn.close()
 
     # ─── LEGACY COMPATIBLE PROPERTIES ───
 
@@ -154,20 +159,18 @@ class Mem0Memory:
 
     @property
     def model_count(self) -> int:
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM models")
         count = cursor.fetchone()[0]
-        conn.close()
         return count
 
     @property
     def models(self) -> dict:
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM models")
         rows = cursor.fetchall()
-        conn.close()
         
         result = {}
         for r in rows:
@@ -183,11 +186,10 @@ class Mem0Memory:
     @property
     def products_ready(self) -> list:
         """Products scraped but not yet processed."""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM products WHERE processed_at IS NULL")
         rows = cursor.fetchall()
-        conn.close()
         
         products = []
         for r in rows:
@@ -211,7 +213,7 @@ class Mem0Memory:
     @property
     def data(self) -> Dict[str, Any]:
         """Backward-compatible dictionary access for metadata state and product logs."""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         
         # 1. Fetch all metadata
@@ -238,8 +240,6 @@ class Mem0Memory:
             if k.startswith("brand_contacted_"):
                 brands_contact.append(v)
                 
-        conn.close()
-        
         # Build dictionary matching legacy AgentMemory structure
         return {
             "last_active": metadata_dict.get("last_active", datetime.now().strftime("%Y-%m-%d")),
@@ -259,7 +259,7 @@ class Mem0Memory:
         self._set_metadata("current_phase", phase)
 
     def add_model(self, model_id: str, path: str, ethnicity: str = "", gender: str = "", angles: list = None):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         angles_str = json.dumps(angles or ["front"])
         cursor.execute(
@@ -267,7 +267,6 @@ class Mem0Memory:
             (model_id, path, ethnicity, gender, datetime.now().isoformat(), angles_str)
         )
         conn.commit()
-        conn.close()
 
     def add_product(self, product: dict):
         """Add scraped product with deduplication."""
@@ -275,18 +274,16 @@ class Mem0Memory:
         name = product.get("productName", "").strip()
         
         # Deduplication check
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         
         if url:
             cursor.execute("SELECT id FROM products WHERE productUrl = ?", (url,))
             if cursor.fetchone():
-                conn.close()
                 return
         if name:
             cursor.execute("SELECT id FROM products WHERE LOWER(productName) = ?", (name.lower(),))
             if cursor.fetchone():
-                conn.close()
                 return
 
         prod_id = product.get("id", f"prod_{int(datetime.now().timestamp())}")
@@ -297,7 +294,6 @@ class Mem0Memory:
             (prod_id, name, product.get("category", "top"), url, product.get("price", 0), product.get("size_info"), datetime.now().isoformat(), json.dumps(extra))
         )
         conn.commit()
-        conn.close()
         
         # Push into Mem0 episodic vector memory
         if self.mem0:
@@ -307,7 +303,7 @@ class Mem0Memory:
         if not products:
             return
 
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
 
         # Process in chunks of 500 to avoid SQLite limits on parameters
@@ -383,10 +379,9 @@ class Mem0Memory:
                     self.mem0.add(msg, user_id="sourcing_agent")
 
         conn.commit()
-        conn.close()
 
     def mark_product_processed(self, product: dict, ad_paths: list = None):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         prod_id = product.get("id")
         ad_paths_str = json.dumps(ad_paths or [])
@@ -395,10 +390,9 @@ class Mem0Memory:
             (datetime.now().isoformat(), ad_paths_str, prod_id)
         )
         conn.commit()
-        conn.close()
 
     def mark_product_posted(self, product: dict, platform: str, post_url: str = ""):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         prod_id = product.get("id")
         cursor.execute(
@@ -406,7 +400,6 @@ class Mem0Memory:
             (datetime.now().isoformat(), prod_id)
         )
         conn.commit()
-        conn.close()
         if self.mem0:
             self.mem0.add(f"Successfully posted product {product.get('productName')} to platform {platform}.", user_id="sourcing_agent")
 
@@ -419,11 +412,10 @@ class Mem0Memory:
             self.mem0.add(learning, user_id="sourcing_agent")
             
         # SQLite raw fallback
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute("INSERT OR REPLACE INTO state_metadata (key, value) VALUES (?, ?)", (f"learning_{datetime.now().timestamp()}", learning))
         conn.commit()
-        conn.close()
 
     def add_fashion_rule(self, rule: str):
         print(f"[MEM0 FASHION RULE] {rule}")
@@ -445,18 +437,17 @@ class Mem0Memory:
         self._set_metadata("actions_today", "0")
 
     def add_yupoo_supplier(self, name: str, url: str):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         cursor.execute(
             "INSERT OR REPLACE INTO suppliers (name, url, added_at) VALUES (?, ?, ?)",
             (name, url, datetime.now().isoformat())
         )
         conn.commit()
-        conn.close()
 
     def get_state_summary(self) -> str:
         """Expose small context state summary for the thinking brain."""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._conn
         cursor = conn.cursor()
         
         # Active counts
@@ -468,8 +459,6 @@ class Mem0Memory:
         
         cursor.execute("SELECT COUNT(*) FROM products WHERE posted_at IS NOT NULL")
         posted_products = cursor.fetchone()[0]
-        
-        conn.close()
         
         return f"""=== STATE (MEM0 ADAPTER) ===
 Phase: {self.phase} | Actions today: {self.actions_today}
