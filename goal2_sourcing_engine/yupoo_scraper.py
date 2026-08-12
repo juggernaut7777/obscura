@@ -8,7 +8,7 @@ Yupoo uses two template versions:
 Usage:
     from yupoo_scraper import YupooScraper
     scraper = YupooScraper()
-    albums = scraper.scrape_seller("goat-official", page=1)
+    albums = scraper.scrape_seller("goat-official", max_pages=1)
     # albums = [{"title": "...", "album_url": "...", "thumbnail": "...", "weidian_link": "...", ...}, ...]
 """
 
@@ -398,19 +398,23 @@ class YupooScraper:
         return result
 
     def scrape_seller(self, subdomain: str, max_pages: int = 1, category_id: Optional[str] = None,
-                      fetch_details: bool = False, detail_delay: float = 0.5) -> List[Dict]:
+                      **kwargs) -> List[Dict]:
         """Full scrape of a seller's catalog.
         
         Args:
             subdomain: Yupoo seller subdomain.
             max_pages: Maximum number of pages to scrape.
             category_id: Optional category filter.
-            fetch_details: If True, also fetch each album's detail page for Weidian links.
-            detail_delay: Delay between detail page fetches (seconds).
+            **kwargs: Optional arguments:
+                fetch_details (bool): If True, also fetch each album's detail page for Weidian links (default: False).
+                detail_delay (float): Delay between detail page fetches (seconds) (default: 0.5).
             
         Returns:
             List of album dicts with all extracted data.
         """
+        fetch_details = kwargs.get('fetch_details', False)
+        detail_delay = kwargs.get('detail_delay', 0.5)
+
         all_albums = []
         
         for page in range(1, max_pages + 1):
