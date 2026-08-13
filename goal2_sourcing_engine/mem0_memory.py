@@ -379,8 +379,11 @@ class Mem0Memory:
                 )
 
             if self.mem0 and mem0_messages:
-                for msg in mem0_messages:
-                    self.mem0.add(msg, user_id="sourcing_agent")
+                # ⚡ Performance optimization
+                # Why: Batch embedding and vector store insertion is significantly faster than sequential loop insertion
+                # What: Format the messages into a list of dicts and use mem0.add once
+                batch_msgs = [{"role": "user", "content": msg} for msg in mem0_messages]
+                self.mem0.add(batch_msgs, user_id="sourcing_agent")
 
         conn.commit()
         conn.close()
