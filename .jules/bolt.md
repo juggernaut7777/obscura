@@ -1,3 +1,6 @@
 ## 2025-02-28 - [Avoid N+1 Stat Calls with os.scandir]
 **Learning:** Using `pathlib.Path.iterdir()` combined with `.stat().st_mtime` to sort files by modification time leads to N+1 system calls (one for reading the directory and N for stat). `os.scandir()` caches file attributes, making it significantly faster for this operation (~50% faster in a directory of 100 files). This is a codebase-specific performance pattern to watch for, especially when dealing with many files.
 **Action:** Use `os.scandir()` instead of `iterdir()` when iterating over directories and immediately accessing file attributes like `st_mtime`.
+## 2025-03-01 - [Avoid Sequential Mem0 Memory Insertions]
+**Learning:** When using `mem0.Memory.add()` to insert multiple items, inserting them sequentially in a `for` loop causes an N+1 I/O bottleneck because each call executes a separate embedding request and vector db write. Passing a list of dictionaries (`[{"role": "user", "content": msg}]`) allows `mem0.Memory.add()` to batch process embeddings and insertions in one go, dramatically improving throughput.
+**Action:** Always format bulk memory items as a list of dicts and pass the whole list directly to `mem0.Memory.add()` instead of looping.
