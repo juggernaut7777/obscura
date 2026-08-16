@@ -379,8 +379,11 @@ class Mem0Memory:
                 )
 
             if self.mem0 and mem0_messages:
-                for msg in mem0_messages:
-                    self.mem0.add(msg, user_id="sourcing_agent")
+                # ⚡ Performance optimization
+                # Why: mem0.add handles batch dict insertions in a single call, avoiding N+1 I/O bottleneck
+                # What: Convert messages to dictionaries and pass as a batch list
+                batch_messages = [{"role": "user", "content": msg} for msg in mem0_messages]
+                self.mem0.add(batch_messages, user_id="sourcing_agent")
 
         conn.commit()
         conn.close()
