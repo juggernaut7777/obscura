@@ -88,10 +88,15 @@ def save_match_log(pairs: set):
 
 def load_all_tagged_products() -> list:
     """Load all products that have been style-tagged."""
+    import os
     products = []
-    for folder in CURATION_DIR.iterdir():
-        if not folder.is_dir() or folder.name.startswith("_"):
+    # ⚡ Performance optimization
+    # Why: Avoids N+1 stat calls when accessing file attributes (like is_dir) in directory loops
+    # What: Replaced Path.iterdir() with os.scandir() which caches DirEntry attributes
+    for entry in os.scandir(CURATION_DIR):
+        if not entry.is_dir() or entry.name.startswith("_"):
             continue
+        folder = Path(entry.path)
         tags_file = folder / "style_tags.json"
         if not tags_file.exists():
             continue
