@@ -1,0 +1,4 @@
+## 2024-05-18 - Node.js API Command Injection
+**Vulnerability:** Node.js Next.js API routes (`storefront/src/app/api/admin/orders/route.js`) used `exec` from `child_process` to run external scripts and interpolated unsanitized inputs from the user request payload into the shell command string (e.g., `exec("python order_fulfillment.py --mark-shipped \\"" + orderId + "\\" \\"" + tracking + "\\" \\"" + pipeline + "\\"")`).
+**Learning:** Concatenating user inputs into a shell command exposes the server to command injection if the input contains shell metacharacters (like `;`, `&`, `|`, etc.).
+**Prevention:** Never use string interpolation to pass user input to a shell command execution function (like `exec` or `subprocess(..., shell=True)`). Instead, use functions that do not spawn a shell by default and pass arguments as an array (e.g., `execFile` or `spawn` in Node.js, or `subprocess.run` with a list in Python).
