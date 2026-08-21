@@ -1,3 +1,6 @@
 ## 2025-02-28 - [Avoid N+1 Stat Calls with os.scandir]
 **Learning:** Using `pathlib.Path.iterdir()` combined with `.stat().st_mtime` to sort files by modification time leads to N+1 system calls (one for reading the directory and N for stat). `os.scandir()` caches file attributes, making it significantly faster for this operation (~50% faster in a directory of 100 files). This is a codebase-specific performance pattern to watch for, especially when dealing with many files.
 **Action:** Use `os.scandir()` instead of `iterdir()` when iterating over directories and immediately accessing file attributes like `st_mtime`.
+## 2025-03-09 - [Avoid N+1 Stat Calls with os.scandir in agent_brain_local]
+**Learning:** Using `glob` (e.g., `output_dir.glob("*.png")`) followed immediately by `os.path.getmtime` for sorting creates an N+1 system call bottleneck, particularly noticeable in directories that accrue many files over time. `os.scandir()` caches the file attributes like `st_mtime` inside its `DirEntry` objects, making it significantly faster for metadata-dependent iteration.
+**Action:** When finding recent files by modification time, avoid `glob()` + `os.path.getmtime()`. Instead, use `os.scandir()` to iterate and filter the files, and use `e.stat().st_mtime` on the entries to sort them efficiently.
