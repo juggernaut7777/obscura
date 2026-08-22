@@ -456,8 +456,9 @@ def check_and_register_outfit(campaign_dir, final_products):
     
     # Calculate price as the sum of linked products
     total_price = 0
+    final_products_dict = {p["id"]: p for p in final_products}
     for p_id in linked_products:
-        p = next((prod for prod in final_products if prod["id"] == p_id), None)
+        p = final_products_dict.get(p_id)
         if p:
             total_price += p.get("price", 89)
             
@@ -750,24 +751,37 @@ def scan_and_upload():
     try:
         existing_outfits = json.loads(outfits_raw)
         # Ensure all default outfits are present
+        existing_outfit_ids = {o["id"] for o in existing_outfits}
         for df in DEFAULT_OUTFITS:
-            if not any(o["id"] == df["id"] for o in existing_outfits):
+            if df["id"] not in existing_outfit_ids:
                 existing_outfits.append(df)
+                existing_outfit_ids.add(df["id"])
     except:
         existing_outfits = list(DEFAULT_OUTFITS)
+        existing_outfit_ids = {o["id"] for o in existing_outfits}
         
     # Phase A: Explicit set registration (from campaign metadata)
     for campaign_dir in campaigns:
         new_outfit = check_and_register_outfit(campaign_dir, final_products)
         if new_outfit:
             # Check if outfit already exists
-            if not any(o["id"] == new_outfit["id"] for o in existing_outfits):
+            if new_outfit["id"] not in existing_outfit_ids:
                 existing_outfits.insert(0, new_outfit)
+                existing_outfit_ids.add(new_outfit["id"])
                 log(f"  [+] Registered new outfit bundle: {new_outfit['name']}")
     
     # Phase B: For set items — auto-pair with shoes to complete the outfit
     # A tracksuit set is already ONE product. Add matching shoes to make a full outfit.
     final_products_by_id = {p["id"]: p for p in final_products}
+
+    # Pre-filter shoes for O(1) matching
+    available_shoes = []
+    for p in final_products:
+        p_cat = (p.get("category", "") or "").lower()
+        p_name = (p.get("name", "") or "").lower()
+        if any(kw in p_cat or kw in p_name for kw in SHOE_KEYWORDS):
+            available_shoes.append(p)
+
     for group_key, group in product_groups.items():
         if group.get("is_set"):
             this_product = final_products_by_id.get(group["slug"])
@@ -775,26 +789,23 @@ def scan_and_upload():
                 continue
             
             outfit_id = f"outfit-{group['slug']}-complete"
-            if any(o["id"] == outfit_id for o in existing_outfits):
+            if outfit_id in existing_outfit_ids:
                 continue
             
             # Find matching shoes in the catalog
             matching_shoe = None
             set_color = (this_product.get("colors", [{}])[0].get("name", "") if this_product.get("colors") else "").lower()
             
-            for p in final_products:
-                p_cat = (p.get("category", "") or "").lower()
-                p_name = (p.get("name", "") or "").lower()
+            for p in available_shoes:
                 if p["id"] == this_product["id"]:
                     continue
-                if any(kw in p_cat or kw in p_name for kw in SHOE_KEYWORDS):
-                    # Prefer color-matched shoes
-                    shoe_colors = [c.get("name", "").lower() for c in p.get("colors", [])]
-                    if set_color and set_color in shoe_colors:
-                        matching_shoe = p
-                        break
-                    elif not matching_shoe:
-                        matching_shoe = p  # Fallback: any shoe
+                # Prefer color-matched shoes
+                shoe_colors = [c.get("name", "").lower() for c in p.get("colors", [])]
+                if set_color and set_color in shoe_colors:
+                    matching_shoe = p
+                    break
+                elif not matching_shoe:
+                    matching_shoe = p  # Fallback: any shoe
             
             if matching_shoe:
                 total_price = this_product.get("price", 0) + matching_shoe.get("price", 0)
@@ -809,6 +820,7 @@ def scan_and_upload():
                     "tags": ["Complete Look", "Styled Outfit", "Shop The Look"]
                 }
                 existing_outfits.insert(0, outfit_entry)
+                existing_outfit_ids.add(outfit_id)
                 log(f"  [+] Complete outfit: {outfit_entry['name']} (${total_price})")
     
     # Phase C: Smart style matching via outfit_assembler (for non-set products)
@@ -822,8 +834,9 @@ def scan_and_upload():
                     suggestion = assembler.build_outfit(product)
                     if suggestion and suggestion.get("products"):
                         outfit_id = f"outfit-{slugify(suggestion.get('name', 'styled'))}"
-                        if not any(o["id"] == outfit_id for o in existing_outfits):
+                        if outfit_id not in existing_outfit_ids:
                             existing_outfits.append(suggestion)
+                            existing_outfit_ids.add(outfit_id)
                             log(f"  [+] Smart-matched outfit: {suggestion['name']}")
                 except Exception:
                     pass  # Don't let assembler errors break the upload
