@@ -349,7 +349,7 @@ def build_products_js(products, collections_raw, outfits_raw):
     return "\n".join(lines)
 
 
-def check_and_register_outfit(campaign_dir, final_products):
+def check_and_register_outfit(campaign_dir, final_products, final_products_by_id):
     """
     Check if the campaign directory represents a complete outfit bundle,
     and return an outfit dictionary to be added to DEMO_OUTFITS.
@@ -455,9 +455,12 @@ def check_and_register_outfit(campaign_dir, final_products):
     primary_image = outfit_images[0] if outfit_images else "https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=800&h=1000&fit=crop"
     
     # Calculate price as the sum of linked products
+    # ⚡ Performance optimization
+    # Why: Avoid O(n) list traversal when summing prices
+    # What: Use O(1) dictionary lookup via final_products_by_id
     total_price = 0
     for p_id in linked_products:
-        p = next((prod for prod in final_products if prod["id"] == p_id), None)
+        p = final_products_by_id.get(p_id)
         if p:
             total_price += p.get("price", 89)
             
@@ -757,8 +760,9 @@ def scan_and_upload():
         existing_outfits = list(DEFAULT_OUTFITS)
         
     # Phase A: Explicit set registration (from campaign metadata)
+    final_products_by_id = {p["id"]: p for p in final_products}
     for campaign_dir in campaigns:
-        new_outfit = check_and_register_outfit(campaign_dir, final_products)
+        new_outfit = check_and_register_outfit(campaign_dir, final_products, final_products_by_id)
         if new_outfit:
             # Check if outfit already exists
             if not any(o["id"] == new_outfit["id"] for o in existing_outfits):
@@ -767,7 +771,6 @@ def scan_and_upload():
     
     # Phase B: For set items — auto-pair with shoes to complete the outfit
     # A tracksuit set is already ONE product. Add matching shoes to make a full outfit.
-    final_products_by_id = {p["id"]: p for p in final_products}
     for group_key, group in product_groups.items():
         if group.get("is_set"):
             this_product = final_products_by_id.get(group["slug"])
