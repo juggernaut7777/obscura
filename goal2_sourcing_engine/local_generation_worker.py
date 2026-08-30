@@ -113,26 +113,34 @@ def discover_products():
     except ImportError:
         has_validator = False
     
+    # ⚡ Performance optimization
+    # Why: pathlib.Path.glob combined with .stat().st_size causes N+1 system calls.
+    # What: Use os.scandir to cache file attributes and avoid extra stat calls.
     # 1. Discover subdirectories (folder-grouped products)
-    for subdir in INPUT_DIR.iterdir():
-        if subdir.is_dir() and subdir.name not in ("outfit_grid", "_rejected", "__pycache__"):
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
+    for subdir_entry in os.scandir(INPUT_DIR):
+        if subdir_entry.is_dir() and subdir_entry.name not in ("outfit_grid", "_rejected", "__pycache__"):
+            subdir = Path(subdir_entry.path)
             
             # Filter/Validate images in the folder
             valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
+            for img_entry in os.scandir(subdir_entry.path):
+                if not img_entry.is_file():
+                    continue
+
+                name_lower = img_entry.name.lower()
+                if not any(name_lower.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp")):
+                    continue
+
                 if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
                     continue
+
                 if has_validator:
-                    check = validate_product_image(str(img))
+                    check = validate_product_image(img_entry.path)
                     if check.get("valid"):
-                        valid_images.append(str(img))
+                        valid_images.append(img_entry.path)
                 else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
+                    if img_entry.stat().st_size >= 30000:
+                        valid_images.append(img_entry.path)
             
             if valid_images:
                 # Load metadata if exists
@@ -165,27 +173,31 @@ def discover_products():
                 })
 
     # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
+    # ⚡ Performance optimization
+    # Why: pathlib.Path.glob combined with .stat().st_size causes N+1 system calls.
+    # What: Use os.scandir to cache file attributes and avoid extra stat calls.
+    for img_entry in os.scandir(INPUT_DIR):
+        if not img_entry.is_file():
+            continue
+        name_lower = img_entry.name.lower()
+        if not any(name_lower.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp")):
+            continue
         if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
             continue
         if has_validator:
-            check = validate_product_image(str(img))
+            check = validate_product_image(img_entry.path)
             if not check.get("valid"):
                 continue
         else:
-            if img.stat().st_size < 30000:
+            if img_entry.stat().st_size < 30000:
                 continue
         
+        img_path = Path(img_entry.path)
         products.append({
             "is_folder": False,
             "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
+            "name": img_path.stem,
+            "images": [img_entry.path],
             "link": "",
             "metadata": {}
         })
