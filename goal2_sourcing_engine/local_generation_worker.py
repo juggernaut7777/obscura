@@ -165,30 +165,36 @@ def discover_products():
                 })
 
     # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
-        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-            continue
-        if has_validator:
-            check = validate_product_image(str(img))
-            if not check.get("valid"):
+    # ⚡ Performance optimization
+    # Why: Avoid N+1 stat calls for file size checking
+    # What: Use os.scandir to filter by extension and size efficiently
+    with os.scandir(INPUT_DIR) as it:
+        for entry in it:
+            if not entry.is_file():
                 continue
-        else:
-            if img.stat().st_size < 30000:
+            name_lower = entry.name.lower()
+            if not name_lower.endswith(('.png', '.jpg', '.jpeg', '.webp')):
                 continue
-        
-        products.append({
-            "is_folder": False,
-            "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
-            "link": "",
-            "metadata": {}
-        })
+            if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                continue
+
+            if has_validator:
+                check = validate_product_image(entry.path)
+                if not check.get("valid"):
+                    continue
+            else:
+                if entry.stat().st_size < 30000:
+                    continue
+
+            img_path = Path(entry.path)
+            products.append({
+                "is_folder": False,
+                "folder_path": None,
+                "name": img_path.stem,
+                "images": [str(img_path)],
+                "link": "",
+                "metadata": {}
+            })
     
     log("[+] Discovered {} structured products".format(len(products)))
     return products
