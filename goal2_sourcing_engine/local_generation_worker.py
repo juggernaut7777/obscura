@@ -482,10 +482,23 @@ def select_front_back_images(p_dict: dict, color_name: Optional[str] = None, par
             try:
                 cls_data = json.loads(cls_file.read_text(encoding="utf-8"))
                 for img in cls_data.get("images", []):
+                    # STRICT RULE: Must be a product photo (never size chart, tag, or packaging)
+                    content_type = img.get("content_type", "").lower()
+                    if content_type in ("size_chart", "tag_label", "packaging", "detail_closeup", "non_product"):
+                        continue
+                    if content_type and content_type != "product":
+                        continue
+
                     angle = img.get("angle", "").lower()
                     fname = img.get("recommended_filename") or img.get("original_filename", "")
                     if not fname:
                         continue
+
+                    # Extra safety: Never allow size, chart, tag, label in filename
+                    fname_lower = fname.lower()
+                    if any(bad in fname_lower for bad in ("size", "chart", "guide", "tag", "label", "grid")):
+                        continue
+
                     fpath = folder / fname
                     if not fpath.exists():
                         # Try adding extensions
@@ -512,6 +525,8 @@ def select_front_back_images(p_dict: dict, color_name: Optional[str] = None, par
         if f.suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
             continue
         name_lower = f.stem.lower()
+        if any(bad in name_lower for bad in ("size", "chart", "guide", "tag", "label", "grid")):
+            continue
         if "front_angle" in name_lower or "flat_lay_1" in name_lower:
             fronts.append(str(f))
         elif "back_angle" in name_lower or "flat_lay_2" in name_lower:
@@ -522,14 +537,18 @@ def select_front_back_images(p_dict: dict, color_name: Optional[str] = None, par
     if backs and not back_img:
         back_img = backs[0]
         
-    # Final fallback: use first two product images from p_dict
-    if not front_img and p_dict.get("images"):
-        front_img = p_dict["images"][0] if len(p_dict["images"]) >= 1 else None
-        if front_img and front_img not in fronts:
+    # Final fallback: use first two product images from p_dict, filtering out non-garment keywords
+    clean_p_images = [
+        img for img in p_dict.get("images", [])
+        if not any(bad in Path(img).stem.lower() for bad in ("size", "chart", "guide", "tag", "label", "grid"))
+    ]
+    if not front_img and clean_p_images:
+        front_img = clean_p_images[0]
+        if front_img not in fronts:
             fronts.insert(0, front_img)
-    if not back_img and p_dict.get("images"):
-        back_img = p_dict["images"][1] if len(p_dict["images"]) >= 2 else None
-        if back_img and back_img not in backs:
+    if not back_img and len(clean_p_images) >= 2:
+        back_img = clean_p_images[1]
+        if back_img not in backs:
             backs.insert(0, back_img)
     
     log(f"  [FLAT-LAY] Fronts ({len(fronts[:2])}): {[Path(p).name for p in fronts[:2]]} | Backs ({len(backs[:2])}): {[Path(p).name for p in backs[:2]]}")

@@ -848,23 +848,47 @@ class GenerationRouter:
                             
                             safe_print(f"    [+] Video generation completed successfully! Fetching video data (Phase 3)...")
                             
-                            # Phase 3: Fetch the actual video via GET v1/media/{media_name}
-                            # The status endpoint does NOT return download URLs for videos.
-                            # Instead, GET v1/media/{name} returns the video as base64 in video.encodedVideo.
-                            if media_name.startswith("projects/") or media_name.startswith("media/"):
-                                media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/{media_name}"
-                            else:
-                                media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/projects/{project_id}/media/{media_name}"
-                            safe_print(f"[*] Router: GET {media_fetch_url[:70]}...")
+                            # Phase 3: Check if video is already returned in status payload
+                            encoded_video = (
+                                m_item.get("video", {}).get("encodedVideo") or
+                                m_item.get("encodedVideo") or
+                                status_data.get("video", {}).get("encodedVideo")
+                            )
+                            video_download_url = (
+                                m_item.get("videoUrl") or
+                                m_item.get("downloadUrl") or
+                                m_item.get("mediaMetadata", {}).get("fifeUrl") or
+                                m_item.get("mediaMetadata", {}).get("videoUrl") or
+                                m_item.get("mediaMetadata", {}).get("downloadUrl")
+                            )
 
-                            
+                            if video_download_url:
+                                safe_print(f"    [*] Router: Downloading video directly from {video_download_url[:60]}...")
+                                dl_resp = await client.get(video_download_url, timeout=120.0)
+                                if dl_resp.status_code == 200 and len(dl_resp.content) > 1000:
+                                    filepath = os.path.join(self.ugc_dir, f"direct_flow_video_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp4")
+                                    with open(filepath, "wb") as f:
+                                        f.write(dl_resp.content)
+                                    safe_print(f"    [OK] Saved video directly -> {filepath}")
+                                    return [filepath]
+
+                            # Phase 3 Fallback: Fetch via GET v1/media/{name}
+                            server_name = m_item.get("name") or media_name
+                            if server_name.startswith("projects/") or server_name.startswith("media/"):
+                                media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/{server_name}"
+                            else:
+                                media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/projects/{project_id}/media/{server_name}"
+                            safe_print(f"[*] Router: GET {media_fetch_url[:70]}...")
+                            safe_print(f"    [*] m_item keys: {list(m_item.keys())} | mediaMetadata: {list(m_item.get('mediaMetadata', {}).keys())}")
+
                             media_resp = await client.get(media_fetch_url, headers=headers, timeout=120.0)
                             if media_resp.status_code != 200:
                                 safe_print(f"    [!] Media fetch failed with status {media_resp.status_code}: {media_resp.text[:300]}")
                                 return []
                             
                             media_data = media_resp.json()
-                            encoded_video = media_data.get("video", {}).get("encodedVideo", "")
+                            if not encoded_video:
+                                encoded_video = media_data.get("video", {}).get("encodedVideo", "")
                             
                             if encoded_video:
                                 video_bytes = base64.b64decode(encoded_video)
