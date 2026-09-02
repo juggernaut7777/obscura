@@ -121,8 +121,18 @@ def extract_metadata_from_campaign(campaign_dir):
         "size_charts": 0
     }
     
+    # ⚡ Performance optimization
+    # Why: Using Path.iterdir() multiple times causes redundant disk I/O and N+1 stat calls.
+    # What: Cache directory contents once using os.scandir() to drastically reduce I/O overhead.
+    campaign_files = []
+    with os.scandir(campaign_dir) as entries:
+        for entry in entries:
+            campaign_files.append(Path(entry.path))
+
+    campaign_files_sorted = sorted(campaign_files)
+
     # Check for metadata.json (from Discord bot / staging copy)
-    for f in campaign_dir.iterdir():
+    for f in campaign_files:
         if f.suffix == ".json" and f.name != "checkout_links.json" and f.name != "outfit_metadata.json":
             try:
                 with open(f, "r", encoding="utf-8") as mf:
@@ -164,7 +174,7 @@ def extract_metadata_from_campaign(campaign_dir):
             metadata["link"] = link_match.group(1)
     
     # Collect generated images (the AI shots, not the source product photos)
-    for f in sorted(campaign_dir.iterdir()):
+    for f in campaign_files_sorted:
         if f.suffix in {".png", ".jpg", ".jpeg", ".webp"}:
             # Only include generated shots (01_editorial, 02_lifestyle, etc.)
             if any(tag in f.name for tag in ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
@@ -175,7 +185,7 @@ def extract_metadata_from_campaign(campaign_dir):
     # Collect original source images (Yupoo/Weidian scraped photos)
     metadata["source_images"] = []
     source_prefixes = ("front_angle", "back_angle", "side_angle", "angle_", "source_")
-    for f in sorted(campaign_dir.iterdir()):
+    for f in campaign_files_sorted:
         if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
             if f.stem.startswith(source_prefixes):
                 metadata["source_images"].append(f)
@@ -481,7 +491,15 @@ def scan_and_upload():
         log("No OUTPUT_READY_FOR_SALE directory found.")
         return
     
-    campaigns = [d for d in READY_DIR.iterdir() if d.is_dir()]
+    # ⚡ Performance optimization
+    # Why: iterdir() causes N+1 stat calls, scandir avoids this.
+    # What: Replace iterdir() with os.scandir() to improve file iteration performance.
+    campaigns = []
+    with os.scandir(READY_DIR) as entries:
+        for entry in entries:
+            if entry.is_dir():
+                campaigns.append(Path(entry.path))
+
     if not campaigns:
         log("No campaigns to upload.")
         return

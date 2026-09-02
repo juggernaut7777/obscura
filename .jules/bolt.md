@@ -1,3 +1,6 @@
 ## 2025-02-28 - [Avoid N+1 Stat Calls with os.scandir]
 **Learning:** Using `pathlib.Path.iterdir()` combined with `.stat().st_mtime` to sort files by modification time leads to N+1 system calls (one for reading the directory and N for stat). `os.scandir()` caches file attributes, making it significantly faster for this operation (~50% faster in a directory of 100 files). This is a codebase-specific performance pattern to watch for, especially when dealing with many files.
 **Action:** Use `os.scandir()` instead of `iterdir()` when iterating over directories and immediately accessing file attributes like `st_mtime`.
+## 2025-02-28 - [Path.iterdir() Does Not inherently Cause N+1 Stat Calls]
+**Learning:** Using `Path.iterdir()` only iterates directory entries. If subsequent code only accesses lexical properties like `.name` or `.suffix`, it does *not* trigger `stat` calls. Replacing it with `os.scandir()` in these cases is a micro-optimization that sacrifices readability and increases memory usage for no measurable gain.
+**Action:** Only replace `Path.iterdir()` with `os.scandir()` when `stat` operations (like `.is_dir()`, `.stat().st_size`) are immediately needed or when caching the list prevents multiple complete directory iterations.
