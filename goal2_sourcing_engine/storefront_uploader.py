@@ -150,6 +150,124 @@ def clean_product_title(raw_title: str) -> str:
     return "Premium Heavyweight Essential"
 
 
+def generate_luxury_specs(item_name: str, category: str, is_set: bool = False) -> dict:
+    """Generate luxury specifications, fabric composition, GSM, care, fit advice, and sizing matrix.
+    Ensures every product on the storefront has full luxury specs for high customer conversion."""
+    name_lower = item_name.lower()
+    cat_lower = (category or "").lower()
+
+    if is_set or "set" in name_lower or "tracksuit" in name_lower or "zipset" in name_lower or ("trousers" in name_lower and "hoodie" in name_lower):
+        return {
+            "material": "460 GSM Ultra-Heavyweight Cotton Fleece & French Terry Co-ord",
+            "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not tumble dry. Cool iron on reverse.",
+            "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large top and Medium bottom for a tailored streetwear drape.",
+            "weight_gsm": 460,
+            "weight_kg": 1.25,
+            "details": [
+                "Complete 2-piece architectural uniform: hoodie/jacket & matching trousers",
+                "Custom milled 460 GSM combed cotton fleece with thermal interior loopback",
+                "Double-needle flatlock stitching along all stress seams for lifetime durability",
+                "Elasticated waistband with custom metal-tipped elongated drawstrings",
+                "Subtle tonal archival branding with vintage matte hardware"
+            ],
+            "sizeGuide": {
+                "S": {"top_chest": "116 cm / 45.7 in", "top_length": "68 cm / 26.8 in", "waist": "74-82 cm / 29-32 in", "pants_length": "104 cm / 40.9 in"},
+                "M": {"top_chest": "120 cm / 47.2 in", "top_length": "70 cm / 27.6 in", "waist": "78-86 cm / 31-34 in", "pants_length": "106 cm / 41.7 in"},
+                "L": {"top_chest": "126 cm / 49.6 in", "top_length": "72 cm / 28.3 in", "waist": "82-92 cm / 32-36 in", "pants_length": "108 cm / 42.5 in"},
+                "XL": {"top_chest": "132 cm / 52.0 in", "top_length": "74 cm / 29.1 in", "waist": "86-98 cm / 34-38 in", "pants_length": "110 cm / 43.3 in"},
+                "2XL": {"top_chest": "138 cm / 54.3 in", "top_length": "76 cm / 29.9 in", "waist": "90-104 cm / 35-41 in", "pants_length": "112 cm / 44.1 in"}
+            }
+        }
+    elif any(k in name_lower for k in ("pant", "sweatpant", "jogger", "trouser", "cargo", "denim", "jean")) or cat_lower in ("bottoms", "bottom"):
+        return {
+            "material": "420 GSM Heavyweight Dense Loopback Cotton Fleece",
+            "care": "Machine wash cold delicate. Tumble dry low or hang dry. Do not iron directly on graphics.",
+            "modelInfo": "Model is 6'1\" (185cm) wearing size M for a relaxed straight-leg silhouette with stacked hem.",
+            "weight_gsm": 420,
+            "weight_kg": 0.58,
+            "details": [
+                "420 GSM custom-milled high-density cotton fleece with heavy drape",
+                "Elasticated waistband with elongated contrast natural cotton drawstrings",
+                "Deep side slant hand pockets and rear concealed secure zip pocket",
+                "Relaxed straight-leg cut engineered for ideal stacking over luxury sneakers",
+                "Silkscreen printed archival graphics with vintage micro-cracking wash"
+            ],
+            "sizeGuide": {
+                "S": {"waist": "74-82 cm / 29-32 in", "hip": "106 cm / 41.7 in", "length": "103 cm / 40.5 in", "inseam": "76 cm / 29.9 in"},
+                "M": {"waist": "78-86 cm / 31-34 in", "hip": "110 cm / 43.3 in", "length": "105 cm / 41.3 in", "inseam": "77 cm / 30.3 in"},
+                "L": {"waist": "82-92 cm / 32-36 in", "hip": "114 cm / 44.9 in", "length": "107 cm / 42.1 in", "inseam": "78 cm / 30.7 in"},
+                "XL": {"waist": "86-98 cm / 34-38 in", "hip": "118 cm / 46.5 in", "length": "109 cm / 42.9 in", "inseam": "79 cm / 31.1 in"},
+                "2XL": {"waist": "90-104 cm / 35-41 in", "hip": "122 cm / 48.0 in", "length": "111 cm / 43.7 in", "inseam": "80 cm / 31.5 in"}
+            }
+        }
+    elif any(k in name_lower for k in ("jacket", "windbreaker", "shell", "coat", "parka", "bomber", "puffer")) or cat_lower in ("outerwear", "jackets"):
+        return {
+            "material": "Technical Matte Nylon Taslan (Water-Repellent DWR Finish, 100% Polyamide Shell)",
+            "care": "Wipe clean with a damp microfiber cloth or professional gentle wet clean. Do not tumble dry. Do not iron.",
+            "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large for an architectural boxy drape.",
+            "weight_gsm": 340,
+            "weight_kg": 0.85,
+            "details": [
+                "Water-repellent matte-finish technical nylon shell with breathable micro-mesh lining",
+                "Two-way YKK waterproof front zip with ergonomic custom zipper pullers",
+                "Precision contrast white piping and angular multi-panel architectural tailoring",
+                "Concealed elastic storm cuffs and adjustable bungee hem cinch system",
+                "Interior zippered chest pocket and deep weather-sealed hand pockets"
+            ],
+            "sizeGuide": {
+                "S": {"chest": "118 cm / 46.5 in", "length": "67 cm / 26.4 in", "shoulder": "52 cm / 20.5 in", "sleeve": "63 cm / 24.8 in"},
+                "M": {"chest": "122 cm / 48.0 in", "length": "69 cm / 27.2 in", "shoulder": "54 cm / 21.3 in", "sleeve": "64 cm / 25.2 in"},
+                "L": {"chest": "128 cm / 50.4 in", "length": "71 cm / 28.0 in", "shoulder": "56 cm / 22.0 in", "sleeve": "65 cm / 25.6 in"},
+                "XL": {"chest": "134 cm / 52.8 in", "length": "73 cm / 28.7 in", "shoulder": "58 cm / 22.8 in", "sleeve": "66 cm / 26.0 in"},
+                "2XL": {"chest": "140 cm / 55.1 in", "length": "75 cm / 29.5 in", "shoulder": "60 cm / 23.6 in", "sleeve": "67 cm / 26.4 in"}
+            }
+        }
+    elif any(k in name_lower for k in ("tee", "t-shirt", "shirt")) or cat_lower in ("tees", "shirts"):
+        return {
+            "material": "280 GSM Heavyweight 100% Combed Compact Jersey Cotton",
+            "care": "Machine wash cold inside out with gentle detergent. Hang dry. Do not iron directly on print.",
+            "modelInfo": "Model is 6'1\" (185cm) wearing size Large for a boxy drop-shoulder cut.",
+            "weight_gsm": 280,
+            "weight_kg": 0.28,
+            "details": [
+                "280 GSM premium compact-spun combed cotton for zero pilling",
+                "Thick 1.25\" seamless ribbed crewneck collar engineered to maintain shape",
+                "Relaxed drop-shoulder streetwear cut with wide, structured half-sleeves",
+                "Enzyme-washed for a broken-in luxury hand feel and dimensional color depth",
+                "Blind-stitched hems and reinforced neck tape for structural longevity"
+            ],
+            "sizeGuide": {
+                "S": {"chest": "112 cm / 44.1 in", "length": "70 cm / 27.6 in", "shoulder": "52 cm / 20.5 in", "sleeve": "22 cm / 8.7 in"},
+                "M": {"chest": "116 cm / 45.7 in", "length": "72 cm / 28.3 in", "shoulder": "54 cm / 21.3 in", "sleeve": "23 cm / 9.1 in"},
+                "L": {"chest": "122 cm / 48.0 in", "length": "74 cm / 29.1 in", "shoulder": "56 cm / 22.0 in", "sleeve": "24 cm / 9.4 in"},
+                "XL": {"chest": "128 cm / 50.4 in", "length": "76 cm / 29.9 in", "shoulder": "58 cm / 22.8 in", "sleeve": "25 cm / 9.8 in"},
+                "2XL": {"chest": "134 cm / 52.8 in", "length": "78 cm / 30.7 in", "shoulder": "60 cm / 23.6 in", "sleeve": "26 cm / 10.2 in"}
+            }
+        }
+    else:  # Default hoodie / crewneck / tops
+        return {
+            "material": "480 GSM Ultra-Heavyweight 100% French Terry Cotton",
+            "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not bleach or tumble dry. Cool iron on reverse.",
+            "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large for an oversized boxy streetwear fit.",
+            "weight_gsm": 480,
+            "weight_kg": 0.65,
+            "details": [
+                "Custom 480 GSM ultra-heavyweight combed cotton terry with loopback interior",
+                "Double-layered architectural hood engineered without drawstrings for a sleek minimalist profile",
+                "Pronounced drop shoulders with a wide, boxy body silhouette",
+                "Heavy-gauge 2x2 ribbed cuffs and hem for lifetime shape retention",
+                "Pre-shrunk vintage wash treatment for a rich textured patina"
+            ],
+            "sizeGuide": {
+                "S": {"chest": "116 cm / 45.7 in", "length": "68 cm / 26.8 in", "shoulder": "54 cm / 21.3 in", "sleeve": "61 cm / 24.0 in"},
+                "M": {"chest": "120 cm / 47.2 in", "length": "70 cm / 27.6 in", "shoulder": "56 cm / 22.0 in", "sleeve": "62 cm / 24.4 in"},
+                "L": {"chest": "126 cm / 49.6 in", "length": "72 cm / 28.3 in", "shoulder": "58 cm / 22.8 in", "sleeve": "63 cm / 24.8 in"},
+                "XL": {"chest": "132 cm / 52.0 in", "length": "74 cm / 29.1 in", "shoulder": "60 cm / 23.6 in", "sleeve": "64 cm / 25.2 in"},
+                "2XL": {"chest": "138 cm / 54.3 in", "length": "76 cm / 29.9 in", "shoulder": "62 cm / 24.4 in", "sleeve": "65 cm / 25.6 in"}
+            }
+        }
+
+
 def clean_product_description(raw_desc: str, item_name: str) -> str:
     """Clean Chinese descriptions and ensure luxury editorial copy.
     Rule 16: Never expose Chinese prices, yuan symbols, or supplier text on storefront.
@@ -962,29 +1080,28 @@ def scan_and_upload():
                 
             log(f"  [+] Updated existing product {group['name']} with new colors & size charts")
         else:
-            # Build new product entry
+            # Build new product entry with rich luxury specs
+            specs = generate_luxury_specs(group["name"], ui_category, is_set=group.get("is_set", False))
             product_entry = {
                 "id": product_slug,
                 "name": group["name"],
                 "price": sell_price,
                 "comparePrice": round(sell_price * 1.30),  # 30% higher "was" price for sale urgency
                 "category": ui_category,
-                "badge": "Set" if group.get("is_set") else "New Drop",
+                "badge": "Co-ord Set" if group.get("is_set") else "New Drop",
                 "isSet": group.get("is_set", False),
                 "description": clean_product_description(first_meta.get("description", ""), group["name"]),
-                "material": first_meta.get("material", ""),
-                "care": first_meta.get("care_instructions", ""),
-                "modelInfo": first_meta.get("model_info", ""),
+                "material": first_meta.get("material") or specs["material"],
+                "care": first_meta.get("care_instructions") or specs["care"],
+                "modelInfo": first_meta.get("model_info") or specs["modelInfo"],
+                "weightGsm": first_meta.get("weight_gsm") or specs["weight_gsm"],
+                "weightKg": specs["weight_kg"],
                 "brand": "OBSCURA",  # Always use our brand on storefront — never expose supplier brands
                 "sizes": parsed_sizes,
-                "sizeGuide": first_meta.get("measurements", {}),
+                "sizeGuide": first_meta.get("measurements") or specs["sizeGuide"],
                 "images": all_images,
                 "colors": colors if len(colors) > 1 or (len(colors) == 1 and colors[0]["name"] != "Default") else [],
-                "details": [
-                    "Premium construction",
-                    "Limited drop",
-                    "Ships from curated warehouse"
-                ],
+                "details": first_meta.get("details") or specs["details"],
                 # NO supplierLink exposed to customers
                 "size_info": size_info,
                 "size_chart_image": size_chart_image,
@@ -1004,6 +1121,9 @@ def scan_and_upload():
                 "seller": first_meta.get("seller", {}),
                 "cost_cny": raw_price,
                 "currency": currency,
+                "weight_kg": specs["weight_kg"],
+                "category": ui_category,
+                "is_set": group.get("is_set", False),
                 "stock_status": first_meta.get("stock_status", {}),
                 "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }

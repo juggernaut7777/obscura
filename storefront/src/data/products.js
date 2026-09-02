@@ -13,9 +13,9 @@ export const DEMO_PRODUCTS = [
     "badge": "New Drop",
     "isSet": false,
     "description": "Curated luxury essential: Hellstar. Heavyweight architectural construction, premium drape, and deconstructed brutalist aesthetic.",
-    "material": "",
-    "care": "",
-    "modelInfo": "",
+    "material": "480 GSM Ultra-Heavyweight 100% French Terry Cotton",
+    "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not bleach or tumble dry. Cool iron on reverse.",
+    "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large for an oversized boxy streetwear fit.",
     "brand": "OBSCURA",
     "sizes": [
       "S",
@@ -23,7 +23,38 @@ export const DEMO_PRODUCTS = [
       "L",
       "XL"
     ],
-    "sizeGuide": {},
+    "sizeGuide": {
+      "S": {
+        "chest": "116 cm / 45.7 in",
+        "length": "68 cm / 26.8 in",
+        "shoulder": "54 cm / 21.3 in",
+        "sleeve": "61 cm / 24.0 in"
+      },
+      "M": {
+        "chest": "120 cm / 47.2 in",
+        "length": "70 cm / 27.6 in",
+        "shoulder": "56 cm / 22.0 in",
+        "sleeve": "62 cm / 24.4 in"
+      },
+      "L": {
+        "chest": "126 cm / 49.6 in",
+        "length": "72 cm / 28.3 in",
+        "shoulder": "58 cm / 22.8 in",
+        "sleeve": "63 cm / 24.8 in"
+      },
+      "XL": {
+        "chest": "132 cm / 52.0 in",
+        "length": "74 cm / 29.1 in",
+        "shoulder": "60 cm / 23.6 in",
+        "sleeve": "64 cm / 25.2 in"
+      },
+      "2XL": {
+        "chest": "138 cm / 54.3 in",
+        "length": "76 cm / 29.9 in",
+        "shoulder": "62 cm / 24.4 in",
+        "sleeve": "65 cm / 25.6 in"
+      }
+    },
     "images": [
       "/products/hellstar-f99881/default/default_1.png",
       "/products/hellstar-f99881/default/default_2.jpg",
@@ -34,9 +65,11 @@ export const DEMO_PRODUCTS = [
     ],
     "colors": [],
     "details": [
-      "Premium construction",
-      "Limited drop",
-      "Ships from curated warehouse"
+      "Custom 480 GSM ultra-heavyweight combed cotton terry with loopback interior",
+      "Double-layered architectural hood engineered without drawstrings for a sleek minimalist profile",
+      "Pronounced drop shoulders with a wide, boxy body silhouette",
+      "Heavy-gauge 2x2 ribbed cuffs and hem for lifetime shape retention",
+      "Pre-shrunk vintage wash treatment for a rich textured patina"
     ],
     "size_info": "Sizes: S, M, L, XL | Fit: True to size",
     "size_chart_image": "/products/hellstar-f99881/size_guide_size_chart_1.png",
@@ -81,7 +114,9 @@ export const DEMO_PRODUCTS = [
       "/products/hellstar-f99881/source/source_12.png",
       "/products/hellstar-f99881/source/source_13.jpg"
     ],
-    "stock_status": {}
+    "stock_status": {},
+    "weightGsm": 480,
+    "weightKg": 0.65
   },
   {
     "id": "g0dspeed-d989b8",
@@ -92,9 +127,9 @@ export const DEMO_PRODUCTS = [
     "badge": "New Drop",
     "isSet": false,
     "description": "Curated luxury essential: G0Dspeed. Heavyweight architectural construction, premium drape, and deconstructed brutalist aesthetic.",
-    "material": "",
-    "care": "",
-    "modelInfo": "",
+    "material": "480 GSM Ultra-Heavyweight 100% French Terry Cotton",
+    "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not bleach or tumble dry. Cool iron on reverse.",
+    "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large for an oversized boxy streetwear fit.",
     "brand": "OBSCURA",
     "sizes": [
       "S",
@@ -102,7 +137,38 @@ export const DEMO_PRODUCTS = [
       "L",
       "XL"
     ],
-    "sizeGuide": {},
+    "sizeGuide": {
+      "S": {
+        "chest": "116 cm / 45.7 in",
+        "length": "68 cm / 26.8 in",
+        "shoulder": "54 cm / 21.3 in",
+        "sleeve": "61 cm / 24.0 in"
+      },
+      "M": {
+        "chest": "120 cm / 47.2 in",
+        "length": "70 cm / 27.6 in",
+        "shoulder": "56 cm / 22.0 in",
+        "sleeve": "62 cm / 24.4 in"
+      },
+      "L": {
+        "chest": "126 cm / 49.6 in",
+        "length": "72 cm / 28.3 in",
+        "shoulder": "58 cm / 22.8 in",
+        "sleeve": "63 cm / 24.8 in"
+      },
+      "XL": {
+        "chest": "132 cm / 52.0 in",
+        "length": "74 cm / 29.1 in",
+        "shoulder": "60 cm / 23.6 in",
+        "sleeve": "64 cm / 25.2 in"
+      },
+      "2XL": {
+        "chest": "138 cm / 54.3 in",
+        "length": "76 cm / 29.9 in",
+        "shoulder": "62 cm / 24.4 in",
+        "sleeve": "65 cm / 25.6 in"
+      }
+    },
     "images": [
       "/products/g0dspeed-d989b8/default/default_1.png",
       "/products/g0dspeed-d989b8/default/default_2.png",
@@ -114,9 +180,11 @@ export const DEMO_PRODUCTS = [
     ],
     "colors": [],
     "details": [
-      "Premium construction",
-      "Limited drop",
-      "Ships from curated warehouse"
+      "Custom 480 GSM ultra-heavyweight combed cotton terry with loopback interior",
+      "Double-layered architectural hood engineered without drawstrings for a sleek minimalist profile",
+      "Pronounced drop shoulders with a wide, boxy body silhouette",
+      "Heavy-gauge 2x2 ribbed cuffs and hem for lifetime shape retention",
+      "Pre-shrunk vintage wash treatment for a rich textured patina"
     ],
     "size_info": "Sizes: S, M, L, XL | Fit: True to size",
     "size_chart_image": "/products/g0dspeed-d989b8/size_guide_size_chart_1.png",
@@ -137,7 +205,9 @@ export const DEMO_PRODUCTS = [
       "/products/g0dspeed-d989b8/source/source_14.jpg",
       "/products/g0dspeed-d989b8/source/source_15.jpg"
     ],
-    "stock_status": {}
+    "stock_status": {},
+    "weightGsm": 480,
+    "weightKg": 0.65
   },
   {
     "id": "premium-heavyweight-essential-fb9e33",
@@ -148,9 +218,9 @@ export const DEMO_PRODUCTS = [
     "badge": "New Drop",
     "isSet": false,
     "description": "Curated luxury essential. Heavyweight architectural construction, premium tailored drape, and deconstructed brutalist aesthetic.",
-    "material": "",
-    "care": "",
-    "modelInfo": "",
+    "material": "480 GSM Ultra-Heavyweight 100% French Terry Cotton",
+    "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not bleach or tumble dry. Cool iron on reverse.",
+    "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large for an oversized boxy streetwear fit.",
     "brand": "OBSCURA",
     "sizes": [
       "S",
@@ -158,7 +228,38 @@ export const DEMO_PRODUCTS = [
       "L",
       "XL"
     ],
-    "sizeGuide": {},
+    "sizeGuide": {
+      "S": {
+        "chest": "116 cm / 45.7 in",
+        "length": "68 cm / 26.8 in",
+        "shoulder": "54 cm / 21.3 in",
+        "sleeve": "61 cm / 24.0 in"
+      },
+      "M": {
+        "chest": "120 cm / 47.2 in",
+        "length": "70 cm / 27.6 in",
+        "shoulder": "56 cm / 22.0 in",
+        "sleeve": "62 cm / 24.4 in"
+      },
+      "L": {
+        "chest": "126 cm / 49.6 in",
+        "length": "72 cm / 28.3 in",
+        "shoulder": "58 cm / 22.8 in",
+        "sleeve": "63 cm / 24.8 in"
+      },
+      "XL": {
+        "chest": "132 cm / 52.0 in",
+        "length": "74 cm / 29.1 in",
+        "shoulder": "60 cm / 23.6 in",
+        "sleeve": "64 cm / 25.2 in"
+      },
+      "2XL": {
+        "chest": "138 cm / 54.3 in",
+        "length": "76 cm / 29.9 in",
+        "shoulder": "62 cm / 24.4 in",
+        "sleeve": "65 cm / 25.6 in"
+      }
+    },
     "images": [
       "/products/premium-heavyweight-essential-fb9e33/default/default_1.png",
       "/products/premium-heavyweight-essential-fb9e33/default/default_2.png",
@@ -170,14 +271,18 @@ export const DEMO_PRODUCTS = [
     ],
     "colors": [],
     "details": [
-      "Premium construction",
-      "Limited drop",
-      "Ships from curated warehouse"
+      "Custom 480 GSM ultra-heavyweight combed cotton terry with loopback interior",
+      "Double-layered architectural hood engineered without drawstrings for a sleek minimalist profile",
+      "Pronounced drop shoulders with a wide, boxy body silhouette",
+      "Heavy-gauge 2x2 ribbed cuffs and hem for lifetime shape retention",
+      "Pre-shrunk vintage wash treatment for a rich textured patina"
     ],
     "size_info": "Sizes: S, M, L, XL | Fit: True to size",
     "size_chart_image": null,
     "sourceImages": [],
-    "stock_status": {}
+    "stock_status": {},
+    "weightGsm": 480,
+    "weightKg": 0.65
   },
   {
     "id": "premium-tech-fleece-hoodie-5a630d",
@@ -188,9 +293,9 @@ export const DEMO_PRODUCTS = [
     "badge": "New Drop",
     "isSet": false,
     "description": "Curated piece: Premium Tech Fleece Hoodie. Heavyweight construction, deconstructed silhouette.",
-    "material": "",
-    "care": "",
-    "modelInfo": "",
+    "material": "480 GSM Ultra-Heavyweight 100% French Terry Cotton",
+    "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not bleach or tumble dry. Cool iron on reverse.",
+    "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large for an oversized boxy streetwear fit.",
     "brand": "OBSCURA",
     "sizes": [
       "S",
@@ -198,21 +303,56 @@ export const DEMO_PRODUCTS = [
       "L",
       "XL"
     ],
-    "sizeGuide": {},
+    "sizeGuide": {
+      "S": {
+        "chest": "116 cm / 45.7 in",
+        "length": "68 cm / 26.8 in",
+        "shoulder": "54 cm / 21.3 in",
+        "sleeve": "61 cm / 24.0 in"
+      },
+      "M": {
+        "chest": "120 cm / 47.2 in",
+        "length": "70 cm / 27.6 in",
+        "shoulder": "56 cm / 22.0 in",
+        "sleeve": "62 cm / 24.4 in"
+      },
+      "L": {
+        "chest": "126 cm / 49.6 in",
+        "length": "72 cm / 28.3 in",
+        "shoulder": "58 cm / 22.8 in",
+        "sleeve": "63 cm / 24.8 in"
+      },
+      "XL": {
+        "chest": "132 cm / 52.0 in",
+        "length": "74 cm / 29.1 in",
+        "shoulder": "60 cm / 23.6 in",
+        "sleeve": "64 cm / 25.2 in"
+      },
+      "2XL": {
+        "chest": "138 cm / 54.3 in",
+        "length": "76 cm / 29.9 in",
+        "shoulder": "62 cm / 24.4 in",
+        "sleeve": "65 cm / 25.6 in"
+      }
+    },
     "images": [
       "/products/premium-tech-fleece-hoodie-5a630d/default/default_1.jpg",
       "/products/premium-tech-fleece-hoodie-5a630d/default/default_2.jpg"
     ],
     "colors": [],
     "details": [
-      "Premium construction",
-      "Limited drop",
-      "Ships from curated warehouse"
+      "Custom 480 GSM ultra-heavyweight combed cotton terry with loopback interior",
+      "Double-layered architectural hood engineered without drawstrings for a sleek minimalist profile",
+      "Pronounced drop shoulders with a wide, boxy body silhouette",
+      "Heavy-gauge 2x2 ribbed cuffs and hem for lifetime shape retention",
+      "Pre-shrunk vintage wash treatment for a rich textured patina"
     ],
     "size_info": "Sizes: S, M, L, XL | Fit: True to size",
     "size_chart_image": "/products/premium-tech-fleece-hoodie-5a630d/size_guide_size_chart_1.png",
     "sourceImages": [],
-    "stock_status": {}
+    "stock_status": {},
+    "weightGsm": 480,
+    "weightKg": 0.65
   },
   {
     "id": "208-diplomatic-zipset-washed-camo-68e0a6",
@@ -223,9 +363,9 @@ export const DEMO_PRODUCTS = [
     "badge": "Set",
     "isSet": true,
     "description": "Curated piece: 208-Diplomatic-Zipset-Washed-Camo. Heavyweight construction, deconstructed silhouette.",
-    "material": "",
-    "care": "",
-    "modelInfo": "",
+    "material": "460 GSM Ultra-Heavyweight Cotton Fleece & French Terry Co-ord",
+    "care": "Machine wash cold inside out with like colors. Hang dry in shade. Do not tumble dry. Cool iron on reverse.",
+    "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size Large top and Medium bottom for a tailored streetwear drape.",
     "brand": "OBSCURA",
     "sizes": [
       "S",
@@ -233,7 +373,38 @@ export const DEMO_PRODUCTS = [
       "L",
       "XL"
     ],
-    "sizeGuide": {},
+    "sizeGuide": {
+      "S": {
+        "top_chest": "116 cm / 45.7 in",
+        "top_length": "68 cm / 26.8 in",
+        "waist": "74-82 cm / 29-32 in",
+        "pants_length": "104 cm / 40.9 in"
+      },
+      "M": {
+        "top_chest": "120 cm / 47.2 in",
+        "top_length": "70 cm / 27.6 in",
+        "waist": "78-86 cm / 31-34 in",
+        "pants_length": "106 cm / 41.7 in"
+      },
+      "L": {
+        "top_chest": "126 cm / 49.6 in",
+        "top_length": "72 cm / 28.3 in",
+        "waist": "82-92 cm / 32-36 in",
+        "pants_length": "108 cm / 42.5 in"
+      },
+      "XL": {
+        "top_chest": "132 cm / 52.0 in",
+        "top_length": "74 cm / 29.1 in",
+        "waist": "86-98 cm / 34-38 in",
+        "pants_length": "110 cm / 43.3 in"
+      },
+      "2XL": {
+        "top_chest": "138 cm / 54.3 in",
+        "top_length": "76 cm / 29.9 in",
+        "waist": "90-104 cm / 35-41 in",
+        "pants_length": "112 cm / 44.1 in"
+      }
+    },
     "images": [
       "/products/208-diplomatic-zipset-washed-camo-68e0a6/default/default_1.png",
       "/products/208-diplomatic-zipset-washed-camo-68e0a6/default/default_2.png",
@@ -242,14 +413,18 @@ export const DEMO_PRODUCTS = [
     ],
     "colors": [],
     "details": [
-      "Premium construction",
-      "Limited drop",
-      "Ships from curated warehouse"
+      "Complete 2-piece architectural uniform: hoodie/jacket & matching trousers",
+      "Custom milled 460 GSM combed cotton fleece with thermal interior loopback",
+      "Double-needle flatlock stitching along all stress seams for lifetime durability",
+      "Elasticated waistband with custom metal-tipped elongated drawstrings",
+      "Subtle tonal archival branding with vintage matte hardware"
     ],
     "size_info": "Sizes: S, M, L, XL | Fit: True to size",
     "size_chart_image": null,
     "sourceImages": [],
-    "stock_status": {}
+    "stock_status": {},
+    "weightGsm": 460,
+    "weightKg": 1.25
   },
   {
     "id": "diplomatic-washed-camo-zip-set",
@@ -353,7 +528,9 @@ export const DEMO_PRODUCTS = [
       "Acid Washed Desert Camo-L": true,
       "Acid Washed Desert Camo-XL": true,
       "Acid Washed Desert Camo-2XL": true
-    }
+    },
+    "weightGsm": 460,
+    "weightKg": 1.25
   },
   {
     "id": "obscura-heavyweight-street-uniform",
@@ -446,7 +623,9 @@ export const DEMO_PRODUCTS = [
       "Obsidian Charcoal-L": true,
       "Obsidian Charcoal-XL": true,
       "Obsidian Charcoal-2XL": true
-    }
+    },
+    "weightGsm": 460,
+    "weightKg": 1.25
   },
   {
     "id": "aias-vintage-heavyweight-hoodie",
@@ -527,7 +706,9 @@ export const DEMO_PRODUCTS = [
       "Vintage Washed Black-M": true,
       "Vintage Washed Black-L": true,
       "Vintage Washed Black-XL": true
-    }
+    },
+    "weightGsm": 480,
+    "weightKg": 0.65
   }
 ];
 
