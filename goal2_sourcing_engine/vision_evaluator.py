@@ -123,7 +123,7 @@ class VisionEvaluator:
             response = shared_router.get_chat_completion_sync(
                 messages=messages,
                 primary_model="gemini-flash",
-                temperature=0.2,
+                temperature=1.0,
                 response_format={"type": "json_object"}
             )
             response_text = response.choices[0].message.content.strip()
@@ -370,7 +370,7 @@ class VisionEvaluator:
             response = shared_router.get_chat_completion_sync(
                 messages=messages,
                 primary_model="gemini-flash",
-                temperature=0.2,
+                temperature=1.0,
                 response_format={"type": "json_object"}
             )
             response_text = response.choices[0].message.content.strip()
