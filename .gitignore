@@ -38,9 +38,15 @@ vps_backups/
 # Data outputs & temp files
 goal2_sourcing_engine/output/
 goal2_sourcing_engine/output_ugc/
+goal2_sourcing_engine/OUTPUT_READY_FOR_SALE/
+goal2_sourcing_engine/input_sourcing/
 goal2_sourcing_engine/MANUAL_CURATION/
 goal2_sourcing_engine/review_pending/
 goal2_sourcing_engine/data/yupoo_sellers.json.tmp
+goal2_sourcing_engine/supplier_mappings.json
+supplier_mappings.json
+goal2_sourcing_engine/*_log.txt
+goal2_sourcing_engine/_archive/
 output/
 scratch/
 goal2_sourcing_engine/scratch/

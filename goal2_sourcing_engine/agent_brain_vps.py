@@ -33,9 +33,8 @@ from typing import Optional
 import httpx
 from dotenv import load_dotenv
 
-from mem0_memory import Mem0Memory as AgentMemory
-from agent_tools import TOOL_DEFINITIONS, execute_tool
-from fashion_brain import get_category_knowledge, suggest_ad_format
+from agent_memory import AgentMemory
+from agent_tools_vps import TOOL_DEFINITIONS, execute_tool
 # self_improve DISABLED — was corrupting source files
 # from self_improve import repair_tool, discover_free_tools, run_improvement_cycle, install_gemini_cli
 
@@ -73,45 +72,114 @@ _GEMINI_KEYS = [
 # Filter out any missing keys
 _GEMINI_KEYS = [k for k in _GEMINI_KEYS if k]
 
-# Model cascade — tries each in order until one works
-# Spread across MAXIMUM providers so we NEVER run out
+# Model cascade — ROUND-ROBIN across 6 separate GCP projects
+# Each key is in a DIFFERENT project = each has its OWN quota pool!
+# Strategy: spread across models AND keys for maximum throughput
+#
+# Available models (tested Aug 31 2026):
+#   gemini-3.5-flash      ← NEWEST, working, best quality
+#   gemini-3.6-flash      ← available 
+#   gemini-2.5-flash      ← solid workhorse, may be rate-limited
+#   gemini-3.5-flash-lite ← higher RPM (30/min vs 10/min)
+#   gemini-3.1-flash-lite ← fallback option
+
+import random
+_cascade_start_idx = random.randint(0, 5)  # Round-robin: start from random key each session
+
 LLM_CASCADE = [
-    # ── Provider 1: OpenRouter (FREE models) ──
+    # ── Tier 1A: gemini-3.6-flash (Fast, verified working, independent quota) ──
     {
-        "name": "openrouter-gemini-flash",
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "model": "google/gemini-2.5-flash-preview:free",
-        "key_env": "OPENROUTER_API_KEY",
-        "max_tokens": 1024,
-    },
-    {
-        "name": "openrouter-llama70b",
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
-        "key_env": "OPENROUTER_API_KEY",
-        "max_tokens": 1024,
-    },
-    # ── Provider 2: Groq (3 models, each with separate limits) ──
-    {
-        "name": "groq-llama70b",
-        "url": "https://api.groq.com/openai/v1/chat/completions",
-        "model": "llama-3.3-70b-versatile",
-        "key_env": "GROQ_API_KEY",
-        "max_tokens": 1024,
-    },
-    {
-        "name": "groq-llama8b",
-        "url": "https://api.groq.com/openai/v1/chat/completions",
-        "model": "llama-3.1-8b-instant",
-        "key_env": "GROQ_API_KEY",
-        "max_tokens": 512,  # Smaller to avoid 413 on this model
-    },
-    # ── Provider 2: Google Gemini — 7 keys × 3 models = 21 independent slots ──
-    # Each entry uses a DIFFERENT API key so rate limits are independent
-    {
-        "name": "gemini-25-flash-lite-k1",
+        "name": "gemini-36-flash-k1",
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "model": "gemini-2.5-flash-lite",
+        "model": "gemini-3.6-flash",
+        "key_env": "GEMINI_API_KEY",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-36-flash-k2",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.6-flash",
+        "key_env": "GEMINI_API_KEY_2",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-36-flash-k3",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.6-flash",
+        "key_env": "GEMINI_API_KEY_3",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-36-flash-k4",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.6-flash",
+        "key_env": "GEMINI_API_KEY_4",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-36-flash-k5",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.6-flash",
+        "key_env": "GEMINI_API_KEY_5",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-36-flash-k6",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.6-flash",
+        "key_env": "GEMINI_API_KEY_6",
+        "max_tokens": 1024,
+    },
+
+    # ── Tier 1B: gemini-3.5-flash (Separate quota pool, high reasoning quality) ──
+    {
+        "name": "gemini-35-flash-k1",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-35-flash-k2",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY_2",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-35-flash-k3",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY_3",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-35-flash-k4",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY_4",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-35-flash-k5",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY_5",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-35-flash-k6",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY_6",
+        "max_tokens": 1024,
+    },
+
+    # ── Tier 2: gemini-2.5-flash (fallback if 3.5 quota used up) ──
+    {
+        "name": "gemini-25-flash-k1",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-2.5-flash",
         "key_env": "GEMINI_API_KEY",
         "max_tokens": 1024,
     },
@@ -123,9 +191,9 @@ LLM_CASCADE = [
         "max_tokens": 1024,
     },
     {
-        "name": "gemini-25-flash-lite-k3",
+        "name": "gemini-25-flash-k3",
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "model": "gemini-2.5-flash-lite",
+        "model": "gemini-2.5-flash",
         "key_env": "GEMINI_API_KEY_3",
         "max_tokens": 1024,
     },
@@ -137,9 +205,9 @@ LLM_CASCADE = [
         "max_tokens": 1024,
     },
     {
-        "name": "gemini-25-flash-lite-k5",
+        "name": "gemini-25-flash-k5",
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "model": "gemini-2.5-flash-lite",
+        "model": "gemini-2.5-flash",
         "key_env": "GEMINI_API_KEY_5",
         "max_tokens": 1024,
     },
@@ -150,14 +218,48 @@ LLM_CASCADE = [
         "key_env": "GEMINI_API_KEY_6",
         "max_tokens": 1024,
     },
+
+    # ── Tier 3: gemini-3.5-flash-lite (30 RPM per key! 6×30 = 180 RPM total) ──
     {
-        "name": "gemini-25-pro-k7",
+        "name": "gemini-35-lite-k1",
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "model": "gemini-2.5-pro",
-        "key_env": "GEMINI_API_KEY_7",
+        "model": "gemini-3.5-flash-lite",
+        "key_env": "GEMINI_API_KEY",
         "max_tokens": 1024,
     },
-    # ── Provider 3: xAI Grok ──
+    {
+        "name": "gemini-35-lite-k2",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash-lite",
+        "key_env": "GEMINI_API_KEY_2",
+        "max_tokens": 1024,
+    },
+    {
+        "name": "gemini-35-lite-k3",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "model": "gemini-3.5-flash-lite",
+        "key_env": "GEMINI_API_KEY_3",
+        "max_tokens": 1024,
+    },
+
+    # ── Tier 4: Non-Gemini fallbacks ──
+    # Groq
+    {
+        "name": "groq-qwen-27b",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "model": "qwen/qwen3.6-27b",
+        "key_env": "GROQ_API_KEY",
+        "max_tokens": 1024,
+    },
+    # OpenRouter
+    {
+        "name": "openrouter-free",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "model": "openrouter/free",
+        "key_env": "OPENROUTER_API_KEY",
+        "max_tokens": 1024,
+    },
+    # xAI Grok
     {
         "name": "xai-grok",
         "url": "https://api.x.ai/v1/chat/completions",
@@ -165,25 +267,7 @@ LLM_CASCADE = [
         "key_env": "XAI_API_KEY",
         "max_tokens": 1024,
     },
-    # ── Provider 4: NVIDIA NIM (FREE endpoints, 40 RPM, OpenAI compatible) ──
-    # mistral-nemotron: BUILT for agentic workflows + function calling
-    {
-        "name": "nvidia-mistral-nemotron",
-        "url": "https://integrate.api.nvidia.com/v1/chat/completions",
-        "model": "mistralai/mistral-nemotron",
-        "key_env": "NVIDIA_API_KEY",
-        "max_tokens": 1024,
-    },
-    # deepseek-v3.1-terminus: REMOVED — returned 404, model unavailable on NVIDIA NIM
-    # mistral-large: state-of-the-art general purpose
-    {
-        "name": "nvidia-mistral-large",
-        "url": "https://integrate.api.nvidia.com/v1/chat/completions",
-        "model": "mistralai/mistral-large-3-675b-instruct-2512",
-        "key_env": "NVIDIA_API_KEY",
-        "max_tokens": 1024,
-    },
-    # llama-4-maverick: Meta's latest
+    # NVIDIA NIM
     {
         "name": "nvidia-llama4-maverick",
         "url": "https://integrate.api.nvidia.com/v1/chat/completions",
@@ -191,32 +275,14 @@ LLM_CASCADE = [
         "key_env": "NVIDIA_API_KEY",
         "max_tokens": 1024,
     },
-    # deepseek-v3.2: 685B reasoning powerhouse
     {
-        "name": "nvidia-deepseek-v32",
+        "name": "nvidia-gemma4",
         "url": "https://integrate.api.nvidia.com/v1/chat/completions",
-        "model": "deepseek-ai/deepseek-v3.2",
+        "model": "google/gemma-4-31b-it",
         "key_env": "NVIDIA_API_KEY",
         "max_tokens": 1024,
     },
-    # qwen3-coder: agentic coding specialist
-    {
-        "name": "nvidia-qwen3-coder",
-        "url": "https://integrate.api.nvidia.com/v1/chat/completions",
-        "model": "qwen/qwen3-coder-480b-a35b-instruct",
-        "key_env": "NVIDIA_API_KEY",
-        "max_tokens": 1024,
-    },
-
-    # ── Provider 6: Cerebras (if key provided) ──
-    {
-        "name": "cerebras-llama",
-        "url": "https://api.cerebras.ai/v1/chat/completions",
-        "model": "llama-3.3-70b",
-        "key_env": "CEREBRAS_API_KEY",
-        "max_tokens": 1024,
-    },
-    # ── Provider 7: SambaNova (if key provided) ──
+    # SambaNova
     {
         "name": "sambanova-llama",
         "url": "https://api.sambanova.ai/v1/chat/completions",
@@ -226,8 +292,18 @@ LLM_CASCADE = [
     },
 ]
 
-MAX_ACTIONS_PER_SESSION = 50   # Reduced — quality over quantity
-THINK_INTERVAL_SECONDS = 300   # Slowed down to save API quota
+# Round-robin: rotate Tier 1 entries so we don't always hammer key 1 first
+_gemini_36 = [c for c in LLM_CASCADE if c["name"].startswith("gemini-36-flash-k")]
+_gemini_35 = [c for c in LLM_CASCADE if c["name"].startswith("gemini-35-flash-k")]
+_gemini_rest = [c for c in LLM_CASCADE if not (c["name"].startswith("gemini-36-flash-k") or c["name"].startswith("gemini-35-flash-k"))]
+
+_rotated_36 = _gemini_36[_cascade_start_idx:] + _gemini_36[:_cascade_start_idx]
+_rotated_35 = _gemini_35[_cascade_start_idx:] + _gemini_35[:_cascade_start_idx]
+LLM_CASCADE = _rotated_36 + _rotated_35 + _gemini_rest
+print(f"[BRAIN] Cascade starts at key index {_cascade_start_idx + 1} (round-robin across 3.6 & 3.5)")
+
+MAX_ACTIONS_PER_SESSION = 200   # Increased — more work per session
+THINK_INTERVAL_SECONDS = 60    # 1 minute between actions (was 5 min!)
 
 # Rate limit backoff tracking
 _rate_limit_backoff = {}  # model_name -> (next_retry_time, backoff_seconds)
@@ -238,36 +314,36 @@ SYSTEM_PROMPT = """You are an autonomous AI fashion content production agent run
 MODE: FULLY AUTONOMOUS PRODUCTION — Never wait for human approval. Keep working.
 
 === YOUR MISSION ===
-Run the lookbook generation pipeline non-stop:
-1. MONITOR input_sourcing/ for new imported product details and staged images (automatically scraped and populated from user drops on Discord).
-2. GENERATE high-end editorial fashion lookbook images (4-shot campaigns per product) using the dynamic VTON presets.
-3. RESEARCH competitor ad creatives (Meta Ad Library) and trends (TikTok) to keep marketing copy fresh.
-4. PREPARE premium captions, style tags, and carousels for each completed product.
+Run the OBSCURA sourcing + lookbook generation pipeline non-stop.
 
-=== WORKFLOW PRIORITY ===
+=== MANDATORY PIPELINE ORDER ===
+You MUST follow this priority chain. ALWAYS pick the HIGHEST-PRIORITY tool that has work to do:
 
-1. DETECT AND VALIDATE PRODUCTS IN WAREHOUSE
-   - Check if any new product directories have been populated in input_sourcing/.
-   - Each staged product must have product images and a metadata.json.
+PRIORITY 1 — SCRAPE NEW PRODUCTS (if MANUAL_CURATION has < 10 products):
+  → scrape_yupoo_catalog with auto_pick=true, max_albums=5
+  → Rotate through sellers: deateath, chaosmade, topstoney, goat-official, husky-reps, repsbrothers, topacney, unionkingdom, maden, idlt, pycstudio
 
-2. GENERATE AD CAMPAIGNS for any products already in input_sourcing/
-   - Use generate_ad_image for each product.
-   - Each product gets 4 high-end shots: editorial, lifestyle, flat lay, ghost mannequin.
-   - If product_image_path is unknown, the system auto-picks one.
+PRIORITY 2 — CLASSIFY & TAG (if any product in MANUAL_CURATION lacks classification):
+  → classify_product_images for unclassified products
+  → tag_product_style for untagged products
 
-3. RESEARCH BETWEEN GENERATIONS
-   - scrape_meta_ad_library → find winning hooks and creative formats.
-   - research_web → trending streetwear aesthetics and colorways.
+PRIORITY 3 — MATCH OUTFITS (if enough tops + bottoms exist):
+  → find_ready_outfits to pair matching items
 
-4. PREPARE CONTENT
-   - generate_caption for each completed image set.
-   - Build carousel-ready packages.
+PRIORITY 4 — GENERATE CAMPAIGNS (if any product has generation_status="pending"):
+  → generate_ad_image for pending products
 
-=== KEY RULES ===
+PRIORITY 5 — RESEARCH (every 10th action):
+  → scrape_meta_ad_library for competitor creatives
+  → research_web for trending streetwear
+
+=== CRITICAL RULES ===
 - Call ONE tool per response.
+- NEVER call the same tool more than 3 times in a row. If you just called find_ready_outfits, switch to scrape_yupoo_catalog or classify_product_images next.
 - NEVER stop and wait — always take the next useful action.
-- Sourcing replicas, replica platforms, and Yupoo links are completely DEACTIVATED. Do not attempt to scrape them.
-- Focus strictly on unbranded streetwear basics and legitimate Chinese designer blanks.
+- If find_ready_outfits returns the same result, move to scraping or classifying instead.
+- Source products from Yupoo sellers using scrape_yupoo_catalog tool.
+- Focus on premium streetwear and high-quality blanks.
 """
 
 
@@ -282,7 +358,7 @@ class AgentBrain:
         self.dry_run = dry_run
         self.actions_taken = 0
         self.session_start = datetime.now()
-        self.client = httpx.AsyncClient(timeout=30.0)  # 30s per LLM call (was 120)
+        self._recent_tools = []  # Track last N tool calls to enforce diversity
 
     async def think(self, extra_context: str = "") -> Optional[dict]:
         """
@@ -325,16 +401,18 @@ class AgentBrain:
 {failure_context}
 {f'Additional context: {extra_context}' if extra_context else ''}
 
+YOUR LAST 5 TOOL CALLS (most recent first): {', '.join(reversed(self._recent_tools[-5:])) if self._recent_tools else 'none yet'}
+
 Decide your next action. Call exactly ONE tool. Think about:
 - What's the highest-impact thing to do right now?
 - Am I within daily limits?
 - What have I learned that should change my approach?
 
-IMPORTANT:
-- generate_model_sheet uses FlowBridge (Google AI Studio). TRY IT FIRST for model sheets.
-- If it fails, try use_free_ai_generator or generate_with_huggingface as alternatives.
-- You can also create_digital_product, scrape_meta_ad_library, or research_web.
-- ALWAYS try something DIFFERENT from your last failed action.
+CRITICAL DIVERSITY RULES:
+- You MUST NOT call the same tool more than 3 times in a row. Look at your last 5 calls above.
+- If your last 3 calls were all the same tool, you MUST pick a DIFFERENT tool now.
+- If MANUAL_CURATION has fewer than 10 products, call scrape_yupoo_catalog.
+- Rotate sellers: deateath, chaosmade, topstoney, goat-official, repsbrothers, topacney, maden.
 """}
         ]
 
@@ -352,6 +430,32 @@ IMPORTANT:
             if tool_name in _blocked_tools:
                 print(f"   🚫 LLM tried blocked tool {tool_name}, skipping")
                 return None
+            
+            # ── HARD DIVERSITY ENFORCEMENT ──
+            # If the same tool was called 3+ times in a row, force a different tool
+            if len(self._recent_tools) >= 3 and all(t == tool_name for t in self._recent_tools[-3:]):
+                # Force rotation based on pipeline priority
+                forced_alternatives = [
+                    ("scrape_yupoo_catalog", {"subdomain": "deateath", "max_albums": 5, "auto_pick": True}),
+                    ("classify_product_images", {}),
+                    ("tag_product_style", {}),
+                    ("scrape_meta_ad_library", {"query": "streetwear fashion ads", "country": "US"}),
+                ]
+                for alt_name, alt_args in forced_alternatives:
+                    if alt_name != tool_name and alt_name not in _blocked_tools:
+                        print(f"   🔄 DIVERSITY OVERRIDE: {tool_name} called 3x in a row → forcing {alt_name}")
+                        self._recent_tools.append(alt_name)
+                        return {
+                            "tool_name": alt_name,
+                            "arguments": alt_args,
+                            "reasoning": f"Forced diversity: {tool_name} was stuck in a loop",
+                        }
+            
+            # Track this tool call
+            self._recent_tools.append(tool_name)
+            # Keep only last 10
+            if len(self._recent_tools) > 10:
+                self._recent_tools = self._recent_tools[-10:]
                 
             return {
                 "tool_name": tool_name,
@@ -393,18 +497,20 @@ IMPORTANT:
                 url = provider["url"]
                 headers["Authorization"] = f"Bearer {api_key}"
 
-                resp = await self.client.post(
-                    url,
-                    headers=headers,
-                    json={
-                        "model": provider["model"],
-                        "messages": messages,
-                        "tools": tools,
-                        "tool_choice": "auto",
-                        "temperature": 0.7,
-                        "max_tokens": provider["max_tokens"],
-                    },
-                )
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    resp = await client.post(
+                        url,
+                        headers=headers,
+                        json={
+                            "model": provider["model"],
+                            "messages": messages,
+                            "tools": tools,
+                            "tool_choice": "auto",
+                            "temperature": 0.7,
+                            "max_tokens": provider["max_tokens"],
+                        },
+                    )
+
 
                 if resp.status_code == 200:
                     data = resp.json()
@@ -427,11 +533,13 @@ IMPORTANT:
                         "tool_calls": tool_calls,
                     }
                 elif resp.status_code == 429:
-                    # Rate limited — exponential backoff
+                    # Rate limited — cap backoff at 120s (keys share same project quota)
                     old_backoff = _rate_limit_backoff.get(name, (0, 30))[1]
-                    new_backoff = min(old_backoff * 2, 3600)  # Max 1 hour
+                    new_backoff = min(old_backoff * 2, 120)  # Max 2 minutes (was 3600!)
                     _rate_limit_backoff[name] = (now + new_backoff, new_backoff)
                     print(f"   ⚠️  {name}: rate limited, backing off {new_backoff}s")
+                    # Add small delay before trying next key to avoid burst-hitting the shared quota
+                    await asyncio.sleep(2)
                 elif resp.status_code == 403:
                     # Auth error — disable for this session
                     _rate_limit_backoff[name] = (now + 86400, 86400)  # Skip for 24h
@@ -691,8 +799,6 @@ IMPORTANT:
         print(f"  Brands contacted: {len(self.memory.data.get('brands_contacted', []))}")
         print(f"  Learnings: {len(self.memory.data.get('learnings', []))}")
         print("=" * 60)
-
-        await self.client.aclose()
 
     def show_status(self):
         """Print the current state of the agent."""

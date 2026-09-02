@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import uuid
 import base64
 import random
 import asyncio
@@ -9,11 +10,37 @@ import json
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-from glabs_client import GLabsClient
-from voice_generator import VoiceGenerator
-from video_bridge import VideoBridge
-from meta_ai_video_worker import MetaAIVideoWorker
-from video_api_client import VideoAPIClient
+try:
+    from glabs_client import GLabsClient
+except ImportError:
+    GLabsClient = None
+
+try:
+    from voice_generator import VoiceGenerator
+except ImportError:
+    try:
+        from mini_projects.voice_generator import VoiceGenerator
+    except ImportError:
+        VoiceGenerator = None
+
+try:
+    from video_bridge import VideoBridge
+except ImportError:
+    VideoBridge = None
+
+try:
+    from meta_ai_video_worker import MetaAIVideoWorker
+except ImportError:
+    MetaAIVideoWorker = None
+
+try:
+    from video_api_client import VideoAPIClient
+except ImportError:
+    VideoAPIClient = None
+
+BRIDGE_URL = os.getenv("FLOW_BRIDGE_URL", "https://buffoon-correct-credible.ngrok-free.dev")
+QUEUE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generation_queue.json")
+
 
 def safe_print(msg: str):
     """Safely print messages on Windows to avoid UnicodeEncodeErrors."""
@@ -62,8 +89,144 @@ class GenerationRouter:
 
         # Provider health cooldown memory
         self.provider_cooldowns = {}  # key: provider_name, value: timestamp when cooldown ends
-        self.cooldown_duration = 300  # 5 minutes cooldown
+        self.cooldown_duration = 15  # 15 seconds fast cooldown for rapid retries
         self.video_bridge = None
+
+        # Offline generation queue
+        self._queue_drainer_started = False
+
+    # ── Queue System: Save jobs when bridge is offline, process when it returns ──
+
+    def _enqueue_generation(self, job_type: str, prompt: str, ref_image_paths: list, aspect: str, output_prefix: str, extra: dict = None):
+        """Save a generation job to the queue file for later processing."""
+        job = {
+            "id": uuid.uuid4().hex[:12],
+            "type": job_type,  # "image" or "video"
+            "prompt": prompt,
+            "ref_image_paths": ref_image_paths or [],
+            "aspect": aspect,
+            "output_prefix": output_prefix,
+            "queued_at": time.time(),
+            "status": "pending",
+            "extra": extra or {}
+        }
+        queue = self._load_queue()
+        queue.append(job)
+        self._save_queue(queue)
+        safe_print(f"  [QUEUE] Job {job['id']} queued ({job_type}). Total in queue: {len(queue)}")
+        return job["id"]
+
+    def _load_queue(self) -> list:
+        """Load the generation queue from disk."""
+        try:
+            if os.path.exists(QUEUE_FILE):
+                with open(QUEUE_FILE, "r") as f:
+                    return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+        return []
+
+    def _save_queue(self, queue: list):
+        """Save the generation queue to disk."""
+        try:
+            with open(QUEUE_FILE, "w") as f:
+                json.dump(queue, f, indent=2)
+        except IOError as e:
+            safe_print(f"  [QUEUE] Failed to save queue: {e}")
+
+    def get_queue_status(self) -> dict:
+        """Return queue status summary."""
+        queue = self._load_queue()
+        pending = [j for j in queue if j.get("status") == "pending"]
+        return {"total": len(queue), "pending": len(pending)}
+
+    async def _check_bridge_online(self) -> bool:
+        """Quick health check — is the bridge reachable and has fresh tokens?"""
+        import httpx
+        bridge_endpoint = os.getenv("FLOW_BRIDGE_URL", BRIDGE_URL).rstrip("/")
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{bridge_endpoint}/health", timeout=5.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data.get("ok") and data.get("ready")
+        except Exception:
+            pass
+        return False
+
+    async def drain_queue(self):
+        """Process all pending jobs in the queue. Called when bridge comes back online."""
+        queue = self._load_queue()
+        pending = [j for j in queue if j.get("status") == "pending"]
+        if not pending:
+            return
+
+        safe_print(f"  [QUEUE] Bridge is ONLINE! Draining {len(pending)} queued jobs...")
+        for job in pending:
+            try:
+                safe_print(f"  [QUEUE] Processing job {job['id']} ({job['type']}): {job['prompt'][:60]}...")
+                if job["type"] == "image":
+                    results = await self.generate_image(
+                        prompt=job["prompt"],
+                        ref_image_paths=job["ref_image_paths"] if job["ref_image_paths"] else None,
+                        aspect=job.get("aspect", "9:16"),
+                        output_prefix=job.get("output_prefix", "queued"),
+                        force_engine="flow"
+                    )
+                elif job["type"] == "video":
+                    results = await self.generate_video(
+                        prompt=job["prompt"],
+                        ref_image_paths=job["ref_image_paths"] if job["ref_image_paths"] else None,
+                        aspect=job.get("aspect", "9:16"),
+                        output_prefix=job.get("output_prefix", "queued"),
+                        **job.get("extra", {})
+                    )
+                else:
+                    results = []
+
+                if results:
+                    job["status"] = "completed"
+                    job["completed_at"] = time.time()
+                    job["output_files"] = results
+                    safe_print(f"  [QUEUE] Job {job['id']} COMPLETED: {results}")
+                else:
+                    job["status"] = "failed"
+                    job["failed_at"] = time.time()
+                    safe_print(f"  [QUEUE] Job {job['id']} FAILED (no output).")
+            except Exception as e:
+                job["status"] = "failed"
+                job["failed_at"] = time.time()
+                safe_print(f"  [QUEUE] Job {job['id']} ERROR: {e}")
+
+            self._save_queue(queue)
+            await asyncio.sleep(2)  # Small delay between jobs
+
+        completed = len([j for j in pending if j.get("status") == "completed"])
+        safe_print(f"  [QUEUE] Drain complete. {completed}/{len(pending)} jobs succeeded.")
+
+    async def start_queue_drainer(self, check_interval: int = 60):
+        """Background coroutine that checks bridge health and drains queue when online."""
+        if self._queue_drainer_started:
+            return
+        self._queue_drainer_started = True
+        safe_print("  [QUEUE] Background queue drainer started (checks every 60s).")
+
+        while True:
+            try:
+                await asyncio.sleep(check_interval)
+                queue = self._load_queue()
+                pending = [j for j in queue if j.get("status") == "pending"]
+                if not pending:
+                    continue
+
+                bridge_ok = await self._check_bridge_online()
+                if bridge_ok:
+                    await self.drain_queue()
+                else:
+                    safe_print(f"  [QUEUE] Bridge offline. {len(pending)} jobs waiting.")
+            except Exception as e:
+                safe_print(f"  [QUEUE] Drainer error: {e}")
+                await asyncio.sleep(30)
 
     def _is_provider_healthy(self, name: str, force: bool = False) -> bool:
         """Check if a provider is healthy (not currently on cooldown)."""
@@ -185,11 +348,12 @@ class GenerationRouter:
         """Spins up Playwright headlessly to extract fresh auth, recaptcha, project ID, and authUser tokens."""
         # 1. Try to fetch tokens from the active local bridge first (highest trust reCAPTCHA score)
         import httpx
-        safe_print(f"[*] Router: Querying local token bridge for trusted session tokens (Action: {action})...")
+        bridge_endpoint = os.getenv("FLOW_BRIDGE_URL", BRIDGE_URL).rstrip("/")
+        safe_print(f"[*] Router: Querying token bridge ({bridge_endpoint}) for session tokens (Action: {action})...")
         for attempt in range(1, 16):
             try:
                 async with httpx.AsyncClient() as client:
-                    resp = await client.get(f"http://127.0.0.1:9877/tokens?action={action}&force=true", timeout=3.0)
+                    resp = await client.get(f"{bridge_endpoint}/tokens?action={action}&force=true", timeout=6.0)
                     if resp.status_code == 200:
                         data = resp.json()
                         bearer = data.get("bearer")
@@ -197,10 +361,22 @@ class GenerationRouter:
                         project_id = data.get("projectId")
                         auth_user = data.get("authUser", "0")
                         if bearer and recaptcha:
-                            safe_print(f"  [+] Router: Retrieved active tokens from local token bridge (Port 9877) for {action}!")
+                            safe_print(f"  [+] Router: Retrieved active tokens from bridge for {action}!")
                             return bearer, recaptcha, project_id, auth_user
+
                     elif resp.status_code == 503:
                         safe_print(f"  [*] Router: Bridge active but tokens stale. Requested fresh token (attempt {attempt}/15). Waiting 2s...")
+                        if attempt == 1 or attempt % 5 == 0:
+                            # Auto-wake Chrome on labs.google so extension pushes fresh token
+                            try:
+                                import subprocess
+                                subprocess.Popen([
+                                    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                                    "--profile-directory=Profile 4",
+                                    "https://labs.google/fx/tools/flow"
+                                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            except Exception:
+                                pass
                     else:
                         safe_print(f"  [!] Router: Bridge returned unexpected status {resp.status_code}.")
             except Exception:
@@ -265,13 +441,13 @@ class GenerationRouter:
         safe_print(f"[*] Router: Sending Generation Request directly via HTTP (Model: GEM_PIX_2)...")
         
         aspect_map = {
-            "9:16": "IMAGE_ASPECT_RATIO_PORTRAIT",
-            "16:9": "IMAGE_ASPECT_RATIO_LANDSCAPE",
+            "9:16": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
+            "16:9": "IMAGE_ASPECT_RATIO_LANDSCAPE_SIXTEEN_NINE",
             "3:4": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
             "4:3": "IMAGE_ASPECT_RATIO_LANDSCAPE_FOUR_THREE",
             "1:1": "IMAGE_ASPECT_RATIO_SQUARE",
         }
-        aspect_value = aspect_map.get(aspect, "IMAGE_ASPECT_RATIO_PORTRAIT")
+        aspect_value = aspect_map.get(aspect, "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR")
         
         image_inputs = [
             {"imageInputType": "IMAGE_INPUT_TYPE_REFERENCE", "name": asset_id}
@@ -290,17 +466,20 @@ class GenerationRouter:
             }
         }
         
-        request_obj = {
-            "clientContext": ctx,
-            "imageModelName": "GEM_PIX_2",
-            "imageAspectRatio": aspect_value,
-            "structuredPrompt": {
-                "parts": [{"text": prompt}]
-            },
-            "seed": random.randint(0, 999999)
-        }
-        if image_inputs:
-            request_obj["imageInputs"] = image_inputs
+        requests_list = []
+        for _ in range(4):
+            req_obj = {
+                "clientContext": ctx,
+                "imageModelName": "GEM_PIX_2",
+                "imageAspectRatio": aspect_value,
+                "structuredPrompt": {
+                    "parts": [{"text": prompt}]
+                },
+                "seed": random.randint(0, 999999)
+            }
+            if image_inputs:
+                req_obj["imageInputs"] = image_inputs
+            requests_list.append(req_obj)
             
         payload = {
             "clientContext": ctx,
@@ -308,7 +487,7 @@ class GenerationRouter:
                 "batchId": str(uuid.uuid4())
             },
             "useNewMedia": True,
-            "requests": [request_obj]
+            "requests": requests_list
         }
         
         GENERATE_URL = f"https://aisandbox-pa.googleapis.com/v1/projects/{project_id}/flowMedia:batchGenerateImages"
@@ -320,7 +499,7 @@ class GenerationRouter:
             "X-Goog-Api-Client": "gl-js/1.53.0",
             "X-Goog-AuthUser": auth_user,
             "X-Requested-With": "XMLHttpRequest",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "Accept": "*/*"
         }
         
@@ -345,7 +524,7 @@ class GenerationRouter:
                     img_resp = await client.get(fife, timeout=30.0)
                     img_resp.raise_for_status()
                     
-                    filepath = os.path.join(self.dest_dir, f"direct_flow_{int(time.time())}_{i+1}.png")
+                    filepath = os.path.join(self.dest_dir, f"direct_flow_{int(time.time())}_{uuid.uuid4().hex[:6]}_{i+1}.png")
                     with open(filepath, "wb") as f:
                         f.write(img_resp.content)
                     safe_print(f"  [OK] Saved -> {os.path.basename(filepath)}")
@@ -353,6 +532,140 @@ class GenerationRouter:
             return saved_paths
         except Exception as e:
             safe_print(f"  [!] Router: Generation HTTP error: {e}")
+            return []
+
+    def _get_video_model_key(self, video_model: str, has_reference: bool) -> str:
+        """Map video_model parameter to Flow API videoModelKey string.
+        
+        Supports:
+          - 'veo': Veo 3.1 (default) — high quality, 8s
+          - 'omni_flash': Omni Flash — 10s, native speech & audio generation
+        """
+        if video_model == "omni_flash":
+            return "flow_omni_i2v" if has_reference else "flow_omni_t2v"
+        else:
+            return "veo_3_1_i2v_lite" if has_reference else "veo_3_1_t2v_lite"
+
+    async def _generate_omni_flash_video(self, client, bearer: str, recaptcha: str,
+                                         project_id: str, prompt: str, asset_ids: list,
+                                         aspect: str, auth_user: str = "0") -> List[str]:
+        """Generate a 10s video with Omni Flash via the unified flowMedia endpoint.
+        
+        Omni Flash is a multimodal model that generates video (with native speech & audio)
+        through the same batchGenerateImages endpoint used for image generation, but with
+        a video-capable model key. The response contains encoded video data.
+        """
+        import uuid
+        import random
+        
+        safe_print("[*] Router: Omni Flash Video — Using unified flowMedia endpoint...")
+        
+        generate_url = f"https://aisandbox-pa.googleapis.com/v1/projects/{project_id}/flowMedia:batchGenerateImages"
+        
+        image_inputs = [
+            {"imageInputType": "IMAGE_INPUT_TYPE_REFERENCE", "name": aid}
+            for aid in asset_ids if aid
+        ]
+        
+        # Map aspect ratio for Omni Flash (must match Flow API enum values)
+        aspect_map = {
+            "9:16": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
+            "16:9": "IMAGE_ASPECT_RATIO_LANDSCAPE_SIXTEEN_NINE",
+            "1:1": "IMAGE_ASPECT_RATIO_SQUARE",
+            "3:4": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
+            "4:3": "IMAGE_ASPECT_RATIO_LANDSCAPE_FOUR_THREE",
+        }
+        aspect_value = aspect_map.get(aspect, "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR")
+        
+        payload = {
+            "clientContext": {
+                "recaptchaContext": {
+                    "token": recaptcha,
+                    "applicationType": "RECAPTCHA_APPLICATION_TYPE_WEB"
+                },
+                "projectId": project_id,
+                "tool": "PINHOLE"
+            },
+            "mediaGenerationContext": {"batchId": str(uuid.uuid4())},
+            "useNewMedia": True,
+            "requests": [{
+                "clientContext": {
+                    "recaptchaContext": {
+                        "token": recaptcha,
+                        "applicationType": "RECAPTCHA_APPLICATION_TYPE_WEB"
+                    },
+                    "projectId": project_id,
+                    "tool": "PINHOLE"
+                },
+                "imageModelName": "OMNI_FLASH",
+                "imageAspectRatio": aspect_value,
+                "structuredPrompt": {"parts": [{"text": prompt}]},
+                "seed": random.randint(1, 2147483647),
+                "imageInputs": image_inputs
+            }]
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {bearer}",
+            "Content-Type": "text/plain;charset=UTF-8",
+            "Referer": "https://labs.google/",
+            "Origin": "https://labs.google",
+            "X-Goog-AuthUser": auth_user,
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+        }
+        
+        try:
+            safe_print(f"[*] Router: Omni Flash POST to {generate_url[:80]}...")
+            response = await client.post(generate_url, headers=headers, content=json.dumps(payload), timeout=180.0)
+            
+            if response.status_code != 200:
+                safe_print(f"  [!] Router: Omni Flash generation failed with status {response.status_code}: {response.text[:500]}")
+                response.raise_for_status()
+            
+            data = response.json()
+            
+            # Check for video data in the response
+            # Omni Flash may return video as encodedVideo or as a media URL
+            generated = data.get("generatedMedia", []) or data.get("media", [])
+            
+            for media_item in generated:
+                # Try to find video data
+                video_data = media_item.get("video", {})
+                encoded_video = video_data.get("encodedVideo", "")
+                
+                if not encoded_video:
+                    # Try nested paths
+                    encoded_video = media_item.get("encodedVideo", "")
+                
+                if encoded_video:
+                    video_bytes = base64.b64decode(encoded_video)
+                    safe_print(f"  [+] Omni Flash: Decoded video: {len(video_bytes)} bytes ({len(video_bytes)//1024} KB)")
+                    
+                    filepath = os.path.join(self.ugc_dir, f"omni_flash_ugc_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp4")
+                    with open(filepath, "wb") as f:
+                        f.write(video_bytes)
+                    safe_print(f"  [OK] Omni Flash video saved -> {filepath}")
+                    return [filepath]
+                
+                # Check for image-like response with fifeUrl (video might be served as URL)
+                fife_url = media_item.get("fifeUrl", "") or media_item.get("mediaUrl", "")
+                if fife_url and ("video" in fife_url.lower() or ".mp4" in fife_url.lower()):
+                    safe_print(f"  [+] Omni Flash: Downloading video from URL...")
+                    vid_resp = await client.get(fife_url, headers={"Authorization": f"Bearer {bearer}"}, timeout=120.0)
+                    if vid_resp.status_code == 200:
+                        filepath = os.path.join(self.ugc_dir, f"omni_flash_ugc_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp4")
+                        with open(filepath, "wb") as f:
+                            f.write(vid_resp.content)
+                        safe_print(f"  [OK] Omni Flash video downloaded -> {filepath}")
+                        return [filepath]
+            
+            # If we get here, log the response structure for debugging
+            safe_print(f"  [!] Omni Flash: No video data found in response. Keys: {list(data.keys())}")
+            safe_print(f"  [!] Response preview: {json.dumps(data, indent=2)[:500]}")
+            return []
+            
+        except Exception as e:
+            safe_print(f"  [!] Router: Omni Flash video generation error: {e}")
             return []
 
     async def _generate_flow_video_api(self, 
@@ -364,12 +677,22 @@ class GenerationRouter:
                                       asset_ids: list, 
                                       aspect: str, 
                                       auth_user: str = "0",
-                                      action: str = "VIDEO_GENERATION") -> List[str]:
-        """Submits Veo video generation to Direct Flow HTTP API and polls for completion."""
-        safe_print(f"[*] Router: Sending Video Generation Request directly via HTTP...")
+                                      action: str = "VIDEO_GENERATION",
+                                      video_model: str = "veo") -> List[str]:
+        """Submits video generation to Flow API.
+        
+        Routes to the correct endpoint based on video_model:
+          - 'veo': Uses /v1/video:batchAsyncGenerateVideoText (async poll)
+          - 'omni_flash': Uses /v1/projects/{pid}/flowMedia:batchGenerateImages 
+                          with Omni Flash model key (synchronous, returns video inline)
+        """
+        
+        # ── Send Video Generation Request directly via HTTP ──
+        safe_print(f"[*] Router: Sending Video Generation Request directly via HTTP (Model: {video_model})...")
         
         # Endpoints
-        endpoint = "https://aisandbox-pa.googleapis.com/v1/video:batchAsyncGenerateVideoText"
+        endpoint = f"https://aisandbox-pa.googleapis.com/v1/projects/{project_id}/video:batchAsyncGenerateVideoText"
+        fallback_endpoint = "https://aisandbox-pa.googleapis.com/v1/video:batchAsyncGenerateVideoText"
             
         aspect_map = {
             "16:9": "VIDEO_ASPECT_RATIO_LANDSCAPE",
@@ -384,7 +707,7 @@ class GenerationRouter:
         
         request_obj = {
             "aspectRatio": aspect_value,
-            "videoModelKey": "veo_3_1_i2v_lite" if first_asset else "veo_3_1_t2v_lite",
+            "videoModelKey": self._get_video_model_key(video_model, has_reference=bool(first_asset)),
             "seed": random.randint(0, 999999),
             "metadata": {}
         }
@@ -438,17 +761,9 @@ class GenerationRouter:
             safe_print(f"[*] Router: Posting request to {endpoint}...")
             response = await client.post(endpoint, headers=headers, content=json.dumps(payload), timeout=60.0)
             if response.status_code != 200:
-                safe_print(f"  [!] Router: Video generation submit failed with status {response.status_code}. Response: {response.text[:500]}")
-                response.raise_for_status()
+                safe_print(f"  [!] Router: Primary video endpoint returned {response.status_code}. Trying fallback endpoint {fallback_endpoint}...")
+                response = await client.post(fallback_endpoint, headers=headers, content=json.dumps(payload), timeout=60.0)
                 
-            op_data = response.json()
-            media = op_data.get("media", [])
-            if not media:
-                safe_print(f"  [!] Router: No media items returned in response: {op_data}")
-                return []
-            media_name = media[0].get("name")
-            safe_print(f"  [+] Router: Video generation submitted. Media Name: {media_name}. Polling...")
-            
             # Helper to find URLs recursively
             def _find_urls(data, search_str="googleusercontent.com"):
                 urls_found = []
@@ -462,6 +777,39 @@ class GenerationRouter:
                     for item in data:
                         urls_found.extend(_find_urls(item, search_str))
                 return urls_found
+
+            if response.status_code != 200:
+                safe_print(f"  [!] Router: Direct HTTP video submit failed ({response.status_code}). Attempting in-browser bridge video generation...")
+                try:
+                    import httpx
+                    async with httpx.AsyncClient() as bridge_client:
+                        bridge_resp = await bridge_client.post(
+                            f"{BRIDGE_URL}/generate-video-in-browser",
+                            json={"prompt": prompt, "aspectRatio": aspect_value},
+                            timeout=95.0
+                        )
+                        if bridge_resp.status_code == 200:
+                            op_data = bridge_resp.json()
+                            media = op_data.get("media", [])
+                            if media and media[0].get("name"):
+                                media_name = media[0].get("name")
+                                safe_print(f"  [+] Router: In-browser video generation submitted! Media Name: {media_name}. Polling...")
+                            else:
+                                safe_print(f"  [!] Router: Bridge response missing media name: {op_data}")
+                                response.raise_for_status()
+                        else:
+                            response.raise_for_status()
+                except Exception as b_err:
+                    safe_print(f"  [!] Router: Bridge video generation failed: {b_err}")
+                    response.raise_for_status()
+            else:
+                op_data = response.json()
+                media = op_data.get("media", [])
+                if not media:
+                    safe_print(f"  [!] Router: No media items returned in response: {op_data}")
+                    return []
+                media_name = media[0].get("name")
+                safe_print(f"  [+] Router: Video generation submitted. Media Name: {media_name}. Polling...")
                 
             # Phase 2: Poll for completion status
             poll_url = "https://aisandbox-pa.googleapis.com/v1/video:batchCheckAsyncVideoGenerationStatus"
@@ -503,8 +851,12 @@ class GenerationRouter:
                             # Phase 3: Fetch the actual video via GET v1/media/{media_name}
                             # The status endpoint does NOT return download URLs for videos.
                             # Instead, GET v1/media/{name} returns the video as base64 in video.encodedVideo.
-                            media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/media/{media_name}"
+                            if media_name.startswith("projects/") or media_name.startswith("media/"):
+                                media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/{media_name}"
+                            else:
+                                media_fetch_url = f"https://aisandbox-pa.googleapis.com/v1/projects/{project_id}/media/{media_name}"
                             safe_print(f"[*] Router: GET {media_fetch_url[:70]}...")
+
                             
                             media_resp = await client.get(media_fetch_url, headers=headers, timeout=120.0)
                             if media_resp.status_code != 200:
@@ -518,7 +870,7 @@ class GenerationRouter:
                                 video_bytes = base64.b64decode(encoded_video)
                                 safe_print(f"    [+] Decoded video: {len(video_bytes)} bytes ({len(video_bytes)//1024} KB)")
                                 
-                                filepath = os.path.join(self.ugc_dir, f"direct_flow_video_{int(time.time())}.mp4")
+                                filepath = os.path.join(self.ugc_dir, f"direct_flow_video_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp4")
                                 with open(filepath, "wb") as f:
                                     f.write(video_bytes)
                                 safe_print(f"    [OK] Saved video -> {filepath}")
@@ -620,8 +972,8 @@ class GenerationRouter:
                 if bearer and recaptcha:
                     import httpx
                     if not project_id or project_id in ("NOT_FOUND", "None", "null", ""):
-                        project_id = "1e47f082-dbd5-4cf3-869e-cffbf8722f1b"
-                        safe_print(f"  [!] Router: Project ID not found or None. Falling back to default project ID: {project_id}")
+                        project_id = os.getenv("FLOW_PROJECT_ID") or "948fc399-2c7d-4f08-a0b5-d06a124d47ee"
+                        safe_print(f"  [!] Router: Project ID not found, using active project ID: {project_id}")
                     
                     async with httpx.AsyncClient() as client:
                         try:
@@ -678,7 +1030,7 @@ class GenerationRouter:
                         "aspect": api_aspect,
                         "ref_image_paths": ref_image_paths or [],
                     }
-                    resp = requests.post(BRIDGE_URL, json=payload, timeout=300)
+                    resp = requests.post(BRIDGE_URL, json=payload, timeout=10)
                     resp.raise_for_status()
                     return resp.content
                     
@@ -694,7 +1046,7 @@ class GenerationRouter:
                     except:
                         pass
                 
-                filepath = os.path.join(self.dest_dir, f"{output_prefix}_{int(time.time())}.png")
+                filepath = os.path.join(self.dest_dir, f"{output_prefix}_{int(time.time())}_{uuid.uuid4().hex[:6]}.png")
                 with open(filepath, "wb") as f:
                     f.write(image_bytes)
                 safe_print(f"   [OK] Saved {len(image_bytes)//1024}KB -> {os.path.basename(filepath)}")
@@ -720,6 +1072,18 @@ class GenerationRouter:
                 safe_print(f"  [!] Router: Meta AI image generation failed: {e}")
                 self._mark_provider_failed("meta")
         
+        # All providers failed — queue the job for when bridge comes back online
+        safe_print("  [QUEUE] All generation providers failed. Queuing job for later...")
+        self._enqueue_generation(
+            job_type="image",
+            prompt=prompt,
+            ref_image_paths=ref_image_paths or [],
+            aspect=aspect,
+            output_prefix=output_prefix
+        )
+        # Start background drainer if not already running
+        if not self._queue_drainer_started:
+            asyncio.ensure_future(self.start_queue_drainer())
         return []
 
     async def generate_video(self,
@@ -729,10 +1093,27 @@ class GenerationRouter:
                              output_prefix: str = "gen_video",
                              voice_text: str = "",
                              voice_name: str = "default",
-                             force_engine: str = "auto") -> List[str]:
+                             force_engine: str = "auto",
+                             video_model: str = "omni_flash") -> List[str]:
         """
         Generate a video, routing to the best available engine. Muxes voice if provided.
+        GUARDRAIL: Default model changed to omni_flash. Veo fallback is blocked.
         """
+        # ── GUARDRAIL GATE: Validate before ANY generation ──
+        try:
+            from generation_guardrails import guardrails
+            is_valid, violations = guardrails.validate_video_request(
+                prompt=prompt,
+                video_model=video_model,
+                ref_image_paths=ref_image_paths
+            )
+            if not is_valid:
+                for v in violations:
+                    safe_print(f"[!] GUARDRAIL BLOCKED: {v}")
+                return []
+        except ImportError:
+            pass  # Guardrails module not yet available — allow generation
+
         video_path = None
         
         # Define tasks for APIs that can be run concurrently
@@ -747,7 +1128,7 @@ class GenerationRouter:
                     aspect_ratio=aspect
                 )
                 if res_url:
-                    dest_file = os.path.join(self.ugc_dir, f"imagineart_ugc_{int(time.time())}.mp4")
+                    dest_file = os.path.join(self.ugc_dir, f"imagineart_ugc_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp4")
                     success = await self.video_api.download_video(res_url, dest_file)
                     if success and self._validate_video(dest_file):
                         self._mark_provider_success("imagineart")
@@ -769,7 +1150,7 @@ class GenerationRouter:
                     aspect_ratio=aspect
                 )
                 if res_url:
-                    dest_file = os.path.join(self.ugc_dir, f"fal_ugc_{int(time.time())}.mp4")
+                    dest_file = os.path.join(self.ugc_dir, f"fal_ugc_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp4")
                     success = await self.video_api.download_video(res_url, dest_file)
                     if success and self._validate_video(dest_file):
                         self._mark_provider_success("fal")
@@ -803,15 +1184,14 @@ class GenerationRouter:
             max_attempts = 3
             for attempt in range(1, max_attempts + 1):
                 safe_print(f"[*] Router: Flow Video API generation attempt {attempt}/{max_attempts}...")
-                actions = {1: "VIDEO_GENERATION", 2: "VIDEO_GENERATION", 3: "VIDEO_GENERATION"}
-                current_action = actions.get(attempt, "IMAGE_GENERATION")
+                current_action = "IMAGE_GENERATION"
                 safe_print(f"  [*] Router: Requesting token for action '{current_action}'...")
                 bearer, recaptcha, project_id, auth_user = await self._get_fresh_flow_tokens(current_action)
                 if bearer and recaptcha:
                     import httpx
                     if not project_id or project_id in ("NOT_FOUND", "None", "null", ""):
-                        project_id = "1e47f082-dbd5-4cf3-869e-cffbf8722f1b"
-                        safe_print(f"  [!] Router: Project ID not found or None. Falling back to default project ID: {project_id}")
+                        project_id = os.getenv("FLOW_PROJECT_ID") or "948fc399-2c7d-4f08-a0b5-d06a124d47ee"
+                        safe_print(f"  [!] Router: Project ID not found, using active project ID: {project_id}")
                     
                     async with httpx.AsyncClient() as client:
                         try:
@@ -831,7 +1211,8 @@ class GenerationRouter:
                                 asset_ids=asset_ids,
                                 aspect=aspect,
                                 auth_user=auth_user,
-                                action=current_action
+                                action=current_action,
+                                video_model=video_model
                             )
                             if generated_files and self._validate_video(generated_files[0]):
                                 video_path = generated_files[0]
@@ -942,7 +1323,7 @@ class GenerationRouter:
         # 4. Synthesize voiceover and mux if voice text is provided
         if voice_text:
             safe_print(f"[*] Router: Generating audio track: '{voice_text[:30]}...'")
-            audio_out_path = os.path.join(self.ugc_dir, f"audio_{int(time.time())}.mp3")
+            audio_out_path = os.path.join(self.ugc_dir, f"audio_{int(time.time())}_{uuid.uuid4().hex[:6]}.mp3")
             audio_path = await self.voice_gen.generate_audio(
                 text=voice_text,
                 voice_name=voice_name,
@@ -950,7 +1331,7 @@ class GenerationRouter:
             )
             
             if audio_path and os.path.exists(audio_path):
-                mixed_out_path = os.path.join(self.ugc_dir, f"{output_prefix}_{int(time.time())}_ugc.mp4")
+                mixed_out_path = os.path.join(self.ugc_dir, f"{output_prefix}_{int(time.time())}_{uuid.uuid4().hex[:6]}_ugc.mp4")
                 final_path = self.voice_gen.combine_video_audio(
                     video_path=video_path,
                     audio_path=audio_path,

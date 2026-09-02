@@ -11,9 +11,9 @@ function getItemWeight(item) {
   return WEIGHT_BY_CATEGORY.default * (item.qty || 1);
 }
 
-// Simple flat rate shipping with free threshold at $99 (aligns with checkout)
+// Simple flat rate shipping with free threshold at $200
 function calcShipping(totalWeightKg, subtotal) {
-  if (subtotal >= 99) return { fee: 0,     label: "FREE",    note: "Free shipping on orders over $99" };
+  if (subtotal >= 200) return { fee: 0,     label: "FREE",    note: "Free shipping on orders over $200" };
   return                     { fee: 15,    label: "$15.00",  note: "Standard delivery · 7-15 days" };
 }
 
@@ -23,7 +23,7 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
   const shipping = calcShipping(totalWeight, subtotal);
   const total = subtotal + shipping.fee;
 
-  // Detect mixed pipelines (Kakobuy reps + CJ legit = 2 packages)
+  // Detect mixed pipeline orders (multiple shipping origins = 2 packages)
   const hasMixed = items.some(i => i.pipeline === "cj") && items.some(i => i.pipeline !== "cj");
 
   return (
@@ -115,12 +115,12 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
             </p>
             {hasMixed && (
               <p className={styles.shippingNote} style={{ color: "#f4c56a", marginTop: "4px" }}>
-                📦 Mixed order — ships in 2 packages (reps + branded items)
+                📦 Mixed order — ships in 2 packages
               </p>
             )}
-            {shipping.fee > 0 && subtotal < 99 && (
+            {shipping.fee > 0 && subtotal < 200 && (
               <p className={styles.shippingNote} style={{ color: "#a8e6cf" }}>
-                🎁 Add ${(99 - subtotal).toFixed(0)} more for FREE shipping
+                🎁 Add ${(200 - subtotal).toFixed(0)} more for FREE shipping
               </p>
             )}
             <div

@@ -118,6 +118,22 @@ def tag_product(product_dir: Path) -> dict:
     product_name = meta.get("product_name", product_dir.name)
     price_cny = meta.get("price_cny", 0)
 
+    # Check for pre-computed image classification (from auto_image_classifier.py)
+    classification_file = product_dir / "image_classification.json"
+    pre_classified = {}
+    if classification_file.exists():
+        try:
+            cls_data = json.loads(classification_file.read_text(encoding="utf-8"))
+            summary = cls_data.get("product_summary", {})
+            if summary:
+                pre_classified = {
+                    "sub_category": summary.get("garment_type"),
+                    "colors": [c for c in [summary.get("primary_color")] + summary.get("secondary_colors", []) if c],
+                }
+                log.info(f"  Using pre-classified data: {summary.get('garment_type')} / {summary.get('primary_color')}")
+        except Exception:
+            pass
+
     # Find product images (exclude size charts)
     images = [
         f for f in product_dir.glob("*")
@@ -129,9 +145,18 @@ def tag_product(product_dir: Path) -> dict:
     # First try keyword-based tagging (fast, no API call needed)
     tags = _keyword_tag(product_name, price_cny)
 
+    # Merge pre-classified data (from auto_image_classifier) over keyword tags
+    if pre_classified:
+        tags.update({k: v for k, v in pre_classified.items() if v})
+
     # If we have images, upgrade with vision via LiteLLM router
+    # Use front_angle image if available (VLM-classified), otherwise first image
     if images:
-        vision_tags = _gemini_vision_tag(images[0], product_name)
+        best_image = next(
+            (f for f in images if f.name.startswith("front_angle")),
+            images[0]
+        )
+        vision_tags = _gemini_vision_tag(best_image, product_name)
         if vision_tags:
             # Merge vision tags over keyword tags (vision is more accurate)
             tags.update({k: v for k, v in vision_tags.items() if v})
@@ -255,15 +280,24 @@ Rules:
 - gender "women" for obviously feminine cuts/styles even if no text says so
 - The custom fields MUST match the exact aesthetic of the clothing. If it's a techwear jacket, make the scene cyberpunk/industrial. If it's a silk skirt, make it soft/luxury."""
 
-        # Read and encode image
-        with open(image_path, "rb") as f:
-            img_bytes = f.read()
-        img_b64 = base64.b64encode(img_bytes).decode()
+        # Read and downscale image to 512x512 JPEG
+        try:
+            from PIL import Image
+            import io
+            img = Image.open(image_path).convert("RGB")
+            img.thumbnail((512, 512))
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=75)
+            img_b64 = base64.b64encode(buf.getvalue()).decode()
+            mime = "image/jpeg"
+        except Exception:
+            with open(image_path, "rb") as f:
+                img_bytes = f.read()
+            img_b64 = base64.b64encode(img_bytes).decode()
+            ext = image_path.suffix.lower()
+            mime = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                    ".png": "image/png", ".webp": "image/webp"}.get(ext, "image/jpeg")
 
-        # Detect mime type
-        ext = image_path.suffix.lower()
-        mime = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-                ".png": "image/png", ".webp": "image/webp"}.get(ext, "image/jpeg")
 
         messages = [
             {

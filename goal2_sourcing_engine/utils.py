@@ -8,7 +8,7 @@ from pathlib import Path
 
 # Common Paths
 BASE_DIR = Path(__file__).parent.resolve()
-OUTPUT_DIR = BASE_DIR / "output_ugc"
+OUTPUT_DIR = BASE_DIR / "OUTPUT_READY_FOR_SALE"
 INPUT_DIR = BASE_DIR / "input_sourcing"
 MODELS_DIR = BASE_DIR / "models" / "character_sheets"
 
@@ -74,7 +74,7 @@ def detect_category(product_name: str, context_text: str = "") -> tuple:
         
     return detected_cat, is_set
 
-def save_generated_images(result: dict, model_id: str, product_name: str, source_products: list, campaign_folder: str, shot_name: str) -> list:
+def save_generated_images(result: dict, model_id: str, product_name: str, source_products: list, campaign_folder: str, shot_name: str, curation_folder: Path = None) -> list:
     """
     Saves generated images into a dedicated campaign folder.
     Also copies the source product images, metadata, and size charts into the same folder.
@@ -92,9 +92,9 @@ def save_generated_images(result: dict, model_id: str, product_name: str, source
             pass
 
     # Copy metadata.json, outfit_metadata.json, link.txt and size charts from the source folder
-    if source_products:
-        src_dir = Path(source_products[0]).parent
+    src_dir = Path(curation_folder) if curation_folder else (Path(source_products[0]).parent if source_products else None)
 
+    if src_dir and src_dir.exists():
         # Copy metadata
         for meta_name in ["metadata.json", "outfit_metadata.json", "link.txt"]:
             meta_file = src_dir / meta_name
@@ -161,5 +161,23 @@ def save_generated_images(result: dict, model_id: str, product_name: str, source
                 log(f"  [SAVED] {campaign_folder}/{filename}")
             except Exception as e:
                 log(f"  [!] Failed to save base64: {e}")
+
+    campaign_info = {
+        "product_id": "",  # Will be filled by caller
+        "product_name": product_name,
+        "source_folder": str(curation_folder) if curation_folder else "",
+        "generated_at": datetime.now().isoformat(),
+        "model_id": model_id,
+        "shot_name": shot_name,
+        "campaign_folder": campaign_folder,
+        "shots_saved": [Path(s).name for s in saved],
+        "generation_status": "complete" if saved else "failed"
+    }
+    
+    try:
+        with open(campaign_dir / "campaign_info.json", "w", encoding="utf-8") as f:
+            json.dump(campaign_info, f, indent=4)
+    except Exception as e:
+        log(f"  [!] Failed to save campaign_info.json: {e}")
 
     return saved

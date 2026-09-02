@@ -82,15 +82,166 @@
   border: 1px solid var(--border-light);
   border-radius: 4px;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .paymentMethod:hover {
   border-color: var(--text-secondary);
 }
 
+.activePaymentMethod {
+  border-color: var(--accent-gold, #c9a86b);
+  background: rgba(201, 168, 107, 0.08);
+}
+
 .paymentMethod input[type="radio"] {
-  accent-color: var(--accent-gold);
+  accent-color: var(--accent-gold, #c9a86b);
+}
+
+.methodLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.badgePaystack {
+  background: rgba(14, 186, 122, 0.15);
+  color: #0eba7a;
+  border: 1px solid rgba(14, 186, 122, 0.3);
+}
+
+.badgeCrypto {
+  background: rgba(243, 186, 47, 0.15);
+  color: #f3ba2f;
+  border: 1px solid rgba(243, 186, 47, 0.3);
+}
+
+.paystackBox {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.currencySelector {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.currBtn {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activeCurrBtn {
+  border-color: #0eba7a;
+  background: rgba(14, 186, 122, 0.15);
+  color: #0eba7a;
+  font-weight: 600;
+}
+
+.cryptoBox {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.networkSelector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.networkBtn {
+  padding: 0.6rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activeNetworkBtn {
+  border-color: #f3ba2f;
+  background: rgba(243, 186, 47, 0.15);
+  color: #f3ba2f;
+  font-weight: 600;
+}
+
+.qrContainer {
+  margin: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.qrImg {
+  width: 180px;
+  height: 180px;
+  border-radius: 8px;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.walletAddressBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.walletAddress {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+  flex: 1;
+}
+
+.copyBtn {
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.copyBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .actionRow {

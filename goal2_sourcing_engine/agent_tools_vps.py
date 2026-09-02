@@ -591,6 +591,82 @@ TOOL_DEFINITIONS = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "scrape_yupoo_catalog",
+            "description": "Scrape a Yupoo seller's catalog for product albums. Downloads product images and extracts Weidian/Taobao ordering links. Use this to discover and source new products from trusted Yupoo sellers.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "subdomain": {
+                        "type": "string",
+                        "description": "The Yupoo seller subdomain (e.g. 'goat-official', 'topacney', 'deateath'). Check data/yupoo_sellers.json for trusted sellers."
+                    },
+                    "max_albums": {
+                        "type": "integer",
+                        "description": "Maximum number of albums to scrape. Default 10."
+                    },
+                    "auto_pick": {
+                        "type": "boolean",
+                        "description": "If true, automatically pick best product images and save to MANUAL_CURATION. Default true."
+                    }
+                },
+                "required": ["subdomain"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "classify_product_images",
+            "description": "Run VLM image classification on a product in MANUAL_CURATION. Classifies images as front/back/detail/size_chart. If product_dir is omitted, automatically finds and classifies unclassified products.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "product_dir": {
+                        "type": "string",
+                        "description": "Optional path to the product directory in MANUAL_CURATION/. If omitted, auto-discovers unclassified products."
+                    }
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "download_yupoo_album",
+            "description": "Download all high-resolution product images from a Yupoo album directly into MANUAL_CURATION/ for classification and AI lookbook generation.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "album_url": {
+                        "type": "string",
+                        "description": "Yupoo album URL (e.g. https://chaosmade.x.yupoo.com/albums/12345)"
+                    },
+                    "subdomain": {
+                        "type": "string",
+                        "description": "Optional Yupoo seller subdomain (e.g. chaosmade)"
+                    }
+                },
+                "required": ["album_url"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "find_ready_outfits",
+            "description": "Check outfit_warehouse for matched top+bottom+shoes outfit sets ready for generation.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+
 ]
 
 
@@ -808,43 +884,99 @@ async def tool_scrape_agents(
 
 
 async def tool_scrape_yupoo(
-    seller_url: str, category: str = "general", max_items: int = 10, memory: AgentMemory = None
+    subdomain: str = None, max_albums: int = 10, auto_pick: bool = True, memory: AgentMemory = None
 ) -> dict:
-    """Scrape a Yupoo seller's catalog."""
+    """Scrape a Yupoo seller's catalog, automatically selecting active sellers from seller directory."""
     try:
-        from playwright.async_api import async_playwright
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
-            url = f"https://{seller_url}" if not seller_url.startswith("http") else seller_url
-            await page.goto(url, wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(3)
+        import random
+        from yupoo_scraper import YupooScraper
+        import asyncio
+        from pathlib import Path
+        
+        # Load full sellers pool
+        seller_pool = ["deateath", "chaosmade", "husky-reps", "topstoney", "idlt", "pycstudio", "maden", "bjhg"]
+        sellers_file = Path("data/yupoo_sellers.json")
+        if not sellers_file.exists():
+            sellers_file = Path("goal2_sourcing_engine/data/yupoo_sellers.json")
+        if sellers_file.exists():
+            try:
+                with open(sellers_file, encoding="utf-8") as f:
+                    sdata = json.load(f)
+                    for cat, s_list in sdata.items():
+                        if isinstance(s_list, list):
+                            for s_entry in s_list:
+                                sub = s_entry.get("subdomain")
+                                if sub and sub not in seller_pool:
+                                    seller_pool.append(sub)
+            except Exception:
+                pass
+                
+        if not subdomain or subdomain == "goat-official":
+            subdomain = random.choice(seller_pool)
+            
+        scraper = YupooScraper()
+        
+        # Run synchronous scraper in a thread
+        albums = await asyncio.to_thread(scraper.scrape_seller, subdomain)
+        
+        products = []
+        for album in albums[:max_albums]:
+            products.append({
+                "productName": album.get("title", ""),
+                "productUrl": album.get("album_url", ""),
+                "productImage": album.get("thumbnail", ""),
+                "source": "yupoo",
+                "seller": subdomain,
+                "category": "general",
+            })
 
-            # Extract album/product links
-            albums = await page.query_selector_all('a[href*="/albums/"]')
-            products = []
-            for album in albums[:max_items]:
-                title = await album.inner_text()
-                href = await album.get_attribute("href")
-                img_el = await album.query_selector("img")
-                img_src = await img_el.get_attribute("src") if img_el else ""
-                products.append({
-                    "productName": title.strip(),
-                    "productUrl": href,
-                    "productImage": img_src,
-                    "source": "yupoo",
-                    "seller": seller_url,
-                    "category": category or "general",
-                })
+        # Auto-pick: automatically download images from up to 2 un-sourced albums into MANUAL_CURATION/
+        downloaded_curated = []
+        if auto_pick and albums:
+            import re
+            curation_dir = Path("MANUAL_CURATION")
+            curation_dir.mkdir(exist_ok=True)
+            for album in albums:
+                if len(downloaded_curated) >= 2:
+                    break
+                title = album.get("title", "")
+                slug = re.sub(r'[^a-zA-Z0-9]+', '-', title.lower()).strip('-')[:80]
+                if not slug or len(slug) < 3:
+                    import hashlib
+                    slug = f"product_{hashlib.md5(title.encode()).hexdigest()[:8]}"
+                target_folder = curation_dir / slug
+                if not target_folder.exists():
+                    try:
+                        dl_res = await asyncio.to_thread(scraper.download_album_to_staging, subdomain, album, curation_dir)
+                        if dl_res.get("images_downloaded", 0) > 0:
+                            downloaded_curated.append(slug)
+                            meta_file = target_folder / "metadata.json"
+                            if meta_file.exists():
+                                try:
+                                    m = json.loads(meta_file.read_text(encoding="utf-8"))
+                                    m["generation_status"] = "pending"
+                                    m["storefront_status"] = "not_listed"
+                                    meta_file.write_text(json.dumps(m, indent=2, ensure_ascii=False), encoding="utf-8")
+                                except Exception:
+                                    pass
+                            if memory:
+                                memory.add_learning(f"Sourced product '{title[:50]}' ({dl_res['images_downloaded']} images) into MANUAL_CURATION/{slug}")
+                    except Exception as err:
+                        print(f"   [!] Failed to download album {slug}: {err}")
 
-            await browser.close()
-
-        memory.add_products_batch(products)
-        memory.add_yupoo_supplier(seller_url.split(".")[0], seller_url)
-        memory.log_action("scrape_yupoo", f"Found {len(products)} items from {seller_url}")
-        return {"success": True, "products_count": len(products)}
+        if memory:
+            memory.add_products_batch(products)
+            memory.add_yupoo_supplier(subdomain, f"https://{subdomain}.x.yupoo.com")
+            memory.log_action("scrape_yupoo", f"Found {len(products)} items from {subdomain}, curated {len(downloaded_curated)}")
+        return {
+            "success": True,
+            "seller": subdomain,
+            "products_count": len(products),
+            "curated_downloaded": downloaded_curated
+        }
     except Exception as e:
-        memory.log_action("scrape_yupoo", str(e), success=False)
+        if memory:
+            memory.log_action("scrape_yupoo", str(e), success=False)
         return {"success": False, "error": str(e)}
 
 
@@ -910,24 +1042,34 @@ async def tool_generate_ad(
 
     # --- Find actual model character sheet images ---
     models_dir = os.path.join(os.getcwd(), "models", "character_sheets")
+    if not os.path.exists(models_dir):
+        models_dir = os.path.join(os.getcwd(), "models")
     
-    # Use the model_id to find face/body images (e.g. "f1" -> f1_face.png, f1_body.png)
-    face_path = os.path.join(models_dir, f"{model_id}_face.png")
-    body_path = os.path.join(models_dir, f"{model_id}_body.png")
+    # Try finding model face/body by prefix (e.g. "f1_1.png", "f1_1.jpg", "f1_face.png")
+    import glob
+    candidates = glob.glob(os.path.join(models_dir, f"{model_id}_1.*"))
+    candidates += glob.glob(os.path.join(models_dir, f"{model_id}_face.*"))
+    candidates += glob.glob(os.path.join(models_dir, f"{model_id}.*"))
     
-    if not os.path.exists(face_path):
-        # Fallback: pick any available model
-        import glob
-        faces = glob.glob(os.path.join(models_dir, "*_face.png"))
-        if faces:
-            face_path = random.choice(faces)
-            prefix = os.path.basename(face_path).replace("_face.png", "")
-            body_path = os.path.join(models_dir, f"{prefix}_body.png")
-            model_id = prefix
-            print(f"[*] Model {model_id} not found, using {prefix} instead")
+    if candidates:
+        face_path = candidates[0]
+        body_path = candidates[0]
+    else:
+        # Fallback: pick any available model sheet
+        all_sheets = glob.glob(os.path.join(models_dir, "*_1.*"))
+        all_sheets += glob.glob(os.path.join(models_dir, "*_face.*"))
+        if not all_sheets:
+            all_sheets = glob.glob(os.path.join(models_dir, "*", "*_1.*"))
+            
+        if all_sheets:
+            face_path = random.choice(all_sheets)
+            body_path = face_path
+            prefix = os.path.basename(face_path).split("_")[0]
+            print(f"[*] Model {model_id} not found, using {prefix} ({os.path.basename(face_path)}) instead")
         else:
             print("[!] No model character sheets found!")
-            return {"success": False, "error": "No model images found"}
+            return {"success": False, "error": "No model images found in models/character_sheets/"}
+
     
     # --- Auto-resolve product image if not provided ---
     if not product_image_path or not os.path.exists(product_image_path):
@@ -1856,7 +1998,7 @@ async def execute_tool(tool_name: str, arguments: dict, memory: AgentMemory) -> 
         elif tool_name == "scrape_agent_products":
             return {"success": False, "error": "This tool is disabled. Sourcing replicas is no longer supported."}
         elif tool_name == "scrape_yupoo_catalog":
-            return {"success": False, "error": "This tool is disabled. Yupoo replica sourcing is deactivated."}
+            return await tool_scrape_yupoo(**arguments, memory=memory)
         elif tool_name == "browse_instagram_page":
             return await tool_browse_instagram(**arguments, memory=memory)
         elif tool_name == "generate_ad_image":
@@ -1933,6 +2075,65 @@ async def execute_tool(tool_name: str, arguments: dict, memory: AgentMemory) -> 
             return await tool_generate_huggingface(**arguments, memory=memory)
         elif tool_name == "generate_with_pollinations":
             return await tool_generate_pollinations(**arguments, memory=memory)
+        elif tool_name == "classify_product_images":
+            from auto_image_classifier import classify_and_rename_images
+            from pathlib import Path
+            product_dir = arguments.get("product_dir", "")
+            p = Path(product_dir) if product_dir else None
+            if p and not p.is_absolute():
+                p = Path("MANUAL_CURATION") / product_dir
+            if not p or not p.exists():
+                # AUTO-DISCOVER: find first unclassified folder in MANUAL_CURATION
+                curation = Path("MANUAL_CURATION")
+                unclassified = []
+                if curation.exists():
+                    for sub in curation.iterdir():
+                        if sub.is_dir() and not sub.name.startswith(("_", ".")):
+                            has_class = (sub / "image_classification.json").exists()
+                            imgs = [f for f in sub.iterdir() if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp") and not f.name.startswith("__temp")]
+                            if not has_class and imgs:
+                                unclassified.append(sub)
+                if unclassified:
+                    p = unclassified[0]
+                    print(f"   [auto] Auto-discovered unclassified product: {p.name}")
+                else:
+                    return {"success": True, "result": "All products in MANUAL_CURATION are already classified."}
+            result = classify_and_rename_images(p)
+            return {"success": True, "product": p.name, "result": result}
+        elif tool_name == "download_yupoo_album":
+            from yupoo_scraper import YupooScraper
+            import re
+            scraper = YupooScraper()
+            album_url = arguments.get("album_url", "")
+            subdomain = arguments.get("subdomain")
+            if not subdomain:
+                m = re.search(r'https?://([^.]+)\.x\.yupoo\.com', album_url)
+                subdomain = m.group(1) if m else "general"
+            curation_dir = Path("MANUAL_CURATION")
+            curation_dir.mkdir(exist_ok=True)
+            detail = await asyncio.to_thread(scraper.scrape_album_detail, album_url)
+            album_dict = {"title": detail.get("title", "product"), "album_url": album_url, "price_cny": detail.get("price_cny", 0.0)}
+            dl_res = await asyncio.to_thread(scraper.download_album_to_staging, subdomain, album_dict, curation_dir, detail)
+            if dl_res.get("images_downloaded", 0) > 0:
+                p_path = Path(dl_res["folder_path"])
+                meta_file = p_path / "metadata.json"
+                if meta_file.exists():
+                    try:
+                        m = json.loads(meta_file.read_text(encoding="utf-8"))
+                        m["generation_status"] = "pending"
+                        m["storefront_status"] = "not_listed"
+                        meta_file.write_text(json.dumps(m, indent=2, ensure_ascii=False), encoding="utf-8")
+                    except Exception:
+                        pass
+                if memory:
+                    memory.add_learning(f"Downloaded Yupoo album to {p_path.name} ({dl_res['images_downloaded']} images)")
+                return {"success": True, "folder": p_path.name, "images_downloaded": dl_res["images_downloaded"]}
+            else:
+                return {"success": False, "error": "No images could be downloaded from album"}
+        elif tool_name == "find_ready_outfits":
+            from outfit_warehouse import find_ready_outfits
+            ready = find_ready_outfits()
+            return {"success": True, "count": len(ready), "ready_outfits": ready}
         elif tool_name == "scrape_meta_ad_library":
             return await tool_scrape_meta_ads(**arguments, memory=memory)
         else:

@@ -64,6 +64,40 @@
   background: var(--accent-gold);
   color: var(--bg-primary);
   border-radius: var(--radius-sm);
+  z-index: 2;
+}
+
+/* Wishlist Button */
+.wishlistBtn {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 200ms ease;
+}
+
+.wishlistBtn:hover {
+  background: rgba(10, 10, 10, 0.9);
+  color: var(--accent-rose);
+  transform: scale(1.1);
+}
+
+.wishlisted {
+  color: var(--accent-rose) !important;
+  background: rgba(10, 10, 10, 0.85);
+  border-color: rgba(194, 112, 112, 0.4);
 }
 
 /* Quick Add Overlay */
@@ -111,20 +145,61 @@
   padding: 0 var(--space-xs);
 }
 
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 .category {
   font-size: 0.65rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--accent-gold);
+}
+
+.colorCount {
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .name {
   font-family: var(--font-sans);
   font-size: 0.9rem;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-primary);
   line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.name:hover {
+  color: var(--accent-gold);
+}
+
+.colorDots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.colorDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+}
+
+.colorMore {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .priceRow {
@@ -135,9 +210,10 @@
 }
 
 .price {
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-primary);
+  letter-spacing: 0.02em;
 }
 
 .comparePrice {
@@ -148,6 +224,6 @@
 
 .discount {
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--accent-rose);
 }

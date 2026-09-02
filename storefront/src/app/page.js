@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import Header from "@/components/Header";
@@ -10,6 +11,8 @@ import styles from "./page.module.css";
 
 export default function Home() {
   const { cartItems, cartOpen, setCartOpen, updateQty, removeItem } = useCart();
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
 
   const featured = DEMO_PRODUCTS.slice(0, 4);
   const newArrivals = DEMO_PRODUCTS.slice(0, 8);
@@ -59,7 +62,7 @@ export default function Home() {
           <div className={styles.marqueeTrack}>
             {[...Array(3)].map((_, i) => (
             <span key={i} className={styles.marqueeText}>
-                FREE SHIPPING ON ORDERS OVER $99 &nbsp;✦&nbsp; 
+                FREE SHIPPING ON ORDERS OVER $200 &nbsp;✦&nbsp; 
                 NEW DROPS EVERY FRIDAY &nbsp;✦&nbsp; 
                 SOURCED FROM THE UNDERGROUND &nbsp;✦&nbsp;
               </span>
@@ -102,12 +105,12 @@ export default function Home() {
                 engineered fabrics, and pieces you won&apos;t find on any
                 high street. Every drop is limited. Every restock is rare.
               </p>
-              <Link href="/about" className="btn btn-outline">Our Story</Link>
+              <Link href="/shop" className="btn btn-outline">Our Story</Link>
             </div>
             <div className={styles.editorialImage}>
               <img
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=700&h=900&fit=crop"
-                alt="Deconstructed fashion editorial"
+                src="/images/editorial_hero.jpg"
+                alt="OBSCURA Luxury Fashion Editorial"
                 loading="lazy"
               />
             </div>
@@ -128,7 +131,7 @@ export default function Home() {
               {COLLECTIONS.map((col, i) => (
                 <Link
                   key={col.id}
-                  href={`/collections/${col.id}`}
+                  href="/shop"
                   className={`${styles.collectionCard} animate-fade-in-up delay-${i + 1}`}
                 >
                   <img src={col.image} alt={col.name} className={styles.collectionImage} loading="lazy" />
@@ -175,15 +178,21 @@ export default function Home() {
             <p className={styles.newsletterSub}>
               Subscribers see new pieces 24 hours before everyone else. No spam. Just drops.
             </p>
-            <form className={styles.newsletterForm} onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className={styles.newsletterInput}
-                aria-label="Email address"
-              />
-              <button type="submit" className="btn btn-primary">Join</button>
-            </form>
+            {newsletterSubmitted ? (
+              <p style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', letterSpacing: '0.1em' }}>✦ Welcome to the inner circle. You're in.</p>
+            ) : (
+              <form className={styles.newsletterForm} onSubmit={(e) => { e.preventDefault(); if (newsletterEmail) setNewsletterSubmitted(true); }}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className={styles.newsletterInput}
+                  aria-label="Email address"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                />
+                <button type="submit" className="btn btn-primary">Join</button>
+              </form>
+            )}
           </div>
         </section>
       </main>

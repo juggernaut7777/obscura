@@ -56,7 +56,11 @@ def save_supplier_mappings(mappings):
 
 def log(msg):
     ts = datetime.now().strftime("%H:%M:%S")
-    print(f"[{ts}] {msg}", flush=True)
+    full_msg = f"[{ts}] {msg}"
+    try:
+        print(full_msg, flush=True)
+    except UnicodeEncodeError:
+        print(full_msg.encode("ascii", "replace").decode("ascii"), flush=True)
 
 
 from utils import slugify
@@ -72,6 +76,93 @@ def get_uploaded_log():
 def save_uploaded_log(uploaded):
     with open(UPLOADED_LOG, "w") as f:
         json.dump(uploaded, f, indent=2)
+
+
+def clean_product_title(raw_title: str) -> str:
+    """Clean Chinese Yupoo titles (remove prices, star censoring, size annotations)
+    and output premium, editorial GENERIC fashion titles.
+    RULE: Never expose real brand names (Nike, Adidas, NOCTA, etc.) on the public storefront.
+    """
+    if not raw_title:
+        return "Premium Heavyweight Essential"
+    
+    title = raw_title
+    # Remove price prefix like ￥113 or ¥235
+    title = re.sub(r'^[￥¥]\d+\s*', '', title)
+    
+    # Remove seller size annotations like （im 170cm 60kg i wear size M in the phot）
+    title = re.sub(r'[\（\(].*?[\）\)]', '', title)
+    
+    # Remove seller numeric item codes like 42061208144
+    title = re.sub(r'\b\d{8,}\b', '', title)
+    
+    # Strip star-censored brand names and all brand references entirely
+    title = re.sub(r'C[⭐\*]+OME\s*HE[⭐\*]+TS', '', title, flags=re.IGNORECASE)
+    title = re.sub(r'N[⭐\*]+K[⭐\*]+', '', title, flags=re.IGNORECASE)
+    title = re.sub(r'NO[⭐\*]+T[⭐\*]+', '', title, flags=re.IGNORECASE)
+    # Remove known brand names entirely
+    for brand in ['NOCTA', 'NIKE', 'ADIDAS', 'CHROME HEARTS', 'ESSENTIALS',
+                  'FOG', 'FEAR OF GOD', 'BALENCIAGA', 'GUCCI', 'PRADA',
+                  'LOUIS VUITTON', 'LV', 'DIOR', 'SUPREME', 'OFF-WHITE',
+                  'STUSSY', 'JORDAN', 'YEEZY', 'NEW BALANCE']:
+        title = re.sub(re.escape(brand), '', title, flags=re.IGNORECASE)
+    title = title.replace("⭐", "").replace("*", "")
+    
+    # Clean whitespace
+    title = re.sub(r'\s+', ' ', title).strip()
+    
+    # Map to premium generic product names by garment type
+    lower_t = title.lower()
+    if "t-shirt" in lower_t or "tee" in lower_t:
+        if "graphic" in lower_t:
+            return "Heavyweight Graphic T-Shirt"
+        elif "long sleeved" in lower_t or "long sleeve" in lower_t:
+            return "Heavyweight Long Sleeve Tee"
+        return "Premium Heavyweight Tee"
+    elif "long sleeved" in lower_t or "long sleeve" in lower_t:
+        return "Heavyweight Long Sleeve Tee"
+    elif ("hoodie" in lower_t or "hooded" in lower_t) and ("trousers" in lower_t or "pants" in lower_t):
+        return "Tech Fleece Hoodie & Trousers Set"
+    elif "hoodie" in lower_t or "hooded" in lower_t:
+        return "Premium Tech Fleece Hoodie"
+    elif "jacket" in lower_t:
+        if "windbreak" in lower_t or "waterproof" in lower_t or "shell" in lower_t:
+            return "Tech Waterproof Shell Jacket"
+        elif "puffer" in lower_t or "down" in lower_t:
+            return "Premium Puffer Jacket"
+        elif "varsity" in lower_t:
+            return "Varsity Letterman Jacket"
+        return "Premium Shell Jacket"
+    elif "trousers" in lower_t or "pants" in lower_t:
+        if "cargo" in lower_t:
+            return "Heavyweight Cargo Trousers"
+        return "Heavyweight Tech Trousers"
+    elif "shorts" in lower_t:
+        return "Premium Athletic Shorts"
+    elif "sweater" in lower_t or "crewneck" in lower_t:
+        return "Premium Knit Crewneck"
+    elif "vest" in lower_t:
+        return "Premium Utility Vest"
+    
+    # If we still have a reasonable title after brand stripping, use it
+    if len(title) > 3:
+        return title.title()
+    return "Premium Heavyweight Essential"
+
+
+def clean_product_description(raw_desc: str, item_name: str) -> str:
+    """Clean Chinese descriptions and ensure luxury editorial copy.
+    Rule 16: Never expose Chinese prices, yuan symbols, or supplier text on storefront.
+    """
+    if not raw_desc:
+        return f"Curated piece: {item_name}. Heavyweight construction, deconstructed silhouette."
+    # If contains Chinese, currency symbols, or seller codes
+    if re.search(r'[\u4e00-\u9fff\uffe5¥￥]|\b\d+\s*(?:yuan|rmb|cny|@cn)\b|item\.html', raw_desc, re.IGNORECASE) or len(raw_desc.strip()) < 15:
+        return f"Curated luxury essential: {item_name}. Heavyweight architectural construction, premium drape, and deconstructed brutalist aesthetic."
+    # Strip any leaked supplier links or prices
+    clean = re.sub(r'https?://\S+', '', raw_desc)
+    clean = re.sub(r'[￥¥]\d+', '', clean).strip()
+    return clean or f"Curated piece: {item_name}. Heavyweight construction, deconstructed silhouette."
 
 
 def load_current_products():
@@ -121,40 +212,109 @@ def extract_metadata_from_campaign(campaign_dir):
         "size_charts": 0
     }
     
-    # Check for metadata.json (from Discord bot / staging copy)
+    # Check for JSON metadata files
     for f in campaign_dir.iterdir():
-        if f.suffix == ".json" and f.name != "checkout_links.json" and f.name != "outfit_metadata.json":
+        if f.suffix == ".json" and f.name not in ("checkout_links.json", "outfit_metadata.json"):
             try:
                 with open(f, "r", encoding="utf-8") as mf:
                     meta = json.load(mf)
-                    metadata["product_name"] = meta.get("product_name") or meta.get("name")
-                    metadata["color"] = meta.get("color")
-                    metadata["part"] = meta.get("part")  # "top", "bottom", or None
-                    metadata["is_set"] = meta.get("is_set", False)
-                    metadata["set_partner"] = meta.get("set_partner")
-                    metadata["link"] = meta.get("link", "") or meta.get("url", "")
-                    metadata["price"] = meta.get("price_cny") or meta.get("price") or 0
-                    metadata["category"] = meta.get("category", "")
-                    metadata["currency"] = meta.get("currency") or ("USD" if "$" in str(metadata["price"]) else "CNY")
-                    metadata["size_info"] = meta.get("size_info")
-                    metadata["size_charts"] = meta.get("size_charts", 0)
-                    # Enriched fields from Phase 1 scraper
-                    metadata["material"] = meta.get("material", "")
-                    metadata["weight_gsm"] = meta.get("weight_gsm", 0)
-                    metadata["measurements"] = meta.get("measurements", {})
-                    metadata["model_info"] = meta.get("model_info", "")
-                    metadata["care_instructions"] = meta.get("care_instructions", "")
-                    metadata["brand_name"] = meta.get("brand_name", "")
-                    metadata["product_category"] = meta.get("product_category", "")
-                    metadata["variant_mappings"] = meta.get("variant_mappings", {})
-                    metadata["item_id"] = meta.get("item_id", "")
-                    metadata["platform"] = meta.get("platform", "")
-                    metadata["seller"] = meta.get("seller", {})
-                    metadata["stock_status"] = meta.get("stock_status", {})
-                    metadata["description"] = meta.get("description", "")
+                    
+                    # Detect if this is the new unified product_record.json schema
+                    is_unified_record = "variants" in meta and isinstance(meta["variants"], dict) and "colors" in meta["variants"]
+                    
+                    if is_unified_record:
+                        # Parse new unified schema
+                        metadata["product_name"] = meta.get("product_name")
+                        
+                        # Extract color variant from campaign folder suffix
+                        # Reverse-match against known colors (handles multi-word like Light_Blue)
+                        folder_lower = campaign_dir.name.lower()
+                        color_found = "Default"
+                        # Sort by longest name first to match 'multi_color' before 'color'
+                        sorted_colors = sorted(meta["variants"]["colors"], key=lambda c: len(c.get("english", "")), reverse=True)
+                        for v in sorted_colors:
+                            color_key = v["english"].lower().replace(" ", "_")
+                            if folder_lower.endswith("_" + color_key):
+                                color_found = v["english"]
+                                break
+                        # Normalize color names (e.g. Camouflage_Brown -> Camo Brown, Light_Blue -> Light Blue)
+                        if color_found and color_found != "Default":
+                            color_found = color_found.replace("_", " ").title()
+                            color_found = color_found.replace("Camouflage", "Camo")
+                        metadata["color"] = color_found
+                        
+                        metadata["part"] = meta.get("part")
+                        metadata["is_set"] = meta.get("is_set", False)
+                        metadata["set_partner"] = meta.get("set_partner")
+                        
+                        ordering = meta.get("ordering", {})
+                        metadata["link"] = ordering.get("weidian_url", "")
+                        metadata["platform"] = ordering.get("platform", "")
+                        metadata["item_id"] = ordering.get("item_id", "")
+                        metadata["seller"] = ordering.get("seller", {})
+                        
+                        pricing = meta.get("pricing", {})
+                        metadata["price"] = pricing.get("cost_cny", 0)
+                        metadata["currency"] = "CNY"
+                        
+                        metadata["category"] = meta.get("category", "")
+                        
+                        # Reconstruct variant mappings for storefront compatibility
+                        colors_map = {c["english"]: c["chinese"] for c in meta["variants"]["colors"] if "english" in c}
+                        sizes_map = meta["variants"].get("size_mappings", {})
+                        metadata["variant_mappings"] = {
+                            "colors": colors_map,
+                            "sizes": sizes_map
+                        }
+                        
+                        if sizes_map:
+                            metadata["size_info"] = "Sizes: " + ", ".join(sizes_map.keys())
+                        
+                        metadata["material"] = meta.get("material", "")
+                        metadata["weight_gsm"] = meta.get("weight_gsm", 0)
+                        metadata["measurements"] = meta.get("measurements", {})
+                        metadata["model_info"] = meta.get("model_info", "")
+                        metadata["care_instructions"] = meta.get("care", "")
+                        metadata["brand_name"] = meta.get("brand", "")
+                        metadata["product_category"] = meta.get("category", "")
+                        
+                        # Reconstruct stock status
+                        stock_status = {}
+                        for c in meta["variants"]["colors"]:
+                            c_en = c["english"].replace("_", " ").title().replace("Camouflage", "Camo")
+                            for sz, instock in c.get("stock", {}).items():
+                                stock_status[f"{c_en}-{sz}"] = instock
+                        metadata["stock_status"] = stock_status
+                        metadata["description"] = meta.get("description", "")
+                    else:
+                        # Parse old metadata.json schema
+                        metadata["product_name"] = meta.get("product_name") or meta.get("name")
+                        metadata["color"] = meta.get("color")
+                        metadata["part"] = meta.get("part")
+                        metadata["is_set"] = meta.get("is_set", False)
+                        metadata["set_partner"] = meta.get("set_partner")
+                        metadata["link"] = meta.get("link", "") or meta.get("url", "")
+                        metadata["price"] = meta.get("price_cny") or meta.get("price") or 0
+                        metadata["category"] = meta.get("category", "")
+                        metadata["currency"] = meta.get("currency") or ("USD" if "$" in str(metadata["price"]) else "CNY")
+                        metadata["size_info"] = meta.get("size_info")
+                        metadata["size_charts"] = meta.get("size_charts", 0)
+                        metadata["material"] = meta.get("material", "")
+                        metadata["weight_gsm"] = meta.get("weight_gsm", 0)
+                        metadata["measurements"] = meta.get("measurements", {})
+                        metadata["model_info"] = meta.get("model_info", "")
+                        metadata["care_instructions"] = meta.get("care_instructions", "")
+                        metadata["brand_name"] = meta.get("brand_name", "")
+                        metadata["product_category"] = meta.get("product_category", "")
+                        metadata["variant_mappings"] = meta.get("variant_mappings", {})
+                        metadata["item_id"] = meta.get("item_id", "")
+                        metadata["platform"] = meta.get("platform", "")
+                        metadata["seller"] = meta.get("seller", {})
+                        metadata["stock_status"] = meta.get("stock_status", {})
+                        metadata["description"] = meta.get("description", "")
             except Exception:
                 pass
-    
+
     # Check checkout_links.txt for the link
     checkout_file = campaign_dir / "checkout_links.txt"
     if checkout_file.exists() and not metadata["link"]:
@@ -163,18 +323,29 @@ def extract_metadata_from_campaign(campaign_dir):
         if link_match:
             metadata["link"] = link_match.group(1)
     
-    # Collect generated images (the AI shots, not the source product photos)
+    # Collect images for the main product gallery:
+    # 1. AI-generated model shots (01_model_front_0.png etc.)
+    # 2. Gallery-ready flat lay images (front_flat_lay.jpg, back_flat_lay.jpg)
+    # These are the actual downloaded source photos used directly as flat lays.
+    gallery_names = ("front_flat_lay", "back_flat_lay", "top_front_flat_lay", "top_back_flat_lay", "bottom_front_flat_lay", "bottom_back_flat_lay", "front_angle_1", "back_angle_1", "front_angle_2", "back_angle_2")
     for f in sorted(campaign_dir.iterdir()):
-        if f.suffix in {".png", ".jpg", ".jpeg", ".webp"}:
-            # Only include generated shots (01_editorial, 02_lifestyle, etc.)
-            if any(tag in f.name for tag in ("editorial", "lifestyle", "flatlay", "ghost", "fallback",
-                                              "flat_lay", "mannequin", "hanger", "detail", "hero",
-                                              "on_foot", "unboxing", "set_flat", "product_")):
+        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+            # Include AI generated model shots or scraped product shots
+            if f.name.startswith(("01_", "02_", "03_", "04_", "05_", "angle_", "img_", "product_")) or any(t in f.name.lower() for t in ("editorial", "lifestyle", "ghost", "hero", "angle")):
+                metadata["images"].append(f)
+            # Include gallery-ready flat lay images (downloaded source photos)
+            elif f.stem.lower() in gallery_names:
                 metadata["images"].append(f)
     
-    # Collect original source images (Yupoo/Weidian scraped photos)
+    # Fallback: if no specific image pattern matched, include all image files in the directory
+    if not metadata["images"]:
+        for f in sorted(campaign_dir.iterdir()):
+            if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+                metadata["images"].append(f)
+    
+    # Collect remaining source images for the secondary details/photos tab
     metadata["source_images"] = []
-    source_prefixes = ("front_angle", "back_angle", "side_angle", "angle_", "source_")
+    source_prefixes = ("source_", "detail_close_")
     for f in sorted(campaign_dir.iterdir()):
         if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
             if f.stem.startswith(source_prefixes):
@@ -184,22 +355,28 @@ def extract_metadata_from_campaign(campaign_dir):
 
 
 def copy_size_charts_to_public(campaign_dir, product_slug):
-    """Find size chart images in the campaign folder and copy them to public/products/<slug>/."""
+    """Find size chart images in the campaign folder (or parent product directory) and copy them to public/products/<slug>/."""
     product_dir = PUBLIC_DIR / product_slug
     product_dir.mkdir(parents=True, exist_ok=True)
     
+    dirs_to_check = [campaign_dir]
+    if campaign_dir.parent and campaign_dir.parent.exists() and campaign_dir.parent.name not in ("MANUAL_CURATION", "OUTPUT_READY_FOR_SALE", "goal2_sourcing_engine"):
+        dirs_to_check.append(campaign_dir.parent)
+        
     web_paths = []
-    for f in campaign_dir.iterdir():
-        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-            if any(k in f.name.lower() for k in ("chart", "size", "guide")):
-                # Clean or preserve name
-                dest_name = f"size_guide_{f.name}"
-                dest_path = product_dir / dest_name
-                try:
-                    shutil.copy(str(f), str(dest_path))
-                    web_paths.append(f"/products/{product_slug}/{dest_name}")
-                except Exception as e:
-                    log(f"  [!] Error copying size chart {f.name}: {e}")
+    seen_names = set()
+    for d in dirs_to_check:
+        for f in d.iterdir():
+            if f.is_file() and f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+                if any(k in f.name.lower() for k in ("chart", "size", "guide")) and f.name not in seen_names:
+                    seen_names.add(f.name)
+                    dest_name = f"size_guide_{f.name}"
+                    dest_path = product_dir / dest_name
+                    try:
+                        shutil.copy(str(f), str(dest_path))
+                        web_paths.append(f"/products/{product_slug}/{dest_name}")
+                    except Exception as e:
+                        log(f"  [!] Error copying size chart {f.name}: {e}")
     return web_paths
 
 
@@ -230,7 +407,8 @@ def parse_sizes_from_info(size_info):
 
 
 def copy_images_to_public(images, product_slug, color_slug):
-    """Copy generated images to the Next.js public/products/ directory."""
+    """Copy generated images and flat lay photos to the Next.js public/products/ directory.
+    Handles mixed file extensions (.png for AI model shots, .jpg for source flat lays)."""
     product_img_dir = PUBLIC_DIR / product_slug / color_slug
     product_img_dir.mkdir(parents=True, exist_ok=True)
     
@@ -268,7 +446,7 @@ def copy_source_images_to_public(source_images, product_slug):
 
 
 COLOR_HEX_MAP = {
-    "black": "#000000", "white": "#FFFFFF", "red": "#C41E3A",
+    "black": "#111111", "white": "#FFFFFF", "red": "#C41E3A",
     "blue": "#2563EB", "green": "#16A34A", "grey": "#6B7280",
     "gray": "#6B7280", "navy": "#1E3A5F", "beige": "#D4C5A9",
     "cream": "#FFFDD0", "brown": "#8B4513", "khaki": "#C3B091",
@@ -279,6 +457,18 @@ COLOR_HEX_MAP = {
     "coral": "#FF6F61", "mint": "#98FB98", "lavender": "#E6E6FA",
     "wine": "#722F37", "sand": "#C2B280", "mocha": "#967969",
     "coffee": "#6F4E37", "apricot": "#FBCEB1",
+    "light blue": "#60A5FA", "emerald green": "#50C878", "emerald": "#50C878",
+    "tree camo": "#4A5D23", "camo brown": "#8B7355", "camo": "#556B2F",
+    "forest": "#228B22", "slate": "#708090", "steel": "#71797E",
+    "midnight": "#191970", "ash": "#B2BEB5", "graphite": "#41424C",
+    "silver": "#C0C0C0", "bone": "#E3DAC9", "stone": "#928E85",
+    "army green": "#4B5320", "army_green": "#4B5320",
+    "dark blue": "#0F172A", "dark_blue": "#0F172A", "navy blue": "#1E3A8A", "navy_blue": "#1E3A8A",
+    "dark gray": "#334155", "dark_gray": "#334155", "dark grey": "#334155", "dark_grey": "#334155",
+    "deep red": "#800020", "deep_red": "#800020",
+    "wine red": "#701A75", "wine_red": "#701A75",
+    "tangerine red": "#EA580C", "tangerine_red": "#EA580C",
+    "off-white": "#F8FAFC", "off_white": "#F8FAFC", "offwhite": "#F8FAFC",
 }
 
 
@@ -476,18 +666,38 @@ def check_and_register_outfit(campaign_dir, final_products):
 
 
 def scan_and_upload():
-    """Main function: scan OUTPUT_READY_FOR_SALE and upload to storefront."""
-    if not READY_DIR.exists():
-        log("No OUTPUT_READY_FOR_SALE directory found.")
-        return
+    """Main function: scan OUTPUT_READY_FOR_SALE and MANUAL_CURATION and upload to storefront."""
+    campaigns = []
+    if READY_DIR.exists():
+        campaigns.extend([d for d in READY_DIR.iterdir() if d.is_dir()])
     
-    campaigns = [d for d in READY_DIR.iterdir() if d.is_dir()]
     if not campaigns:
         log("No campaigns to upload.")
         return
     
     uploaded = get_uploaded_log()
-    uploaded_names = set(uploaded)
+    
+    uploaded_names = set()
+    uploaded_product_ids = set()
+    for item in uploaded:
+        if isinstance(item, dict):
+            if "name" in item:
+                uploaded_names.add(item["name"])
+            if "product_id" in item:
+                uploaded_product_ids.add(item["product_id"])
+        else:
+            uploaded_names.add(item)
+            c_dir = READY_DIR / item
+            if c_dir.exists():
+                c_info = c_dir / "campaign_info.json"
+                if c_info.exists():
+                    try:
+                        ci = json.loads(c_info.read_text(encoding="utf-8"))
+                        pid = ci.get("product_id")
+                        if pid:
+                            uploaded_product_ids.add(pid)
+                    except Exception:
+                        pass
     
     # Load existing products from storefront
     existing_products, collections_raw, outfits_raw = load_current_products()
@@ -497,6 +707,16 @@ def scan_and_upload():
     for campaign_dir in campaigns:
         if campaign_dir.name in uploaded_names:
             continue
+            
+        campaign_info_file = campaign_dir / "campaign_info.json"
+        if campaign_info_file.exists():
+            try:
+                ci = json.loads(campaign_info_file.read_text(encoding="utf-8"))
+                pid = ci.get("product_id", "")
+                if pid and pid in uploaded_product_ids:
+                    continue
+            except Exception:
+                pass
         
         meta = extract_metadata_from_campaign(campaign_dir)
         if not meta["images"]:
@@ -522,16 +742,20 @@ def scan_and_upload():
         link = meta["link"] or ""
         part = meta.get("part")  # "top", "bottom", or None
         
-        # Group key is ALWAYS the base product name — sets stay as one listing
+        # Group key uses the RAW name for internal grouping (so same raw product = same group)
         if meta["product_name"]:
-            group_key = slugify(meta["product_name"])
+            raw_group_key = slugify(meta["product_name"])
         else:
-            group_key = f"product-{hashlib.md5(campaign_dir.name.encode()).hexdigest()[:8]}"
+            raw_group_key = f"product-{hashlib.md5(campaign_dir.name.encode()).hexdigest()[:8]}"
         
-        if group_key not in product_groups:
-            product_groups[group_key] = {
-                "name": meta["product_name"] or f"Product {len(product_groups) + 1}",
-                "slug": group_key,
+        if raw_group_key not in product_groups:
+            clean_name = clean_product_title(meta["product_name"])
+            # Public slug uses CLEAN name + hash to prevent brand leaks in URLs
+            hash_suffix = hashlib.md5(raw_group_key.encode()).hexdigest()[:6]
+            public_slug = f"{slugify(clean_name)}-{hash_suffix}"
+            product_groups[raw_group_key] = {
+                "name": clean_name,
+                "slug": public_slug,
                 "link": link,
                 "is_set": meta.get("is_set", False),
                 "set_partner": meta.get("set_partner"),
@@ -540,9 +764,17 @@ def scan_and_upload():
         
         # If ANY variant is a set, mark the whole group as a set
         if meta.get("is_set"):
-            product_groups[group_key]["is_set"] = True
+            product_groups[raw_group_key]["is_set"] = True
         
-        product_groups[group_key]["variants"].append((campaign_dir, meta))
+        # Keyword-based set detection from product name
+        set_keywords = ["hoodie trousers", "hoodie & trousers", "hoodie and trousers",
+                        "hoodie pants", "tracksuit", "top bottom", "jacket pants",
+                        "sweatshirt trousers", "hoodie jogger", "hoodie cargo", "hoodie short", "set"]
+        name_lower = (product_groups[raw_group_key]["name"] or "").lower()
+        if any(kw in name_lower for kw in set_keywords):
+            product_groups[raw_group_key]["is_set"] = True
+        
+        product_groups[raw_group_key]["variants"].append((campaign_dir, meta))
     
     # Build product entries
     final_products = list(existing_products)  # Start with existing products
@@ -562,7 +794,7 @@ def scan_and_upload():
         
         # We need the first meta to extract category/price/sizes
         first_meta = group["variants"][0][1]
-        raw_price = first_meta.get("price", 0)
+        raw_price = first_meta.get("price_cny") or first_meta.get("price", 0)
         currency = first_meta.get("currency", "CNY")
         
         try:
@@ -583,20 +815,34 @@ def scan_and_upload():
             price_res = calculate_final_price(raw_price, currency)
             sell_price = round(price_res["final_usd"])
             
-            # Floor: never sell below $29 (accessories/hats), T-shirts are $31 minimum, Jackets are exactly $89
+            # Floor prices only — prevent selling at a loss, but NEVER override upward
             category_str = (first_meta.get("category") or "").lower()
             name_str = (first_meta.get("product_name") or group["name"] or "").lower()
             is_tshirt = "tee" in name_str or "t-shirt" in name_str or "shirt" in name_str or "t恤" in name_str or "top" in category_str
             is_jacket = "jacket" in name_str or "coat" in name_str or "puffer" in name_str or "outerwear" in category_str
+            is_set = group.get("is_set", False)
             
-            if is_jacket:
-                sell_price = 89
+            if is_set:
+                sell_price = max(sell_price, 69)   # Sets floor: $69
+            elif is_jacket:
+                sell_price = max(sell_price, 59)   # Jacket floor: $59
             elif is_tshirt and not any(k in name_str for k in ("hoodie", "sweatshirt", "jacket", "coat", "puffer")):
-                sell_price = max(sell_price, 31)
+                sell_price = max(sell_price, 39)   # Tee floor: $39
             else:
-                sell_price = max(sell_price, 29)
+                sell_price = max(sell_price, 29)   # Accessories/other floor: $29
         else:
-            sell_price = 89  # Default when no price is known
+            # No source price available — estimate based on garment type
+            name_str = (first_meta.get("product_name") or group["name"] or "").lower()
+            if group.get("is_set", False) or ("hoodie" in name_str and ("trousers" in name_str or "pants" in name_str)):
+                sell_price = 129  # Sets default
+            elif "jacket" in name_str or "coat" in name_str:
+                sell_price = 109  # Jackets default
+            elif "hoodie" in name_str or "sweatshirt" in name_str:
+                sell_price = 79   # Hoodies default
+            elif "tee" in name_str or "t-shirt" in name_str or "shirt" in name_str:
+                sell_price = 49   # Tees default
+            else:
+                sell_price = 69   # General default
         
         # Map category to new aesthetic collections
         cat_lower = (first_meta.get("category") or "").lower()
@@ -614,10 +860,16 @@ def scan_and_upload():
         # Non-sets: each variant is its own color swatch (existing behavior)
         color_buckets = {}  # color_name -> {"images": [], "hex": str}
         
+        NON_COLOR_KEYS = {"group_shots", "group shots", "size_chart", "size_charts", "details", "detail"}
         for campaign_dir, meta in group["variants"]:
             color_name = meta["color"] or "Default"
+            color_clean = color_name.replace("_", " ").strip()
+            
+            # Skip non-color buckets from becoming a color swatch option
+            is_non_color = color_clean.lower() in NON_COLOR_KEYS
+            
             color_slug = slugify(color_name)
-            color_hex = COLOR_HEX_MAP.get(color_name.lower(), "#888888")
+            color_hex = COLOR_HEX_MAP.get(color_clean.lower(), "#888888")
             part = meta.get("part")
             
             # Copy images to public dir
@@ -633,29 +885,43 @@ def scan_and_upload():
             if charts:
                 size_chart_paths.extend(charts)
             
+            if is_non_color:
+                if web_paths:
+                    all_images.extend(web_paths)
+                pid = meta.get("product_id", "")
+                if pid:
+                    uploaded.append({"name": campaign_dir.name, "product_id": pid})
+                else:
+                    uploaded.append(campaign_dir.name)
+                continue
+
             # Merge images by color — top images first, then bottom
-            if color_name not in color_buckets:
-                color_buckets[color_name] = {"images": [], "hex": color_hex, "parts": []}
+            if color_clean not in color_buckets:
+                color_buckets[color_clean] = {"images": [], "hex": color_hex, "parts": []}
             
             # Sort order: top images come before bottom images
             if part and part.lower() == "top":
-                color_buckets[color_name]["images"] = web_paths + color_buckets[color_name]["images"]
-                color_buckets[color_name]["parts"].insert(0, "top")
+                color_buckets[color_clean]["images"] = web_paths + color_buckets[color_clean]["images"]
+                color_buckets[color_clean]["parts"].insert(0, "top")
             else:
-                color_buckets[color_name]["images"].extend(web_paths)
+                color_buckets[color_clean]["images"].extend(web_paths)
                 if part:
-                    color_buckets[color_name]["parts"].append(part)
+                    color_buckets[color_clean]["parts"].append(part)
             
             if not all_images:
                 all_images = web_paths
             
             # Mark as uploaded
-            uploaded.append(campaign_dir.name)
+            pid = meta.get("product_id", "")
+            if pid:
+                uploaded.append({"name": campaign_dir.name, "product_id": pid})
+            else:
+                uploaded.append(campaign_dir.name)
         
         # Build final colors list from merged buckets
         for color_name, bucket in color_buckets.items():
             colors.append({
-                "name": color_name,
+                "name": color_name.title(),
                 "hex": bucket["hex"],
                 "images": bucket["images"]
             })
@@ -673,10 +939,9 @@ def scan_and_upload():
                 all_source_web_paths.extend(src_paths)
         
         if existing_idx is not None:
-            # Merge into existing product (add new colors/images)
-            for new_c in colors:
-                if not any(c["name"] == new_c["name"] for c in final_products[existing_idx].get("colors", [])):
-                    final_products[existing_idx].setdefault("colors", []).append(new_c)
+            # Update product colors with fresh campaign color swatches
+            if colors:
+                final_products[existing_idx]["colors"] = colors
             # If it only had default images before, update the main image array
             if not final_products[existing_idx].get("images") and all_images:
                  final_products[existing_idx]["images"] = all_images
@@ -706,11 +971,11 @@ def scan_and_upload():
                 "category": ui_category,
                 "badge": "Set" if group.get("is_set") else "New Drop",
                 "isSet": group.get("is_set", False),
-                "description": first_meta.get("description") or f"Curated piece: {group['name']}. Heavyweight construction, deconstructed silhouette.",
+                "description": clean_product_description(first_meta.get("description", ""), group["name"]),
                 "material": first_meta.get("material", ""),
                 "care": first_meta.get("care_instructions", ""),
                 "modelInfo": first_meta.get("model_info", ""),
-                "brand": first_meta.get("brand_name", ""),
+                "brand": "OBSCURA",  # Always use our brand on storefront — never expose supplier brands
                 "sizes": parsed_sizes,
                 "sizeGuide": first_meta.get("measurements", {}),
                 "images": all_images,

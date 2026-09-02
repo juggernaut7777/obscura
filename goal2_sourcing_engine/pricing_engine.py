@@ -94,6 +94,32 @@ def calculate_final_price(price, currency="CNY"):
             "margin_tier": margin_mult
         }
 
+DDP_SHIPPING_PER_KG_USD = 12.00  # $12.00 per kg DDP Air Express freight
+
+
+def calculate_shipping_cost(weight_grams: float = 500.0, is_set: bool = False, piece_weights: list = None) -> dict:
+    """
+    Calculates exact DDP air freight shipping cost based on weight in grams.
+    For sets with multiple weight photos (e.g. top + pants + accessory),
+    automatically merges and sums the weights together.
+    """
+    if piece_weights and len(piece_weights) > 0:
+        total_weight = sum([float(w) for w in piece_weights if w and float(w) > 0])
+    else:
+        total_weight = float(weight_grams or 500.0)
+        
+    kg = max(0.2, total_weight / 1000.0)
+    shipping_cost_usd = round(kg * DDP_SHIPPING_PER_KG_USD, 2)
+    
+    return {
+        "total_weight_grams": round(total_weight, 1),
+        "total_weight_kg": round(kg, 3),
+        "shipping_cost_usd": shipping_cost_usd,
+        "is_set": is_set or bool(piece_weights and len(piece_weights) > 1),
+        "piece_count": len(piece_weights) if piece_weights else 1
+    }
+
+
 class PricingEngine:
     def __init__(self):
         pass
@@ -101,45 +127,49 @@ class PricingEngine:
     def calculate_final_price(self, price, currency="CNY"):
         return calculate_final_price(price, currency)
 
-    def calculate_physical_retail_price(self, supplier_cost, category="apparel"):
+    def calculate_shipping(self, weight_grams: float = 500.0, piece_weights: list = None) -> dict:
+        return calculate_shipping_cost(weight_grams=weight_grams, piece_weights=piece_weights)
+
+    def calculate_physical_retail_price(self, supplier_cost, category="apparel", weight_grams: float = 500.0):
         # Use USD flow since supplier_cost is in USD
         res = calculate_final_price(supplier_cost, "USD")
+        shipping = calculate_shipping_cost(weight_grams)
         
-        # Floor: never sell below $29 (accessories/hats), T-shirts are $31 minimum, Jackets are exactly $89
+        # Floor: never sell below $29 (accessories/hats), T-shirts are $31 minimum, Sets/Jackets are $89 minimum
         cat_lower = str(category).lower()
         sell_price = res["final_usd"]
         
-        if "jacket" in cat_lower or "coat" in cat_lower or "outerwear" in cat_lower:
+        if "set" in cat_lower or "tracksuit" in cat_lower or "jacket" in cat_lower or "coat" in cat_lower:
             sell_price = max(sell_price, 89.0)
         elif "t-shirt" in cat_lower or "tee" in cat_lower or "top" in cat_lower:
             sell_price = max(sell_price, 31.0)
+        elif "pants" in cat_lower or "trouser" in cat_lower:
+            sell_price = max(sell_price, 59.0)
         else:
             sell_price = max(sell_price, 29.0)
             
-        # Recompute net profit for adjusted price
+        # Recompute net profit including shipping buffer
         stripe_total = (sell_price * STRIPE_FEE_PERCENT) + STRIPE_FEE_FIXED
         net_profit = sell_price - supplier_cost - stripe_total - BUFFER_FEE
 
         return {
             "retail_price": round(sell_price, 2),
-            "net_profit": round(net_profit, 2)
+            "net_profit": round(net_profit, 2),
+            "shipping_details": shipping
         }
 
 
 if __name__ == "__main__":
     # Test cases
+    print("=== MULTI-PIECE SET WEIGHT & SHIPPING TEST ===")
+    set_test = calculate_shipping_cost(piece_weights=[580, 520, 100]) # top (580g) + pants (520g) + packaging (100g)
+    print(f"2-Piece Tracksuit Set: {set_test['total_weight_grams']}g ({set_test['total_weight_kg']} kg) -> Shipping: ${set_test['shipping_cost_usd']}")
+
     test_cny_prices = [50, 150, 450, 1200]
-    print("=== CNY TEST CASES ===")
+    print("\n=== CNY TEST CASES ===")
     print(f"{'CNY':<8} | {'Final USD':<12} | {'Profit':<10} | {'Tier'}")
     print("-" * 50)
     for p in test_cny_prices:
         res = calculate_final_price(p, "CNY")
         print(f"¥{p:<7} | ${res['final_usd']:<11} | ${res['profit_usd']:<9} | {res['margin_tier']}x")
-        
-    test_usd_prices = [10, 25, 60, 150]
-    print("\n=== USD TEST CASES ===")
-    print(f"{'USD':<8} | {'Final USD':<12} | {'Profit':<10} | {'Tier'}")
-    print("-" * 50)
-    for p in test_usd_prices:
-        res = calculate_final_price(p, "USD")
-        print(f"${p:<7} | ${res['final_usd']:<11} | ${res['profit_usd']:<9} | {res['margin_tier']}x")
+

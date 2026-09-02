@@ -261,7 +261,7 @@ export default function LookbookPage() {
                                         key={cIdx}
                                         className={`${styles.swatch} ${select.colorIndex === cIdx ? styles.activeSwatch : ""}`}
                                         onClick={() => handleColorChange(product.id, cIdx)}
-                                        style={{ backgroundColor: (c.hex || c.name || c).toLowerCase().replace(/ /g, '') }}
+                                        style={{ backgroundColor: typeof c === 'object' ? (c.hex || '#888') : '#888' }}
                                         title={c.name || c}
                                       />
                                     ))}

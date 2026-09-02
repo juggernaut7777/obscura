@@ -23,6 +23,12 @@ import requests as req
 from pyngrok import ngrok
 from PIL import Image
 import base64
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables
+load_dotenv(Path(__file__).parent / ".env")
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 # Force unbuffered output
 os.environ["PYTHONUNBUFFERED"] = "1"
@@ -51,6 +57,46 @@ def log(msg):
         print(full_msg.encode('ascii', 'replace').decode('ascii'), flush=True)
     with open("bridge_log.txt", "a", encoding="utf-8") as f:
         f.write(full_msg + "\n")
+
+
+def ensure_chrome_running():
+    """Auto-opens Chrome to Google Flow project if Chrome is closed or killed."""
+    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    flow_url = "https://labs.google/fx/tools/flow"
+    if not os.path.exists(chrome_path):
+        return False
+    
+    try:
+        tasks = subprocess.check_output("tasklist", shell=True).decode("utf-8", errors="ignore")
+        if "chrome.exe" not in tasks.lower():
+            log("🌐 Chrome is closed! Auto-launching Chrome Profile 4 to Google Flow project...")
+            subprocess.Popen([
+                chrome_path,
+                "--remote-debugging-port=9222",
+                "--remote-allow-origins=*",
+                "--profile-directory=Profile 4",
+                flow_url
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+    except Exception as e:
+        log(f"⚠️ Error checking/launching Chrome: {e}")
+    return False
+
+
+def chrome_watchdog_loop():
+    """Background watchdog thread: keeps Chrome open and connected to Google Flow project."""
+    while True:
+        try:
+            # Check every 15s: if token is stale (>60s) or missing, ensure Chrome is open
+            if TOKEN_NEEDED.is_set() or TOKENS["bearer"] is None or (time.time() - TOKENS["ts"]) > 60:
+                ensure_chrome_running()
+        except Exception:
+            pass
+        time.sleep(15)
+
+
+# Start background watchdog thread
+threading.Thread(target=chrome_watchdog_loop, daemon=True).start()
 
 
 def start_tunnel():
@@ -205,14 +251,15 @@ class Handler(BaseHTTPRequestHandler):
         
         elif self.path == "/generate":
             try:
-                # 1. Request fresh tokens ON-DEMAND from extension
-                log("🔄 Requesting fresh token from Chrome extension...")
-                TOKEN_EVENT.clear()   # Clear old signal
-                TOKEN_NEEDED.set()    # Tell extension we need a token NOW
-                
-                # Wait up to 15 seconds for the extension to deliver
-                got_token = TOKEN_EVENT.wait(timeout=15)
-                TOKEN_NEEDED.clear()
+                # 1. Check if we already have a valid token (within 300s) before waiting on extension
+                if not (TOKENS["bearer"] and (time.time() - TOKENS.get("ts", 0)) < 300):
+                    log("🔄 Requesting fresh token from Chrome extension...")
+                    TOKEN_EVENT.clear()   # Clear old signal
+                    TOKEN_NEEDED.set()    # Tell extension we need a token NOW
+                    
+                    # Wait up to 15 seconds for the extension to deliver
+                    got_token = TOKEN_EVENT.wait(timeout=15)
+                    TOKEN_NEEDED.clear()
                 
                 if not TOKENS["bearer"]:
                     self.send_response(503)
@@ -220,7 +267,7 @@ class Handler(BaseHTTPRequestHandler):
                     self.wfile.write(b'{"error": "Tokens are missing. Is Chrome open?"}')
                     return
                 
-                log(f"✅ Fresh token received (age: {int(time.time() - TOKENS['ts'])}s)")
+                log(f"✅ Active token ready (age: {int(time.time() - TOKENS['ts'])}s)")
 
                 # 2. Parse requested prompt
                 raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
@@ -308,33 +355,23 @@ class Handler(BaseHTTPRequestHandler):
                 force_fresh = qs.get("force", ["false"])[0].lower() == "true"
                 
             is_valid = False
-            # Check for super fresh token (within last 15 seconds) to satisfy force-refresh retry polls
-            if TOKENS["bearer"] and (time.time() - TOKENS["ts"]) < 15 and TOKENS.get("action") == req_action:
+            # Google session tokens are valid for up to 1 hour; allow up to 1800s (30m) cache
+            if TOKENS["bearer"] and (time.time() - TOKENS["ts"]) < 1800:
                 is_valid = True
             else:
                 action_data = TOKENS.get(req_action)
                 if isinstance(action_data, dict):
                     bearer = action_data.get("bearer")
                     ts = action_data.get("ts", 0)
-                    if bearer and (time.time() - ts) < 15:
+                    if bearer and (time.time() - ts) < 1800:
                         is_valid = True
-            
-            # If not already satisfied, check normal 120s cache only if force_fresh is False
-            if not is_valid and not force_fresh:
-                if TOKENS["bearer"] and (time.time() - TOKENS["ts"]) < 120 and TOKENS.get("action") == req_action:
-                    is_valid = True
-                else:
-                    action_data = TOKENS.get(req_action)
-                    if isinstance(action_data, dict):
-                        bearer = action_data.get("bearer")
-                        ts = action_data.get("ts", 0)
-                        if bearer and (time.time() - ts) < 120:
-                            is_valid = True
+
                 
             if not is_valid:
                 log(f"🔄 Tokens requested for action '{req_action}' (force={force_fresh}) but stale/missing/forced. Signaling Chrome extension to push...")
                 REQUIRED_ACTION = req_action
                 TOKEN_NEEDED.set()
+                ensure_chrome_running()
                 self.send_response(503)
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Content-Type", "application/json")
@@ -348,7 +385,7 @@ class Handler(BaseHTTPRequestHandler):
                 resp_bearer = action_data["bearer"]
                 resp_recaptcha = action_data["recaptcha"]
                 resp_user = action_data["user"]
-                resp_pid = action_data["projectId"]
+                resp_pid = action_data.get("projectId") or TOKENS.get("projectId")
                 resp_age = int(time.time() - action_data["ts"])
             else:
                 resp_bearer = TOKENS["bearer"]
@@ -438,13 +475,16 @@ def download_reference_image(url):
         return None, None
 
 
-# Aspect ratio mapping
 ASPECT_MAP = {
     "PORTRAIT_THREE_FOUR": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
     "LANDSCAPE_FOUR_THREE": "IMAGE_ASPECT_RATIO_LANDSCAPE_FOUR_THREE",
     "SQUARE": "IMAGE_ASPECT_RATIO_SQUARE",
-    "PORTRAIT_NINE_SIXTEEN": "IMAGE_ASPECT_RATIO_PORTRAIT_NINE_SIXTEEN",
+    "PORTRAIT_NINE_SIXTEEN": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
     "LANDSCAPE_SIXTEEN_NINE": "IMAGE_ASPECT_RATIO_LANDSCAPE_SIXTEEN_NINE",
+    "9:16": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
+    "3:4": "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
+    "1:1": "IMAGE_ASPECT_RATIO_SQUARE",
+    "16:9": "IMAGE_ASPECT_RATIO_LANDSCAPE_SIXTEEN_NINE",
 }
 
 UPLOAD_URL = "https://aisandbox-pa.googleapis.com/v1/flow/uploadImage"
@@ -517,27 +557,31 @@ def generate_image(bearer, recaptcha, prompt, reference_url="", aspect="PORTRAIT
     aspect_value = ASPECT_MAP.get(aspect, "IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR")
     
     # Build request - include imageInputs only if we have references
-    request_obj = {
-        "clientContext": ctx, "imageModelName": "GEM_PIX_2",
-        "imageAspectRatio": aspect_value,
-        "structuredPrompt": {"parts": prompt_parts},
-        "seed": random.randint(0, 999999),
-    }
-    if image_inputs:
-        request_obj["imageInputs"] = image_inputs
+    requests_list = []
+    for _ in range(4):
+        req_obj = {
+            "clientContext": ctx, 
+            "imageModelName": "GEM_PIX_2",
+            "imageAspectRatio": aspect_value,
+            "structuredPrompt": {"parts": prompt_parts},
+            "seed": random.randint(0, 999999),
+        }
+        if image_inputs:
+            req_obj["imageInputs"] = image_inputs
+        requests_list.append(req_obj)
     
     payload = {
         "clientContext": ctx,
         "mediaGenerationContext": {"batchId": str(uuid.uuid4())},
         "useNewMedia": True,
-        "requests": [request_obj],
+        "requests": requests_list,
     }
     url = f"https://aisandbox-pa.googleapis.com/v1/projects/{pid}/flowMedia:batchGenerateImages"
     headers = {
         "Authorization": f"Bearer {bearer}",
         "Content-Type": "text/plain;charset=UTF-8",
         "Accept": "*/*",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         "Origin": "https://labs.google",
         "Referer": "https://labs.google/",
         "X-Goog-Api-Client": "gl-js/1.53.0",
@@ -697,7 +741,7 @@ def main():
         site_key = ""
 
     snippet = f"""(async function() {{
-    const pid = window.location.href.split('/project/')[1]?.split('/')[0];
+    const pid = window.location.href.match(/([a-f0-9]{{8}}-[a-f0-9]{{4}}-[a-f0-9]{{4}}-[a-f0-9]{{4}}-[a-f0-9]{{12}})/i)?.[1] || "NOT_FOUND";
     const auth = await (await fetch('/fx/api/auth/session', {{credentials:'include'}})).json();
     const rc = await grecaptcha.enterprise.execute('{site_key}', {{action:'IMAGE_GENERATION'}});
     await fetch('http://localhost:9877/push', {{method:'POST', headers:{{'Content-Type':'application/json'}},

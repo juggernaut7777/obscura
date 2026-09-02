@@ -30,13 +30,11 @@ class LiteLLMRouter:
 
         model_list = []
 
-        # ─── 1. GOOGLE GEMINI KEYS (Multiplexed) ───
-        # Gather all Gemini keys from environment variables matching GEMINI_API_KEY*
+        # ─── 1. GOOGLE GEMINI KEYS (Each key = separate project = separate quota) ───
         gemini_keys = [
             val for key, val in os.environ.items() 
             if key.startswith("GEMINI_API_KEY")
         ]
-        # Filter out duplicates and empty keys
         seen_keys = set()
         unique_gemini_keys = []
         for k in gemini_keys:
@@ -44,57 +42,124 @@ class LiteLLMRouter:
                 seen_keys.add(k)
                 unique_gemini_keys.append(k)
 
-        # Register each Gemini key with MULTIPLE models to maximize total RPM throughput
         for i, api_key in enumerate(unique_gemini_keys):
-            # --- 1a. Generic Aliases (for load-balancing across generations) ---
-            # gemini-lite maps to both 2.5-lite and 3.1-lite
+            # ═══════════════════════════════════════════════════════════════
+            # 1a. GENERIC ALIASES (load-balance across model generations)
+            # ═══════════════════════════════════════════════════════════════
+
+            # gemini-lite → fast flash-lite models (30 RPM each across 6 keys = 180 RPM!)
+            for lite_model, lite_rpm in [
+                ("gemini-3.5-flash-lite", 30),
+                ("gemini-2.5-flash-lite", 15),
+                ("gemini-2.5-flash", 10),
+            ]:
+                model_list.append({
+                    "model_name": "gemini-lite",
+                    "litellm_params": {
+                        "model": f"gemini/{lite_model}",
+                        "api_key": api_key,
+                        "rpm": lite_rpm
+                    }
+                })
+
+            # gemini-flash → mainline flash models (15 RPM each across 6 keys = 90 RPM!)
+            for flash_model, flash_rpm in [
+                ("gemini-3.5-flash", 15),
+                ("gemini-3.6-flash", 15),
+                ("gemini-2.5-flash", 10),
+            ]:
+                model_list.append({
+                    "model_name": "gemini-flash",
+                    "litellm_params": {
+                        "model": f"gemini/{flash_model}",
+                        "api_key": api_key,
+                        "rpm": flash_rpm
+                    }
+                })
+
+            # gemini-pro → pro-tier models for complex reasoning
+            for pro_model, pro_rpm in [
+                ("gemini-2.5-pro", 5),
+                ("gemini-1.5-pro", 2),
+            ]:
+                model_list.append({
+                    "model_name": "gemini-pro",
+                    "litellm_params": {
+                        "model": f"gemini/{pro_model}",
+                        "api_key": api_key,
+                        "rpm": pro_rpm
+                    }
+                })
+
+
+
+            # gemini-image → models with native image generation
+            for img_model, img_rpm in [
+                ("gemini-3.1-flash-image", 10),
+                ("gemini-3.1-flash-lite-image", 10),
+                ("gemini-3-pro-image", 5),
+                ("gemini-2.5-flash-image", 5),
+            ]:
+                model_list.append({
+                    "model_name": "gemini-image",
+                    "litellm_params": {
+                        "model": f"gemini/{img_model}",
+                        "api_key": api_key,
+                        "rpm": img_rpm
+                    }
+                })
+
+            # ═══════════════════════════════════════════════════════════════
+            # 1b. SPECIFIC MODEL TARGETS (direct routing & fallback chains)
+            # ═══════════════════════════════════════════════════════════════
+
+            # ── FLASH MODELS (Text/Vision/Reasoning) ──
             model_list.append({
-                "model_name": "gemini-lite",
+                "model_name": "gemini-3.5-flash",
                 "litellm_params": {
-                    "model": "gemini/gemini-2.5-flash-lite",
+                    "model": "gemini/gemini-3.5-flash",
+                    "api_key": api_key,
+                    "rpm": 15
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-3.6-flash",
+                "litellm_params": {
+                    "model": "gemini/gemini-3.6-flash",
+                    "api_key": api_key,
+                    "rpm": 15
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-2.5-flash",
+                "litellm_params": {
+                    "model": "gemini/gemini-2.5-flash",
                     "api_key": api_key,
                     "rpm": 10
                 }
             })
             model_list.append({
-                "model_name": "gemini-lite",
+                "model_name": "gemini-1.5-flash",
                 "litellm_params": {
-                    "model": "gemini/gemini-3.1-flash-lite",
+                    "model": "gemini/gemini-1.5-flash",
                     "api_key": api_key,
                     "rpm": 15
                 }
             })
-            # gemini-flash maps to 2.5, 3.5, and 3-preview
-            model_list.append({
-                "model_name": "gemini-flash",
-                "litellm_params": {
-                    "model": "gemini/gemini-2.5-flash",
-                    "api_key": api_key,
-                    "rpm": 5
-                }
-            })
-            model_list.append({
-                "model_name": "gemini-flash",
-                "litellm_params": {
-                    "model": "gemini/gemini-3.5-flash",
-                    "api_key": api_key,
-                    "rpm": 5
-                }
-            })
-            model_list.append({
-                "model_name": "gemini-flash",
-                "litellm_params": {
-                    "model": "gemini/gemini-3-flash-preview",
-                    "api_key": api_key,
-                    "rpm": 5
-                }
-            })
 
-            # --- 1b. Specific Model Targets (for direct or fallback routing) ---
+            # ── FLASH-LITE MODELS (High RPM workhorses) ──
             model_list.append({
-                "model_name": "gemini-3.1-flash-lite",
+                "model_name": "gemini-3.5-flash-lite",
                 "litellm_params": {
-                    "model": "gemini/gemini-3.1-flash-lite",
+                    "model": "gemini/gemini-3.5-flash-lite",
+                    "api_key": api_key,
+                    "rpm": 30
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-2.5-flash-lite",
+                "litellm_params": {
+                    "model": "gemini/gemini-2.5-flash-lite",
                     "api_key": api_key,
                     "rpm": 15
                 }
@@ -104,33 +169,134 @@ class LiteLLMRouter:
                 "litellm_params": {
                     "model": "gemini/gemini-2.5-flash-lite",
                     "api_key": api_key,
+                    "rpm": 15
+                }
+            })
+
+            # ── PRO MODELS (Complex reasoning, deep analysis) ──
+            model_list.append({
+                "model_name": "gemini-2.5-pro",
+                "litellm_params": {
+                    "model": "gemini/gemini-2.5-pro",
+                    "api_key": api_key,
+                    "rpm": 5
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-1.5-pro",
+                "litellm_params": {
+                    "model": "gemini/gemini-1.5-pro",
+                    "api_key": api_key,
+                    "rpm": 5
+                }
+            })
+
+
+            # ── IMAGE GENERATION MODELS ──
+            model_list.append({
+                "model_name": "gemini-3.1-flash-image",
+                "litellm_params": {
+                    "model": "gemini/gemini-3.1-flash-image",
+                    "api_key": api_key,
                     "rpm": 10
                 }
             })
             model_list.append({
-                "model_name": "gemini-3.5-flash",
+                "model_name": "gemini-3.1-flash-lite-image",
                 "litellm_params": {
-                    "model": "gemini/gemini-3.5-flash",
+                    "model": "gemini/gemini-3.1-flash-lite-image",
+                    "api_key": api_key,
+                    "rpm": 10
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-3-pro-image",
+                "litellm_params": {
+                    "model": "gemini/gemini-3-pro-image",
                     "api_key": api_key,
                     "rpm": 5
                 }
             })
             model_list.append({
-                "model_name": "gemini-3-flash-preview",
+                "model_name": "nano-banana-pro",
                 "litellm_params": {
-                    "model": "gemini/gemini-3-flash-preview",
+                    "model": "gemini/nano-banana-pro-preview",
                     "api_key": api_key,
                     "rpm": 5
                 }
             })
             model_list.append({
-                "model_name": "gemini-2.5-flash",
+                "model_name": "gemini-2.5-flash-image",
                 "litellm_params": {
-                    "model": "gemini/gemini-2.5-flash",
+                    "model": "gemini/gemini-2.5-flash-image",
                     "api_key": api_key,
                     "rpm": 5
                 }
             })
+
+            # ── OMNI / VIDEO / AUDIO MODELS ──
+            model_list.append({
+                "model_name": "gemini-omni-flash",
+                "litellm_params": {
+                    "model": "gemini/gemini-omni-flash-preview",
+                    "api_key": api_key,
+                    "rpm": 5
+                }
+            })
+
+            # ── TTS MODELS (Text-to-Speech) ──
+            model_list.append({
+                "model_name": "gemini-3.1-tts",
+                "litellm_params": {
+                    "model": "gemini/gemini-3.1-flash-tts-preview",
+                    "api_key": api_key,
+                    "rpm": 10
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-2.5-flash-tts",
+                "litellm_params": {
+                    "model": "gemini/gemini-2.5-flash-preview-tts",
+                    "api_key": api_key,
+                    "rpm": 10
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-2.5-pro-tts",
+                "litellm_params": {
+                    "model": "gemini/gemini-2.5-pro-preview-tts",
+                    "api_key": api_key,
+                    "rpm": 5
+                }
+            })
+
+            # ── LATEST AUTO-ALIASES (always point to newest stable) ──
+            model_list.append({
+                "model_name": "gemini-flash-latest",
+                "litellm_params": {
+                    "model": "gemini/gemini-flash-latest",
+                    "api_key": api_key,
+                    "rpm": 10
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-flash-lite-latest",
+                "litellm_params": {
+                    "model": "gemini/gemini-flash-lite-latest",
+                    "api_key": api_key,
+                    "rpm": 15
+                }
+            })
+            model_list.append({
+                "model_name": "gemini-pro-latest",
+                "litellm_params": {
+                    "model": "gemini/gemini-pro-latest",
+                    "api_key": api_key,
+                    "rpm": 2
+                }
+            })
+
+            # ── GEMMA OPEN MODELS (15 RPM, strong reasoning) ──
             model_list.append({
                 "model_name": "gemma-4-31b",
                 "litellm_params": {
@@ -152,33 +318,43 @@ class LiteLLMRouter:
         groq_key = os.getenv("GROQ_API_KEY")
         if groq_key:
             model_list.append({
-                "model_name": "groq-llama-70b",
+                "model_name": "groq-qwen-27b",
                 "litellm_params": {
-                    "model": "groq/llama-3.3-70b-versatile",
+                    "model": "groq/qwen/qwen3.6-27b",
                     "api_key": groq_key,
                     "rpm": 30
                 }
             })
             model_list.append({
-                "model_name": "groq-llama-8b",
+                "model_name": "groq-gpt-oss-20b",
                 "litellm_params": {
-                    "model": "groq/llama-3.1-8b-instant",
+                    "model": "groq/openai/gpt-oss-20b",
                     "api_key": groq_key,
                     "rpm": 30
                 }
             })
             model_list.append({
-                "model_name": "groq-llama-4-scout",
+                "model_name": "groq-gpt-oss-20b-2",
                 "litellm_params": {
-                    "model": "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+                    "model": "groq/openai/gpt-oss-20b",
                     "api_key": groq_key,
                     "rpm": 30
                 }
             })
 
-        # ─── 2b. CEREBRAS KEYS (Highest priority for free limits) ───
+        # ─── 2b. CEREBRAS KEYS (Highest priority — 1M tokens/day FREE, 2600+ TPS) ───
         cerebras_key = os.getenv("CEREBRAS_API_KEY")
         if cerebras_key:
+            # Llama 4 Scout: 2600+ tokens/sec — THE fastest free inference model
+            model_list.append({
+                "model_name": "cerebras-gpt-oss-120b-2",
+                "litellm_params": {
+                    "model": "cerebras/gpt-oss-120b",
+                    "api_key": cerebras_key,
+                    "rpm": 30
+                }
+            })
+            # Llama 3.3 70B on Cerebras — fast & capable for classification/reasoning
             model_list.append({
                 "model_name": "cerebras-gpt-oss-120b",
                 "litellm_params": {
@@ -188,11 +364,39 @@ class LiteLLMRouter:
                 }
             })
             model_list.append({
-                "model_name": "cerebras-zai-glm-4.7",
+                "model_name": "cerebras-gpt-oss-120b",
                 "litellm_params": {
-                    "model": "cerebras/zai-glm-4.7",
+                    "model": "cerebras/gpt-oss-120b",
                     "api_key": cerebras_key,
                     "rpm": 30
+                }
+            })
+            model_list.append({
+                "model_name": "cerebras-gemma-4-31b",
+                "litellm_params": {
+                    "model": "cerebras/gemma-4-31b",
+                    "api_key": cerebras_key,
+                    "rpm": 30
+                }
+            })
+
+        # ─── 2c. SAMBANOVA KEYS ($5 free credits, 400+ TPS on Llama 405B) ───
+        sambanova_key = os.getenv("SAMBANOVA_API_KEY")
+        if sambanova_key:
+            model_list.append({
+                "model_name": "sambanova-llama-4-maverick",
+                "litellm_params": {
+                    "model": "sambanova/Llama-4-Maverick-17B-128E-Instruct",
+                    "api_key": sambanova_key,
+                    "rpm": 50
+                }
+            })
+            model_list.append({
+                "model_name": "sambanova-llama",
+                "litellm_params": {
+                    "model": "sambanova/Meta-Llama-3.3-70B-Instruct",
+                    "api_key": sambanova_key,
+                    "rpm": 50
                 }
             })
 
@@ -200,17 +404,27 @@ class LiteLLMRouter:
         openrouter_key = os.getenv("OPENROUTER_API_KEY")
         if openrouter_key:
             model_list.append({
-                "model_name": "openrouter-gemini-free",
+                "model_name": "openrouter-free",
                 "litellm_params": {
-                    "model": "openrouter/google/gemini-2.5-flash-preview:free",
-                    "api_key": openrouter_key
+                    "model": "openrouter/openrouter/auto",
+                    "api_key": openrouter_key,
+                    "rpm": 20
                 }
             })
             model_list.append({
-                "model_name": "openrouter-llama-free",
+                "model_name": "openrouter-nemotron-free",
                 "litellm_params": {
-                    "model": "openrouter/meta-llama/llama-3.3-70b-instruct:free",
-                    "api_key": openrouter_key
+                    "model": "openrouter/nvidia/nemotron-3-ultra:free",
+                    "api_key": openrouter_key,
+                    "rpm": 20
+                }
+            })
+            model_list.append({
+                "model_name": "openrouter-gemma-free",
+                "litellm_params": {
+                    "model": "openrouter/google/gemma-2-9b-it:free",
+                    "api_key": openrouter_key,
+                    "rpm": 20
                 }
             })
 
@@ -292,11 +506,11 @@ class LiteLLMRouter:
         # Warn about missing providers that could be added for free
         missing = []
         if not os.getenv("CEREBRAS_API_KEY"):
-            missing.append("Cerebras (cloud.cerebras.ai - 1M tok/day FREE)")
+            missing.append("Cerebras (cloud.cerebras.ai - 1M tok/day FREE, 2600+ TPS)")
         if not os.getenv("SAMBANOVA_API_KEY"):
-            missing.append("SambaNova (cloud.sambanova.ai - $5 free)")
+            missing.append("SambaNova (cloud.sambanova.ai - $5 free, 400+ TPS on 405B)")
         if missing:
-            print(f"[LITELLM] Missing free providers: {', '.join(missing)}")
+            print(f"[LITELLM] [!] Missing free providers: {', '.join(missing)}")
 
         # Store registered models for fallback filtering
         self._registered_models = registered_models
@@ -328,29 +542,57 @@ class LiteLLMRouter:
             full_messages.append({"role": "system", "content": system_instruction})
         full_messages.extend(messages)
 
-        # Logical fallback chains for zero-budget quota protection
-        # Only include models that are actually registered (have valid API keys)
-        all_fallbacks = [
-            "cerebras-gpt-oss-120b",     # Highest free limits
-            "cerebras-zai-glm-4.7",
-            "groq-llama-70b",         # High speed, separate limits
-            "gemini-3.1-flash-lite",  # New generation models
-            "gemini-lite",            # Load-balancing lite models
-            "gemma-4-31b",
-            "gemma-4-26b",
-            "gemini-3-flash-preview",
-            "gemini-3.5-flash",
-            "gemini-flash",           # Load-balancing flash models
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-flash",
-            "groq-llama-4-scout",     # New groq model
-            "grok-2",                 # xAI grok
-            "deepseek-chat",          # DeepSeek chat
-            "nvidia-nemotron",
-            "openrouter-gemini-free",
-            "nvidia-llama-maverick",
-            "groq-llama-8b"
-        ]
+        # Check if messages contain image_url (Vision task)
+        has_images = any(
+            isinstance(m.get("content"), list) and any(isinstance(item, dict) and item.get("type") == "image_url" for item in m.get("content", []))
+            for m in full_messages
+        )
+
+        if has_images:
+            all_fallbacks = [
+                "gemini-flash",
+                "gemini-lite",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-2.5-flash",
+                "gemini-1.5-flash",
+                "gemini-2.5-pro",
+                "nvidia-llama-vision",
+                "openrouter-free"
+            ]
+        else:
+            all_fallbacks = [
+                # ── Fast free inference ──
+                "cerebras-gpt-oss-120b-2",
+                "cerebras-gpt-oss-120b",
+                "cerebras-gpt-oss-120b",
+                "cerebras-gemma-4-31b",
+                "sambanova-llama-4-maverick",
+                "sambanova-llama",
+                "groq-gpt-oss-20b-2",
+                "groq-qwen-27b",
+                # ── Gemini Lite (high RPM) ──
+                "gemini-lite",
+                "gemini-2.5-flash-lite",
+                "gemini-2.5-flash-lite",
+                "gemini-1.5-flash",
+                # ── Gemini Flash ──
+                "gemini-flash",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash",
+                # ── Gemini Pro ──
+                "gemini-pro",
+                "gemini-2.5-pro",
+                "gemini-1.5-pro",
+                # ── Other providers ──
+                "grok-2",
+                "deepseek-chat",
+                "nvidia-nemotron",
+                "openrouter-free",
+                "openrouter-nemotron-free",
+                "nvidia-llama-maverick",
+                "groq-gpt-oss-20b"
+            ]
 
         # Filter: only keep fallbacks that have valid API keys registered
         fallbacks = [f for f in all_fallbacks if f in self._registered_models]
@@ -358,6 +600,7 @@ class LiteLLMRouter:
         # Remove primary model from fallbacks if it's already in there
         if primary_model in fallbacks:
             fallbacks.remove(primary_model)
+
 
         # Call with fallback parameters
         try:
@@ -408,31 +651,62 @@ class LiteLLMRouter:
             full_messages.append({"role": "system", "content": system_instruction})
         full_messages.extend(messages)
 
-        all_fallbacks = [
-            "cerebras-gpt-oss-120b",
-            "cerebras-zai-glm-4.7",
-            "groq-llama-70b",
-            "gemini-3.1-flash-lite",
-            "gemini-lite",
-            "gemma-4-31b",
-            "gemma-4-26b",
-            "gemini-3-flash-preview",
-            "gemini-3.5-flash",
-            "gemini-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-flash",
-            "groq-llama-4-scout",
-            "grok-2",
-            "deepseek-chat",
-            "nvidia-nemotron",
-            "openrouter-gemini-free",
-            "nvidia-llama-maverick",
-            "groq-llama-8b"
-        ]
+        # Check if messages contain image_url (Vision task)
+        has_images = any(
+            isinstance(m.get("content"), list) and any(isinstance(item, dict) and item.get("type") == "image_url" for item in m.get("content", []))
+            for m in full_messages
+        )
+
+        if has_images:
+            all_fallbacks = [
+                "gemini-flash",
+                "gemini-lite",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-2.5-flash",
+                "gemini-1.5-flash",
+                "gemini-2.5-pro",
+                "nvidia-llama-vision",
+                "openrouter-free"
+            ]
+        else:
+            all_fallbacks = [
+                # ── Fast free inference ──
+                "cerebras-gpt-oss-120b-2",
+                "cerebras-gpt-oss-120b",
+                "cerebras-gpt-oss-120b",
+                "cerebras-gemma-4-31b",
+                "sambanova-llama-4-maverick",
+                "sambanova-llama",
+                "groq-gpt-oss-20b-2",
+                "groq-qwen-27b",
+                # ── Gemini Lite (high RPM) ──
+                "gemini-lite",
+                "gemini-2.5-flash-lite",
+                "gemini-2.5-flash-lite",
+                "gemini-1.5-flash",
+                # ── Gemini Flash ──
+                "gemini-flash",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash",
+                # ── Gemini Pro ──
+                "gemini-pro",
+                "gemini-2.5-pro",
+                "gemini-1.5-pro",
+                # ── Other providers ──
+                "grok-2",
+                "deepseek-chat",
+                "nvidia-nemotron",
+                "openrouter-free",
+                "openrouter-nemotron-free",
+                "nvidia-llama-maverick",
+                "groq-gpt-oss-20b"
+            ]
         fallbacks = [f for f in all_fallbacks if f in self._registered_models]
 
         if primary_model in fallbacks:
             fallbacks.remove(primary_model)
+
 
         try:
             kwargs = {

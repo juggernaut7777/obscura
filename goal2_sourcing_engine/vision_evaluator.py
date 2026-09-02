@@ -7,6 +7,10 @@ import numpy as np
 from PIL import Image, ImageFilter
 from dotenv import load_dotenv
 from litellm_router import shared_router
+from utils import safe_print
+
+# Override print to ensure safe console output on Windows (cp1252)
+print = safe_print
 
 # Load .env explicitly if needed
 load_dotenv()
@@ -124,10 +128,41 @@ class VisionEvaluator:
             )
             response_text = response.choices[0].message.content.strip()
             
-            if response_text.startswith("```json"):
-                response_text = response_text[7:-3].strip()
+            if "```json" in response_text:
+                response_text = response_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in response_text:
+                response_text = response_text.split("```")[1].split("```")[0].strip()
                 
-            result = json.loads(response_text)
+            try:
+                result = json.loads(response_text, strict=False)
+            except Exception:
+                import re
+                result = {}
+                # Regex score extractions
+                for metric in ["anatomical_correctness", "garment_fidelity", "lighting_quality", 
+                               "background_complexity", "skin_realism", "overall_editorial"]:
+                    m = re.search(rf'"{metric}"\s*:\s*(\d+)', response_text)
+                    if m:
+                        result[metric] = int(m.group(1))
+                        
+                avg_m = re.search(r'"average_score"\s*:\s*([0-9.]+)', response_text)
+                if avg_m:
+                    result["average_score"] = float(avg_m.group(1))
+                elif result:
+                    scores = [v for k, v in result.items() if isinstance(v, (int, float))]
+                    result["average_score"] = round(sum(scores) / len(scores), 2)
+                    
+                pass_m = re.search(r'"passed"\s*:\s*(true|false)', response_text, re.IGNORECASE)
+                if pass_m:
+                    result["passed"] = pass_m.group(1).lower() == "true"
+                else:
+                    result["passed"] = result.get("average_score", 0) >= 6.0 and result.get("anatomical_correctness", 10) >= 5
+                    
+                reason_m = re.search(r'"reasoning"\s*:\s*"([^"]+)"', response_text)
+                result["reasoning"] = reason_m.group(1) if reason_m else response_text[:200]
+
+
+
             
             # Extract basic passed / reason for backwards compatibility
             passed = result.get("passed", False)

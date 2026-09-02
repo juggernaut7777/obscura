@@ -51,7 +51,9 @@
 
   /* Layout */
   --max-width: 1400px;
-  --header-height: 72px;
+  --header-height: 101px;
+  --nav-height: 101px;
+  --border-light: rgba(255, 255, 255, 0.08);
 
   /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);

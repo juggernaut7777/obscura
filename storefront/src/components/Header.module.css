@@ -1,6 +1,23 @@
-.header {
+.announcementBar {
+  background: linear-gradient(90deg, #0a0a0a 0%, #1c1810 50%, #0a0a0a 100%);
+  border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+  color: #c9a96e;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 7px 12px;
   position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  z-index: 102;
+}
+
+.header {
+  position: fixed;
+  top: 29px;
   left: 0;
   right: 0;
   z-index: 100;

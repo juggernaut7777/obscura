@@ -9,6 +9,21 @@ import ProductCard from "@/components/ProductCard";
 import { DEMO_PRODUCTS } from "@/data/products";
 import styles from "./page.module.css";
 
+const COLOR_HEX_MAP = {
+  "black": "#111111", "white": "#ffffff", "grey": "#64748b", "gray": "#64748b",
+  "navy": "#0f172a", "blue": "#2563eb", "red": "#dc2626", "green": "#166534",
+  "cream": "#fef3c7", "khaki": "#78350f", "camel": "#b45309", "brown": "#451a03",
+  "light_blue": "#60a5fa", "light blue": "#60a5fa", "sky_blue": "#38bdf8",
+  "army green": "#4b5320", "army_green": "#4b5320",
+  "dark blue": "#0f172a", "dark_blue": "#0f172a", "navy blue": "#1e3a8a", "navy_blue": "#1e3a8a",
+  "dark gray": "#334155", "dark_gray": "#334155", "dark grey": "#334155", "dark_grey": "#334155",
+  "deep red": "#800020", "deep_red": "#800020",
+  "wine red": "#701a75", "wine_red": "#701a75",
+  "tangerine red": "#ea580c", "tangerine_red": "#ea580c",
+  "off-white": "#f8fafc", "off_white": "#f8fafc", "offwhite": "#f8fafc",
+  "yellow": "#eab308", "pink": "#ec4899"
+};
+
 export default function ProductPage({ params }) {
   // Unwrap params using React.use()
   const unwrappedParams = use(params);
@@ -25,6 +40,7 @@ export default function ProductPage({ params }) {
   const [selectedModel, setSelectedModel] = useState("f1");
   const [tryonImage, setTryonImage] = useState(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
   
   // Find product
   const product = DEMO_PRODUCTS.find((p) => p.id === unwrappedParams.id) || DEMO_PRODUCTS[0];
@@ -38,6 +54,7 @@ export default function ProductPage({ params }) {
   const activeColorImages = activeColor && typeof activeColor === "object" && activeColor.images && activeColor.images.length > 0
     ? activeColor.images
     : (product.images && product.images.length > 0 ? product.images : fallbackImages);
+  const safeActiveImage = Math.min(activeImage, activeColorImages.length - 1);
   
   // Find related products
   const related = DEMO_PRODUCTS.filter(
@@ -66,6 +83,14 @@ export default function ProductPage({ params }) {
     
     contextAddToCart(cartItem, 1);
   };
+
+  const NON_COLOR_KEYS = ['group_shots', 'group shots', 'size_chart', 'details'];
+  const filteredColors = hasColors ? product.colors
+    .map((color, originalIdx) => ({ color, originalIdx }))
+    .filter(({ color }) => {
+      const n = (typeof color === 'object' ? color.name : color).toLowerCase();
+      return !NON_COLOR_KEYS.includes(n);
+    }) : [];
 
   return (
     <>
@@ -98,7 +123,7 @@ export default function ProductPage({ params }) {
               {activeColorImages.map((img, idx) => (
                 <button
                   key={idx}
-                  className={`${styles.thumbBtn} ${activeImage === idx ? styles.activeThumb : ""}`}
+                  className={`${styles.thumbBtn} ${safeActiveImage === idx ? styles.activeThumb : ""}`}
                   onClick={() => setActiveImage(idx)}
                 >
                   <img src={img} alt={`Thumbnail ${idx + 1}`} />
@@ -107,10 +132,10 @@ export default function ProductPage({ params }) {
             </div>
             <div className={`${styles.mainImageWrap} ${tryonActive ? styles.scanning : ""}`}>
               <img
-                src={tryonImage || activeColorImages[activeImage] || activeColorImages[0]}
+                src={tryonImage || activeColorImages[safeActiveImage] || activeColorImages[0]}
                 alt={product.name}
                 className={`${styles.mainImage} animate-fade-in`}
-                key={`${selectedColor}-${activeImage}-${tryonImage}`}
+                key={`${selectedColor}-${safeActiveImage}-${tryonImage}`}
               />
               
               {tryonActive && (
@@ -129,6 +154,9 @@ export default function ProductPage({ params }) {
           <div className={`${styles.info} animate-fade-in-up delay-2`}>
             <div className={styles.infoHeader}>
               <span className="text-caption">{product.category}</span>
+              {product.brand && product.brand !== 'Unknown' && (
+                <p style={{fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c9a96e', marginBottom: '0.15rem', fontWeight: 600}}>{product.brand}</p>
+              )}
               <h1 className={`heading-display ${styles.title}`}>{product.name}</h1>
               <div className={styles.priceRow}>
                 <span className={styles.price}>${product.price.toFixed(2)}</span>
@@ -142,26 +170,30 @@ export default function ProductPage({ params }) {
             {hasColors && (
               <div className={styles.selector}>
                 <div className={styles.selectorHeader}>
-                  <span className={styles.selectorLabel}>Color — {activeColorName}</span>
+                  <span className={styles.selectorLabel}>
+                    Color — <strong style={{ color: '#c9a96e', letterSpacing: '0.05em' }}>{activeColorName}</strong>
+                  </span>
                 </div>
                 <div className={styles.colorSwatches}>
-                  {product.colors.map((color, idx) => {
-                    const name = typeof color === "object" ? color.name : color;
-                    const hex = typeof color === "object" ? color.hex : COLOR_HEX_MAP[name.toLowerCase()] || "#888888";
-                    return (
-                      <button
-                        key={idx}
-                        className={`${styles.colorSwatch} ${selectedColor === idx ? styles.selectedSwatch : ""}`}
-                        onClick={() => { setSelectedColor(idx); setActiveImage(0); }}
-                        title={name}
-                      >
-                        <span
-                          className={styles.swatchInner}
-                          style={{ backgroundColor: hex }}
-                        />
-                      </button>
-                    );
-                  })}
+                  {filteredColors.map(({ color, originalIdx }) => {
+                      const name = typeof color === "object" ? color.name : color;
+                      const hex = typeof color === "object" ? color.hex : COLOR_HEX_MAP[name.toLowerCase()] || "#888888";
+                      const isSelected = selectedColor === originalIdx;
+                      return (
+                        <button
+                          key={originalIdx}
+                          className={`${styles.colorSwatch} ${isSelected ? styles.selectedSwatch : ""}`}
+                          onClick={() => { setSelectedColor(originalIdx); setActiveImage(0); }}
+                          title={name}
+                          aria-label={name}
+                        >
+                          <span
+                            className={styles.swatchInner}
+                            style={{ backgroundColor: hex }}
+                          />
+                        </button>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -213,8 +245,8 @@ export default function ProductPage({ params }) {
                 style={{ 
                   width: "100%", 
                   padding: "1rem", 
-                  opacity: selectedSize && !product.stock_status?.[`${activeColorName || "Default"}-${selectedSize}`] === false ? 1 : (selectedSize ? 0.5 : 1), 
-                  cursor: selectedSize && !product.stock_status?.[`${activeColorName || "Default"}-${selectedSize}`] === false ? "pointer" : (selectedSize ? "not-allowed" : "pointer")
+                  opacity: selectedSize && product.stock_status?.[`${activeColorName || "Default"}-${selectedSize}`] === false ? 0.4 : 1, 
+                  cursor: selectedSize && product.stock_status?.[`${activeColorName || "Default"}-${selectedSize}`] === false ? "not-allowed" : "pointer"
                 }}
                 onClick={addToCart}
                 disabled={selectedSize && product.stock_status?.[`${activeColorName || "Default"}-${selectedSize}`] === false}
@@ -260,19 +292,74 @@ export default function ProductPage({ params }) {
               </button>
               
               <p className={styles.shippingInfo}>
-                Free shipping on orders over $99. Free returns within 30 days.
+                Free shipping on orders over $200. Free returns within 30 days.
               </p>
             </div>
 
-            {/* Details Accordion (Simulated) */}
+            {/* Details Accordion */}
             <div className={styles.detailsList}>
               <h3 className={styles.detailsTitle}>The Details</h3>
               <ul className={styles.bulletList}>
-                {product.details.map((detail, i) => (
+                {product.details?.map((detail, i) => (
                   <li key={i}>{detail}</li>
                 ))}
               </ul>
+              {product.material && (
+                <p style={{fontSize: '0.85rem', color: '#aaa', marginTop: '0.75rem'}}>
+                  <span style={{color: '#c9a96e', fontWeight: 600}}>Material:</span> {product.material}
+                </p>
+              )}
+              {product.care && (
+                <p style={{fontSize: '0.85rem', color: '#aaa', marginTop: '0.25rem'}}>
+                  <span style={{color: '#c9a96e', fontWeight: 600}}>Care:</span> {product.care}
+                </p>
+              )}
+              {product.modelInfo && (
+                <p style={{fontSize: '0.85rem', color: '#aaa', marginTop: '0.25rem'}}>
+                  <span style={{color: '#c9a96e', fontWeight: 600}}>Model:</span> {product.modelInfo}
+                </p>
+              )}
             </div>
+
+            {/* Product Photos — Real source images from Yupoo/Weidian */}
+            {product.sourceImages && product.sourceImages.length > 0 && (
+              <div className={styles.detailsList} style={{marginTop: '1rem'}}>
+                <button 
+                  onClick={() => setPhotosOpen(!photosOpen)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', width: '100%',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '0.5rem 0', color: '#e0e0e0'
+                  }}
+                >
+                  <h3 className={styles.detailsTitle} style={{margin: 0}}>
+                    📸 Product Photos ({product.sourceImages.length})
+                  </h3>
+                  <span style={{fontSize: '1.2rem', transition: 'transform 0.3s', transform: photosOpen ? 'rotate(180deg)' : 'rotate(0)'}}>
+                    ▾
+                  </span>
+                </button>
+                {photosOpen && (
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px',
+                    marginTop: '0.75rem', animation: 'fadeIn 0.3s ease'
+                  }}>
+                    {product.sourceImages.map((src, idx) => (
+                      <div key={idx} style={{
+                        borderRadius: '6px', overflow: 'hidden', border: '1px solid #222',
+                        aspectRatio: '1', cursor: 'pointer', transition: 'border-color 0.2s'
+                      }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#c9a96e'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#222'}
+                        onClick={() => window.open(src, '_blank')}
+                      >
+                        <img src={src} alt={`Detail ${idx + 1}`} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
@@ -375,6 +462,33 @@ export default function ProductPage({ params }) {
             <h2 className={styles.modalTitle}>Size Guide</h2>
             
             <div className={styles.sizeGuideContent} style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "20px" }}>
+              {/* Structured Size Table */}
+              {product.sizeGuide && Object.keys(product.sizeGuide).length > 0 && (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", color: "#d5d5d5" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "2px solid #c9a96e" }}>
+                        <th style={{ padding: "10px 12px", textAlign: "left", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Size</th>
+                        <th style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Bust</th>
+                        <th style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Length</th>
+                        <th style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Sleeve</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(product.sizeGuide).map(([size, m], i) => (
+                        <tr key={size} style={{ borderBottom: "1px solid #222", background: i % 2 === 0 ? "#111" : "transparent" }}>
+                          <td style={{ padding: "10px 12px", fontWeight: "600", color: "#fff" }}>{size}</td>
+                          <td style={{ padding: "10px 12px", textAlign: "center" }}>{m.bust_cm}cm <span style={{ color: "#888", fontSize: "0.75rem" }}>/ {m.bust_in}&quot;</span></td>
+                          <td style={{ padding: "10px 12px", textAlign: "center" }}>{m.length_cm}cm <span style={{ color: "#888", fontSize: "0.75rem" }}>/ {m.length_in}&quot;</span></td>
+                          <td style={{ padding: "10px 12px", textAlign: "center" }}>{m.sleeve_cm}cm <span style={{ color: "#888", fontSize: "0.75rem" }}>/ {m.sleeve_in}&quot;</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p style={{ fontSize: "0.7rem", color: "#666", marginTop: "8px", fontStyle: "italic" }}>Bust = half-chest width. 1-3cm variance is normal for hand-measured garments.</p>
+                </div>
+              )}
+
               {product.size_chart_image ? (
                 <div style={{ background: "#1a1a1a", padding: "10px", borderRadius: "8px", border: "1px solid #333", overflow: "hidden" }}>
                   <img 
@@ -383,11 +497,7 @@ export default function ProductPage({ params }) {
                     style={{ width: "100%", height: "auto", objectFit: "contain", maxHeight: "400px" }} 
                   />
                 </div>
-              ) : (
-                <div style={{ padding: "40px 20px", textAlign: "center", border: "1px dashed #333", borderRadius: "8px" }}>
-                  <p style={{ color: "#a0a0a0" }}>No size chart image uploaded for this product.</p>
-                </div>
-              )}
+              ) : null}
               
               {product.size_info && (
                 <div style={{ background: "#161616", padding: "15px", borderRadius: "8px", border: "1px solid #222" }}>

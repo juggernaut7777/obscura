@@ -12,10 +12,10 @@ Tool categories:
   FASHION   — Understand style rules, coordinate outfits
 """
 import os
+import shutil
 import sys
 import json
 import time
-import subprocess
 import asyncio
 import random
 from datetime import datetime
@@ -62,6 +62,23 @@ TOOL_DEFINITIONS = [
                     }
                 },
                 "required": ["gender", "preset_index", "model_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "grok_trend_analysis",
+            "description": "Query xAI Grok for real-time trend analysis on X/Twitter to find viral fashion styles, specific sneakers blowing up, or streetwear aesthetics.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "What trend to research, e.g., 'trending sneakers 2026', 'viral y2k aesthetic'"
+                    }
+                },
+                "required": ["query"]
             }
         }
     },
@@ -577,155 +594,79 @@ TOOL_DEFINITIONS = [
     {
         "type": "function",
         "function": {
-            "name": "virtual_try_on",
-            "description": "Use FREE Hugging Face FastFit API to seamlessly dress an AI dummy model in MULTIPLE items simultaneously (tops, bottoms, shoes, purses). SOTA 2026 quality.",
+            "name": "scrape_yupoo_catalog",
+            "description": "Scrape a Yupoo seller's catalog for product albums. Downloads product images and extracts Weidian/Taobao ordering links. Use this to discover and source new products from trusted Yupoo sellers.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "person_image_path": {
+                    "subdomain": {
                         "type": "string",
-                        "description": "Absolute path to the dummy model's base photo."
+                        "description": "The Yupoo seller subdomain (e.g. 'goat-official', 'topacney', 'deateath'). Check data/yupoo_sellers.json for trusted sellers."
                     },
-                    "garment_paths": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Array of absolute paths to the downloaded product photos (Yupoo). FastFit supports multiple garments at once."
+                    "max_albums": {
+                        "type": "integer",
+                        "description": "Maximum number of albums to scrape. Default 10."
+                    },
+                    "auto_pick": {
+                        "type": "boolean",
+                        "description": "If true, automatically pick best product images and save to MANUAL_CURATION. Default true."
                     }
                 },
-                "required": ["person_image_path", "garment_paths"]
+                "required": ["subdomain"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "product_placement",
-            "description": "Use HuggingFace IC-Light to compositely place non-clothing items (soap, necklaces, accessories) onto a custom photorealistic background. Best for hard goods.",
+            "name": "classify_product_images",
+            "description": "Run VLM image classification on a product in MANUAL_CURATION. Classifies images as front/back/detail/size_chart. If product_dir is omitted, automatically finds and classifies unclassified products.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "background_prompt": {
+                    "product_dir": {
                         "type": "string",
-                        "description": "Description of the background and lighting. e.g. 'A beautiful marble sink in a sunlit bathroom'."
-                    },
-                    "product_image_path": {
-                        "type": "string",
-                        "description": "Absolute path to the downloaded product photo (the soap or necklace)."
+                        "description": "Optional path to the product directory in MANUAL_CURATION/. If omitted, auto-discovers unclassified products."
                     }
                 },
-                "required": ["background_prompt", "product_image_path"]
+                "required": []
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "generate_cinematic_ugc",
-            "description": "Animate a static model wearing clothes into a full-body cinematic video ad using Wan 2.2 or LTX-Video. Capable of body movement (spinning, stepping back).",
+            "name": "download_yupoo_album",
+            "description": "Download all high-resolution product images from a Yupoo album directly into MANUAL_CURATION/ for classification and AI lookbook generation.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "image_path": {
+                    "album_url": {
                         "type": "string",
-                        "description": "Path to the static model photo to animate."
+                        "description": "Yupoo album URL (e.g. https://chaosmade.x.yupoo.com/albums/12345)"
                     },
-                    "motion_prompt": {
+                    "subdomain": {
                         "type": "string",
-                        "description": "Description of the movement (e.g., 'Model steps back from mirror and does a slow spin checking out their outfit')."
+                        "description": "Optional Yupoo seller subdomain (e.g. chaosmade)"
                     }
                 },
-                "required": ["image_path", "motion_prompt"]
+                "required": ["album_url"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "humanoid_autopost",
-            "description": "Upload a generated video to TikTok or Instagram using human-like cursor control and VLM vision to absolutely prevent shadowbans.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "video_path": {
-                        "type": "string",
-                        "description": "Path to the video to upload"
-                    },
-                    "caption": {
-                        "type": "string",
-                        "description": "Caption text"
-                    },
-                    "platform": {
-                        "type": "string",
-                        "enum": ["tiktok", "instagram"],
-                        "description": "Which platform to post to"
-                    }
-                },
-                "required": ["video_path", "caption", "platform"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "hunt_and_pitch_clients",
-            "description": "Scrape Instagram to find mid-sized brands with weak marketing, and automatically DM them offering our AI UGC Agency services with a video attachment.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "niche": {
-                        "type": "string",
-                        "description": "The brand niche to hunt (e.g. 'streetwear', 'sneakers', 'jewelery')"
-                    },
-                    "video_sample_path": {
-                        "type": "string",
-                        "description": "The path to the generated AI UGC video to send them as proof of work"
-                    }
-                },
-                "required": ["niche", "video_sample_path"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "generate_viral_audio",
-            "description": "Generate hyper-realistic TTS audio for TikTok and merge it with a silent video to make it viral.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "video_path": {"type": "string", "description": "Path to silent video"},
-                    "tts_text": {"type": "string", "description": "The viral hook to speak"}
-                },
-                "required": ["video_path", "tts_text"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "upscale_product",
-            "description": "Upscale and relight low-quality Yupoo shoes or clothing to 4K studio quality before virtual try-on.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "image_path": {"type": "string", "description": "Path to the raw product image"}
-                },
-                "required": ["image_path"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "close_deals",
-            "description": "Reads incoming IG DMs. If a client wants to buy custom UGC ads, it generates a Stripe Payment Link automatically.",
+            "name": "find_ready_outfits",
+            "description": "Check outfit_warehouse for matched top+bottom+shoes outfit sets ready for generation.",
             "parameters": {
                 "type": "object",
                 "properties": {},
                 "required": []
             }
         }
-    }
+    },
+
 ]
 
 
@@ -745,13 +686,8 @@ async def tool_generate_model_sheet(
     4. Generate: front, 3/4 left, 3/4 right, side left, side right, full body
     5. Each angle = 1 separate image, saved in models/{model_id}/
     6. Resumes from where it left off if interrupted
-    7. Automatically converts the completed sheet into a TikTok/Reels video ad
     """
-    from generation_router import GenerationRouter
-    from vision_evaluator import VisionEvaluator
-    # from social_distributor import SocialDistributor
-
-    evaluator = VisionEvaluator()
+    from flow_bridge import FlowBridge
 
     preset = MODEL_PRESETS[min(preset_index, len(MODEL_PRESETS) - 1)]
     
@@ -763,111 +699,73 @@ async def tool_generate_model_sheet(
     face = preset.get('face_desc', 'defined cheekbones')
     identity = f"{age}-year-old {gender}, {hair}, {eyes}, {skin}, {face}"
     
-    # ── DNA & SEED LOCKING ──
-    # Generate a fixed seed to enforce character consistency via math rather than image-to-image
-    model_dir = os.path.join(os.getcwd(), "models", model_id)
-    os.makedirs(model_dir, exist_ok=True)
-    meta_path = os.path.join(model_dir, "metadata.json")
-    
-    seed = random.randint(1, 999999999)
-    if os.path.exists(meta_path):
-        import json
-        with open(meta_path, 'r') as f:
-            seed = json.load(f).get("seed", seed)
-    else:
-        import json
-        with open(meta_path, 'w') as f:
-            json.dump({"seed": seed, "identity_dna": identity}, f, indent=4)
-            
-    # Define exact camera angles for FLUX to frame the locked identity
+    # Define all angles to generate
     ANGLES = [
-        {"name": "front", "camera": "casual front-facing mirror selfie taken with an iPhone, holding the phone. Slightly messy bedroom in the background. Low quality candid smartphone photo, unedited"},
-        {"name": "three_quarter_left", "camera": "casual candid photo taken by a friend at a cafe, angled slightly to the left. Organic casual lighting, unedited smartphone photo"},
-        {"name": "three_quarter_right", "camera": "casual OOTD photo taken in a hallway mirror, body angled to the right. Everyday lighting, candid iPhone snap"},
-        {"name": "profile_left", "camera": "candid side angle sitting on a couch, lit by natural window light. Organic, everyday living room background, smartphone photo"},
-        {"name": "profile_right", "camera": "candid side angle standing outside on a normal street, turning head. Everyday natural lighting, casual amateur smartphone photo"},
-        {"name": "full_body", "camera": "full body mirror selfie, holding phone in hand. They wear a simple white tank top and simple jeans. Messy everyday bedroom background. Flash glare, unedited smartphone pic"},
+        {"name": "front", "prompt": f"Hyperrealistic front-facing portrait photo of a {identity}. Clean white studio background, soft even lighting. Sharp focus on face, 85mm portrait lens. Natural expression, looking at camera. Fashion model test shoot, RAW photo.", "needs_ref": False},
+        {"name": "three_quarter_left", "prompt": f"Hyperrealistic three-quarter view portrait of the SAME person from the reference image. Head turned 45 degrees to the left. {identity}. Same face, same features. White studio background, matching lighting. 85mm lens, RAW photo.", "needs_ref": True},
+        {"name": "three_quarter_right", "prompt": f"Hyperrealistic three-quarter view portrait of the SAME person from the reference image. Head turned 45 degrees to the right. {identity}. Same face, same features. White studio background, matching lighting. 85mm lens, RAW photo.", "needs_ref": True},
+        {"name": "profile_left", "prompt": f"Hyperrealistic side profile (90 degrees) of the SAME person from the reference image. Left side profile showing ear, jawline, nose bridge. {identity}. White studio background, rim light on profile. 85mm lens, RAW photo.", "needs_ref": True},
+        {"name": "profile_right", "prompt": f"Hyperrealistic side profile (90 degrees) of the SAME person from the reference image. Right side profile. {identity}. White studio background, rim light on profile. 85mm lens, RAW photo.", "needs_ref": True},
+        {"name": "full_body", "prompt": f"Full body standing photo of the SAME person from the reference image. {identity}. Wearing simple white tank top and black leggings. Natural standing pose. White studio background, even lighting. 50mm lens, RAW photo.", "needs_ref": True},
     ]
     
+    # Create model-specific folder
+    model_dir = os.path.join(os.getcwd(), "models", model_id)
+    os.makedirs(model_dir, exist_ok=True)
+    
+    # Check which angles already exist (resume support)
     existing = memory.models.get(model_id, {})
     completed_angles = existing.get("angles", [])
     anchor_path = existing.get("path", "")
     
-    if "front" in completed_angles:
-        print(f"   ♻️  Resuming {model_id} — {len(completed_angles)} angles done (Seed: {seed})")
+    # If anchor exists, use it
+    if "front" in completed_angles and os.path.exists(anchor_path):
+        print(f"   ♻️  Resuming {model_id} — {len(completed_angles)} angles done")
     
     generated_count = 0
     
     for angle_info in ANGLES:
         angle_name = angle_info["name"]
         
+        # Skip if already completed
         if angle_name in completed_angles:
             print(f"   ✅ {angle_name} already exists, skipping")
             continue
-            
-        router = GenerationRouter()
+        
+        # Open browser for each angle (clean session)
+        bridge = FlowBridge(headless=True)
+        await bridge.start()
+        
         try:
-            # Build the flawless natural language storytelling prompt
-            full_prompt = (
-                f"A hyper-realistic, authentic photograph capturing {identity} "
-                f"The image is composed as a {angle_info['camera']}. "
-                f"To ensure total photorealism, the image features {ANTI_AI_MEDIUM}"
-            ).replace("  ", " ")
+            # Upload reference image if needed (and anchor exists)
+            ref_path = os.path.join(model_dir, "front.png")
+            if angle_info["needs_ref"] and os.path.exists(ref_path):
+                print(f"   📎 Uploading reference: {ref_path}")
+                await bridge.upload_references([ref_path])
+            elif angle_info["needs_ref"] and not os.path.exists(ref_path):
+                print(f"   ⚠️  No anchor face yet — generating front first")
+                await bridge.close()
+                continue
             
-            # Since Pollinations generation_router inherently adds a random seed,
-            # we need to ensure we inject OUR locked seed!
-            # We append it to the prompt text string to strong-arm the model or modify generation_router.
-            # But the router appends custom seeds logic, so we pass it inside the prompt to anchor the text concept constraint.
-            if angle_name == "front" or not anchor_path:
-                print(f"   🧬 Injecting DNA Prompt for {angle_name} via Pollinations...")
-                # Using our Seed+DNA method: The API handles generation (no reference image passed).
-                images = await router.generate_image(
-                    prompt=full_prompt,
-                    reference_images=None, # Explicitly removed!
-                    output_prefix=f"{model_id}_{angle_name}",
-                    aspect="1:1" if angle_name != "full_body" else "9:16",
-                    multiplier="x1",
-                    seed=seed, # Inject the exact locked DNA seed
-                )
-            else:
-                print(f"   🧬 Using PuLID (SOTA 2026) for 100% facial consistency on {angle_name}...")
-                import asyncio
-                from gradio_client import Client, handle_file
-                def _call_pulid():
-                    client = Client("yanze/PuLID")
-                    result = client.predict(
-                        prompt=full_prompt,
-                        image=handle_file(anchor_path),
-                        api_name="/generate"
-                    )
-                    return [result] if isinstance(result, str) else result
-                
-                try:
-                    images = await asyncio.to_thread(_call_pulid)
-                except Exception as pulid_err:
-                    print(f"   ⚠️ PuLID HF Queue Timeout ({str(pulid_err)[:40]}). Falling back to Math Seed generation...")
-                    images = await router.generate_image(
-                        prompt=full_prompt,
-                        reference_images=None,
-                        output_prefix=f"{model_id}_{angle_name}",
-                        aspect="1:1" if angle_name != "full_body" else "9:16",
-                        multiplier="x1",
-                        seed=seed,
-                    )
+            # Generate the angle
+            images = await bridge.generate_image(
+                prompt=angle_info["prompt"],
+                output_prefix=f"{model_id}_{angle_name}",
+                aspect="1:1" if angle_name != "full_body" else "9:16",
+                multiplier="x1",
+            )
+            
+            await bridge.close()
             
             if images and os.path.exists(images[0]):
-                # Vision QC
-                qc_result = evaluator.evaluate_image(images[0])
-                if not qc_result["passed"]:
-                    print(f"   ❌ Vision QC Failed for {angle_name}: {qc_result['reason']}")
-                    evaluator._delete_bad_image(images[0])
-                    break
-                
+                # Move to model folder with clean name
                 dest = os.path.join(model_dir, f"{angle_name}.png")
                 import shutil
                 shutil.move(images[0], dest)
-                print(f"   💾 Saved {angle_name}: {dest} ({os.path.getsize(dest)//1024}KB)")
+                fsize = os.path.getsize(dest)
+                print(f"   💾 Saved {angle_name}: {dest} ({fsize//1024}KB)")
                 
+                # Update memory
                 completed_angles.append(angle_name)
                 if angle_name == "front":
                     anchor_path = dest
@@ -882,6 +780,7 @@ async def tool_generate_model_sheet(
                 generated_count += 1
             else:
                 print(f"   ❌ Failed to generate {angle_name}")
+                # Don't continue — let the brain retry on next cycle
                 return {
                     "success": generated_count > 0,
                     "model_id": model_id,
@@ -890,6 +789,7 @@ async def tool_generate_model_sheet(
                     "error": f"Failed at {angle_name}" if generated_count == 0 else None,
                 }
         except Exception as e:
+            await bridge.close()
             print(f"   ❌ Error generating {angle_name}: {str(e)[:80]}")
             return {
                 "success": generated_count > 0,
@@ -898,31 +798,52 @@ async def tool_generate_model_sheet(
                 "error": str(e)[:100],
             }
         
-        # Rate limit between angles (10s cooldown for testing)
+        # Rate limit between angles (5 min cooldown)
         if angle_name != ANGLES[-1]["name"]:
             import asyncio as _asyncio
-            print(f"   ⏸️  Cooling down 10s before next angle...")
-            await _asyncio.sleep(10)
-            
-    # Check if the model is fully complete (all angles generated)
-    completed_now = memory.models.get(model_id, {}).get("angles", [])
-    if len(completed_now) >= len(ANGLES):
-        print(f"🎉 Model {model_id} fully generated! It is now ready for VTON and LivePortrait tools.")
-        return {
-            "success": True, 
-            "model_id": model_id,
-            "complete": True,
-            "angles_done": completed_now,
-            "message": f"All {len(completed_now)} angles generated successfully. You MUST now use tool_virtual_try_on to dress the model, and then tool_generate_video_avatar to animate it."
-        }
-
+            print(f"   ⏸️  Cooling down 5 min before next angle...")
+            await _asyncio.sleep(300)
+    
+    complete = len(completed_angles) == len(ANGLES)
     return {
         "success": True,
         "model_id": model_id,
-        "complete": len(completed_now) >= len(ANGLES),
-        "angles_done": completed_now,
-        "message": f"Generated {generated_count} angles for {model_id} (Total {len(completed_now)}/{len(ANGLES)})."
+        "model_dir": model_dir,
+        "angles_done": completed_angles,
+        "angles_total": len(ANGLES),
+        "complete": complete,
+        "message": f"{'COMPLETE' if complete else 'PARTIAL'}: {len(completed_angles)}/{len(ANGLES)} angles for {model_id}",
     }
+
+
+async def tool_grok_trends(query: str, memory: AgentMemory) -> dict:
+    """Use xAI Grok to research real-time trends."""
+    xai_key = os.getenv("XAI_API_KEY")
+    if not xai_key:
+        return {"success": False, "error": "No XAI_API_KEY found"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                "https://api.x.ai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {xai_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "grok-beta",
+                    "messages": [
+                        {"role": "system", "content": "You are a trend analyst scanning X (Twitter) for the latest fashion and sneaker trends. Return a concise, actionable summary of what's currently viral. Mention specific products/styles."},
+                        {"role": "user", "content": query}
+                    ]
+                }
+            )
+            if resp.status_code == 200:
+                content = resp.json()["choices"][0]["message"]["content"]
+                memory.log_action("grok_trend_analysis", f"Grok insights for '{query}': {content[:100]}...")
+                return {"success": True, "insights": content}
+            else:
+                return {"success": False, "error": f"xAI API error: {resp.text}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 
 async def tool_scrape_trending(category: str, memory: AgentMemory) -> dict:
     """Scrape TikTok trends."""
@@ -963,70 +884,99 @@ async def tool_scrape_agents(
 
 
 async def tool_scrape_yupoo(
-    seller_url: str, category: str = "general", max_items: int = 10, memory: AgentMemory = None
+    subdomain: str = None, max_albums: int = 10, auto_pick: bool = True, memory: AgentMemory = None
 ) -> dict:
-    """Scrape a Yupoo seller's catalog using Self-Healing AI Semantic Parsing."""
+    """Scrape a Yupoo seller's catalog, automatically selecting active sellers from seller directory."""
     try:
-        from playwright.async_api import async_playwright
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
-            url = f"https://{seller_url}" if not seller_url.startswith("http") else seller_url
-            await page.goto(url, wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(5) # Let dynamic elements load completely
-            
-            # Get entire HTML for self-healing extraction
-            html_content = await page.content()
-            await browser.close()
-            
-            # --- 🤖 SELF-HEALING AI LOGIC ---
-            from google import genai
-            from pydantic import BaseModel
-            
-            class Product(BaseModel):
-                productName: str
-                productUrl: str
-                productImage: str
+        import random
+        from yupoo_scraper import YupooScraper
+        import asyncio
+        from pathlib import Path
+        
+        # Load full sellers pool
+        seller_pool = ["deateath", "chaosmade", "husky-reps", "topstoney", "idlt", "pycstudio", "maden", "bjhg"]
+        sellers_file = Path("data/yupoo_sellers.json")
+        if not sellers_file.exists():
+            sellers_file = Path("goal2_sourcing_engine/data/yupoo_sellers.json")
+        if sellers_file.exists():
+            try:
+                with open(sellers_file, encoding="utf-8") as f:
+                    sdata = json.load(f)
+                    for cat, s_list in sdata.items():
+                        if isinstance(s_list, list):
+                            for s_entry in s_list:
+                                sub = s_entry.get("subdomain")
+                                if sub and sub not in seller_pool:
+                                    seller_pool.append(sub)
+            except Exception:
+                pass
                 
-            class ScrapingResult(BaseModel):
-                products: list[Product]
-                
-            tier1_key = os.getenv("GEMINI_TIER1_API_KEY")
-            client = genai.Client(api_key=tier1_key)
+        if not subdomain or subdomain == "goat-official":
+            subdomain = random.choice(seller_pool)
             
-            # Slice large HTML payload to context window limit
-            sliced_html = html_content[:60000]
-            
-            response = client.models.generate_content(
-                model='gemini-2.5-flash', # Incredibly fast, essentially free Tier 1 extraction model
-                contents=f"Extract exactly {max_items} products from this Yupoo catalog HTML. Ignore CSS class names—just focus on semantic structure. Find the album links, titles, and preview image sources.\n\n{sliced_html}",
-                config={'response_mime_type': 'application/json', 'response_schema': ScrapingResult}
-            )
-            
-            import json
-            data = json.loads(response.text)
-            
-            products = []
-            for p in data.get("products", [])[:max_items]:
-                # Automatically resolve relative Yupoo URLs
-                p_url = p.get("productUrl", "")
-                p_img = p.get("productImage", "")
-                
-                products.append({
-                    "productName": p.get("productName", "Unknown Product").strip(),
-                    "productUrl": p_url if p_url.startswith("http") else f"{url.rstrip('/')}{p_url}",
-                    "productImage": p_img if p_img.startswith("http") else f"https:{p_img}" if p_img.startswith("//") else p_img,
-                    "source": "yupoo",
-                    "seller": seller_url,
-                    "category": category or "general",
-                })
+        scraper = YupooScraper()
+        
+        # Run synchronous scraper in a thread
+        albums = await asyncio.to_thread(scraper.scrape_seller, subdomain)
+        
+        products = []
+        for album in albums[:max_albums]:
+            products.append({
+                "productName": album.get("title", ""),
+                "productUrl": album.get("album_url", ""),
+                "productImage": album.get("thumbnail", ""),
+                "source": "yupoo",
+                "seller": subdomain,
+                "category": "general",
+            })
 
-        memory.add_products_batch(products)
-        memory.add_yupoo_supplier(seller_url.split(".")[0], seller_url)
-        memory.log_action("scrape_yupoo", f"Found {len(products)} items from {seller_url}")
-        return {"success": True, "products_count": len(products)}
+        # Auto-pick: automatically download images from up to 2 un-sourced albums into MANUAL_CURATION/
+        downloaded_curated = []
+        if auto_pick and albums:
+            import re
+            curation_dir = Path("MANUAL_CURATION")
+            curation_dir.mkdir(exist_ok=True)
+            for album in albums:
+                if len(downloaded_curated) >= 2:
+                    break
+                title = album.get("title", "")
+                slug = re.sub(r'[^a-zA-Z0-9]+', '-', title.lower()).strip('-')[:80]
+                if not slug or len(slug) < 3:
+                    import hashlib
+                    slug = f"product_{hashlib.md5(title.encode()).hexdigest()[:8]}"
+                target_folder = curation_dir / slug
+                if not target_folder.exists():
+                    try:
+                        dl_res = await asyncio.to_thread(scraper.download_album_to_staging, subdomain, album, curation_dir)
+                        if dl_res.get("images_downloaded", 0) > 0:
+                            downloaded_curated.append(slug)
+                            meta_file = target_folder / "metadata.json"
+                            if meta_file.exists():
+                                try:
+                                    m = json.loads(meta_file.read_text(encoding="utf-8"))
+                                    m["generation_status"] = "pending"
+                                    m["storefront_status"] = "not_listed"
+                                    meta_file.write_text(json.dumps(m, indent=2, ensure_ascii=False), encoding="utf-8")
+                                except Exception:
+                                    pass
+                            if memory:
+                                memory.add_learning(f"Sourced product '{title[:50]}' ({dl_res['images_downloaded']} images) into MANUAL_CURATION/{slug}")
+                    except Exception as err:
+                        print(f"   [!] Failed to download album {slug}: {err}")
+
+        if memory:
+            memory.add_products_batch(products)
+            memory.add_yupoo_supplier(subdomain, f"https://{subdomain}.x.yupoo.com")
+            memory.log_action("scrape_yupoo", f"Found {len(products)} items from {subdomain}, curated {len(downloaded_curated)}")
+        return {
+            "success": True,
+            "seller": subdomain,
+            "products_count": len(products),
+            "curated_downloaded": downloaded_curated
+        }
     except Exception as e:
-        memory.log_action("scrape_yupoo", str(e), success=False)
+        if memory:
+            memory.log_action("scrape_yupoo", str(e), success=False)
         return {"success": False, "error": str(e)}
 
 
@@ -1077,278 +1027,249 @@ async def tool_browse_instagram(
 
 
 async def tool_generate_ad(
-    product_name: str, product_type: str, product_image_path: str,
-    model_id: str, ad_styles: list, memory: AgentMemory
+    product_name: str, product_type: str,
+    model_id: str, ad_styles: list, memory: AgentMemory,
+    product_image_path: str = None,
+    polished_prompt_from_director: str = None
 ) -> dict:
-    """Generate ad images using the Free Hugging Face VTON pipeline."""
-
-    model_info = memory.models.get(model_id)
-    if not model_info:
-        return {"success": False, "error": f"Model '{model_id}' not found. Create one first."}
-
-    model_sheet_path = model_info["path"]
-    if not os.path.exists(model_sheet_path):
-        return {"success": False, "error": f"Model sheet file missing: {model_sheet_path}"}
-
-    all_images = []
-    safe_name = product_name.replace(" ", "_").replace("/", "").replace("\\", "")[:25].lower()
+    """Generate ad images using actual model + product reference images.
     
-    # Ensure product image exists
-    if not product_image_path or not os.path.exists(product_image_path):
-        return {"success": False, "error": f"Product image missing: {product_image_path}"}
+    The bridge uploads model face, model body, and product image to Flow,
+    then generates with a simple prompt that references the images by position.
+    This ensures the output uses OUR models wearing OUR actual products.
+    """
+    from generation_router import GenerationRouter
 
-    print(f"👕 Routing to Free VTON Engine for {product_name} on model {model_id}...")
-    vton_result = await tool_virtual_try_on(model_sheet_path, product_image_path, memory)
+    # --- Find actual model character sheet images ---
+    models_dir = os.path.join(os.getcwd(), "models", "character_sheets")
+    if not os.path.exists(models_dir):
+        models_dir = os.path.join(os.getcwd(), "models")
     
-    if vton_result.get("success"):
-        img = vton_result["output_image"]
-        
-        # Original output dir for dated archiving
-        output_dir = os.path.join(os.getcwd(), "output", datetime.now().strftime("%Y-%m-%d"), safe_name)
-        os.makedirs(output_dir, exist_ok=True)
-        dest = os.path.join(output_dir, f"{safe_name}_vton_{int(time.time())}.png")
-        
-        # ALSO save a copy in the model directory for the social_distributor to find
-        model_dir = os.path.join(os.getcwd(), "models", model_id)
-        vton_link = os.path.join(model_dir, f"vton_{safe_name}_{int(time.time())}.png")
-        
-        import shutil
-        shutil.copy2(img, dest)
-        shutil.copy2(img, vton_link)
-        
-        final_paths = [dest, vton_link]
-
-        memory.mark_product_processed(
-            {"productName": product_name, "type": product_type},
-            ad_paths=final_paths,
-        )
-
-        memory.log_action("generate_ad", f"Generated VTON ad for {product_name}")
-        return {"success": True, "images": final_paths, "count": len(final_paths)}
+    # Try finding model face/body by prefix (e.g. "f1_1.png", "f1_1.jpg", "f1_face.png")
+    import glob
+    candidates = glob.glob(os.path.join(models_dir, f"{model_id}_1.*"))
+    candidates += glob.glob(os.path.join(models_dir, f"{model_id}_face.*"))
+    candidates += glob.glob(os.path.join(models_dir, f"{model_id}.*"))
+    
+    if candidates:
+        face_path = candidates[0]
+        body_path = candidates[0]
     else:
-        return {"success": False, "error": vton_result.get("error")}
+        # Fallback: pick any available model sheet
+        all_sheets = glob.glob(os.path.join(models_dir, "*_1.*"))
+        all_sheets += glob.glob(os.path.join(models_dir, "*_face.*"))
+        if not all_sheets:
+            all_sheets = glob.glob(os.path.join(models_dir, "*", "*_1.*"))
+            
+        if all_sheets:
+            face_path = random.choice(all_sheets)
+            body_path = face_path
+            prefix = os.path.basename(face_path).split("_")[0]
+            print(f"[*] Model {model_id} not found, using {prefix} ({os.path.basename(face_path)}) instead")
+        else:
+            print("[!] No model character sheets found!")
+            return {"success": False, "error": "No model images found in models/character_sheets/"}
 
-async def tool_download_product_image(product: dict, memory: AgentMemory) -> dict:
-    """Download a product's garment image from its URL to local disk.
     
-    This is REQUIRED before VTON — the old pipeline never did this,
-    which is why VTON always failed silently.
-    """
-    import asyncio
-    img_url = product.get("productImage", "")
-    if not img_url:
-        return {"success": False, "error": "No productImage URL in product data"}
+    # --- Auto-resolve product image if not provided ---
+    if not product_image_path or not os.path.exists(product_image_path):
+        import glob
+        sourcing_dir = os.path.join(os.getcwd(), "input_sourcing")
+        candidates = glob.glob(os.path.join(sourcing_dir, "**", "*.jpg"), recursive=True)
+        candidates += glob.glob(os.path.join(sourcing_dir, "**", "*.png"), recursive=True)
+        if candidates:
+            product_image_path = candidates[0]
+            print(f"[*] No product image provided — auto-selected: {os.path.basename(product_image_path)}")
+        else:
+            print("[!] No product images found in input_sourcing/ — scrape products first")
+            return {"success": False, "error": "No product images available. Run scrape_agent_products or scrape_yupoo_catalog first."}
     
-    safe_name = product.get("productName", "product")[:30]
-    safe_name = safe_name.replace(" ", "_").replace("/", "").replace("\\", "").lower()
+    # Build reference image list: [face, body, product]
+    ref_images = [face_path]
+    if os.path.exists(body_path):
+        ref_images.append(body_path)
+    ref_images.append(product_image_path)
     
-    download_dir = os.path.join(os.getcwd(), "output", "product_images")
-    os.makedirs(download_dir, exist_ok=True)
+    print(f"[*] References: model={model_id} ({len(ref_images)} images), product={os.path.basename(product_image_path)}")
     
-    dest_path = os.path.join(download_dir, f"{safe_name}_{int(time.time())}.jpg")
+    # --- Simple prompts that REFERENCE the images, don't describe them ---
+    SIMPLE_PROMPTS = [
+        # Concept 1: Exotic Marrakech Architecture (Warm, Texture)
+        (
+            f"Put the exact garment/item from the product reference image on the person from the face and body reference images. "
+            f"CRITICAL: Design a complete, premium high-fashion outfit around this product. Do NOT keep the model's original base clothing. "
+            f"Style the rest of the look with complementary designer streetwear (e.g., luxury denim, avant-garde jackets, modern silhouettes). "
+            f"Generate a hyperrealistic high-fashion editorial photo. "
+            f"Location: Inside an ornate, terracotta courtyard in Marrakech, Morocco. Intricate tilework and sweeping archways. "
+            f"Lighting: Hard, sculpted sunlight cutting through architectural gaps, creating dramatic geometric shadows. "
+            f"Shot on medium format camera, 50mm at f/8 for deep depth of field. The background must be razor-sharp and visible, NO bokeh. "
+            f"The product must match the reference EXACTLY. "
+            f"Confident, avant-garde posing. Vogue magazine aesthetic."
+        ),
+        # Concept 2: Dubai / Neo-Tokyo Futuristic (Cinematic, High Contrast)
+        (
+            f"Put the exact garment/item from the product reference image on the person from the face and body reference images. "
+            f"CRITICAL: Design a complete, premium high-fashion outfit around this product. Do NOT keep the model's original base clothing. "
+            f"Style the rest of the look with complementary futuristic luxury streetwear. "
+            f"Generate a hyperrealistic high-fashion editorial photo. "
+            f"Location: A sleek, ultra-modern glass and steel skyscraper interior at night overlooking a sprawling cyberpunk neon city. "
+            f"Lighting: Complex cinematic lighting with practical RGB Pavotubes in frame. A cool blue rim light separating {gender_subj.lower()} from the background, and a warm key light. "
+            f"Shot on 35mm at f/11 for deep depth of field. The entire cityscape background is in sharp focus, NO background blur. "
+            f"The product fills 60% of the frame. Premium, high-budget campaign look."
+        ),
+        # Concept 3: Rugged Volcanic Landscape (Isolated, Dramatic)
+        (
+            f"Put the exact garment/item from the product reference image on the person from the face and body reference images. "
+            f"CRITICAL: Design a complete, premium high-fashion outfit around this product. Do NOT keep the model's original base clothing. "
+            f"Style the rest of the look with edgy, avant-garde designer pieces that fit the rugged environment. "
+            f"Generate a hyperrealistic high-fashion editorial photo. "
+            f"Location: Expansive, wind-swept black sand volcanic landscape in Fuerteventura, Canary Islands. "
+            f"Lighting: Overcast sky acting as a giant softbox, supplemented by a powerful off-camera strobe with a beauty dish aimed at the subject to create high contrast against the dark landscape. "
+            f"Shot on 24mm wide angle lens at f/8. The expansive landscape is in razor-sharp focus all the way to the horizon. NO bokeh. "
+            f"Fierce, powerful editorial pose. Natural skin texture, visible pores."
+        ),
+        # Concept 4: Classic Parisian Luxury (Timeless, Elegance)
+        (
+            f"Put the exact garment/item from the product reference image on the person from the face and body reference images. "
+            f"CRITICAL: Design a complete, premium high-fashion outfit around this product. Do NOT keep the model's original base clothing. "
+            f"Style the rest of the look with chic, minimalist classic pieces (e.g., tailored trousers, luxury knitwear). "
+            f"Generate a hyperrealistic high-fashion editorial photo. "
+            f"Location: A grand, sun-drenched Parisian apartment with ornate moldings and towering French windows. "
+            f"Lighting: A crisp spotlight from the side mimics afternoon sun, with deep shadows and soft ambient fill. "
+            f"Shot on 50mm at f/8 for deep depth of field. Background details must be completely sharp. NO bokeh. "
+            f"Elegant, poise-focused editorial pose. Skin must look natural and real."
+        ),
+        "High-fashion editorial: subject wearing product from reference, avant-garde style, Marrakech architecture background, 50mm, deep depth of field.",
+        "Cinematic luxury: model wearing product in modern skyscraper interior, cyberpunk neon lighting, 35mm, deep depth of field.",
+        "Rugged editorial: subject wearing product on black sand volcanic landscape, strobe lighting, 24mm, deep depth of field.",
+        "Parisian chic: subject wearing product in ornate apartment, crisp spotlight, 50mm, deep depth of field."
+    ]
     
-    def _download():
-        import requests
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-        resp = requests.get(img_url, headers=headers, timeout=30)
-        resp.raise_for_status()
-        
-        # Validate it's actually an image (not an HTML error page)
-        content_type = resp.headers.get("content-type", "")
-        if "image" not in content_type and len(resp.content) < 5000:
-            raise ValueError(f"Response is not an image. Content-Type: {content_type}, Size: {len(resp.content)}")
-        
-        if len(resp.content) < 5000:
-            raise ValueError(f"Image too small ({len(resp.content)} bytes) — likely corrupted or placeholder")
-        
-        with open(dest_path, "wb") as f:
-            f.write(resp.content)
-        return dest_path
-    
-    try:
-        path = await asyncio.to_thread(_download)
-        size_kb = os.path.getsize(path) // 1024
-        print(f"   [DOWNLOAD] Saved product image: {os.path.basename(path)} ({size_kb}KB)")
-        memory.log_action("download_product_image", f"Downloaded {safe_name} ({size_kb}KB)")
-        return {"success": True, "local_path": path, "size_kb": size_kb}
-    except Exception as e:
-        print(f"   [DOWNLOAD FAILED] {safe_name}: {str(e)[:80]}")
-        memory.log_action("download_product_image", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-
-async def tool_virtual_try_on(person_image_path: str, garment_path: str, memory: AgentMemory) -> dict:
-    """Put clothing on a model using Kolors Virtual Try-On (free, actually works).
-    
-    Uses Kwai-Kolors/Kolors-Virtual-Try-On on HuggingFace with 3 retry attempts.
-    Replaces the old broken FastFit call that silently failed every time.
-    
-    Args:
-        person_image_path: Path to full-body model image
-        garment_path: Path to a SINGLE garment image (flat-lay or product photo)
-        memory: AgentMemory instance
-    """
-    import asyncio
-    
-    # Validate inputs exist on disk BEFORE calling any API
-    if not os.path.exists(person_image_path):
-        err = f"Person image not found on disk: {person_image_path}"
-        print(f"   [VTON ERROR] {err}")
-        return {"success": False, "error": err}
-    
-    # Handle both list and string for garment_path (legacy compat)
-    if isinstance(garment_path, list):
-        garment_path = garment_path[0] if garment_path else ""
-    
-    if not os.path.exists(garment_path):
-        err = f"Garment image not found on disk: {garment_path}"
-        print(f"   [VTON ERROR] {err}")
-        return {"success": False, "error": err}
-    
-    person_size = os.path.getsize(person_image_path)
-    garment_size = os.path.getsize(garment_path)
-    print(f"   [VTON] Person image: {person_size//1024}KB, Garment image: {garment_size//1024}KB")
-    
-    if person_size < 10000:
-        return {"success": False, "error": f"Person image too small ({person_size} bytes) — likely corrupted"}
-    if garment_size < 3000:
-        return {"success": False, "error": f"Garment image too small ({garment_size} bytes) — likely corrupted"}
-    
-    import json
-    import time
-    
-    # Define job and result directories
-    os.makedirs("/home/user/ai-ugc/jobs", exist_ok=True)
-    os.makedirs("/home/user/ai-ugc/output/vton", exist_ok=True)
-    
-    job_id = f"job_{int(time.time())}"
-    job_file = f"/home/user/ai-ugc/jobs/{job_id}.json"
-    result_file = f"/home/user/ai-ugc/output/vton/{job_id}_result.png"
-    
-    # Extract model name securely from path, e.g., models/maya_f11/full_body.png -> maya_f11
-    model_name = "unknown"
-    if "models/" in person_image_path:
-        parts = person_image_path.split("/")
+    # --- DeepSeek-R1 "Marketing Director" Logic ---
+    deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+    if not polished_prompt_from_director and deepseek_key:
+        print(f"[*] DeepSeek-R1 Marketing Director is thinking about the shot for {product_name}...")
         try:
-            mod_idx = parts.index("models")
-            model_name = parts[mod_idx + 1]
-        except Exception:
-            pass
+            import httpx
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                director_prompt = (
+                    f"You are an avant-garde Fashion Marketing Director. We need to shoot an editorial ad for: '{product_name}'. "
+                    f"Target styles: {', '.join(ad_styles) if ad_styles else 'High fashion editorial'}. "
+                    f"Write a hyper-detailed image generation prompt (1 paragraph) describing the location, lighting, camera settings (lens, depth of field), and overall aesthetic. "
+                    f"MUST include this exact phrase at the beginning: 'Put the exact garment/item from the product reference image on the person from the face and body reference images. CRITICAL: Design a complete, premium high-fashion outfit around this product.' "
+                    f"Do NOT output anything else except the final image generation prompt."
+                )
+                resp = await client.post(
+                    "https://api.deepseek.com/chat/completions",
+                    headers={"Authorization": f"Bearer {deepseek_key}", "Content-Type": "application/json"},
+                    json={
+                        "model": "deepseek-reasoner",
+                        "messages": [{"role": "user", "content": director_prompt}]
+                    }
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    reasoning = data["choices"][0]["message"].get("reasoning_content", "")
+                    if reasoning:
+                        print(f"   [DeepSeek R1 Thinking]: {reasoning[:200]}...")
+                        memory.log_action("deepseek_strategy", f"Thinking: {reasoning[:200]}...")
+                    polished_prompt_from_director = data["choices"][0]["message"]["content"].strip()
+                    print(f"   [DeepSeek R1 Output]: {polished_prompt_from_director[:200]}...")
+                else:
+                    print(f"[!] DeepSeek API error: {resp.text}")
+        except Exception as e:
+            print(f"[!] DeepSeek API failed: {e}")
             
-    # Gather all reference images dynamically
-    # 1. Product Image
-    # 2. Character Sheet Angles (Front, side, back if they exist)
-    reference_images = [garment_path]
-    model_dir = os.path.dirname(person_image_path)
-    if os.path.exists(model_dir):
-        for f in os.listdir(model_dir):
-            if f.endswith(".png") or f.endswith(".jpg"):
-                reference_images.append(os.path.join(model_dir, f))
+    # --- Gemini Director Logic ---
+    if polished_prompt_from_director:
+        final_prompt = polished_prompt_from_director
+    else:
+        # Fallback to simple random prompts
+        prompt = random.choice(SIMPLE_PROMPTS)
+        final_prompt = prompt
+
+    # --- Output setup (REVIEW SYSTEM) ---
+    safe_name = product_name.replace(" ", "_")[:25].lower()
+    output_dir = os.path.join(os.getcwd(), "review_pending", safe_name)
+    os.makedirs(output_dir, exist_ok=True)
     
-    job_data = {
-        "job_id": job_id,
-        "type": "vton_imagefx",
-        "prompt": f"A highly realistic, unedited editorial fashion photography shot of a human model {model_name} precisely wearing the exact garment shown in the reference images. Focus on physical fabric drape, lifelike lighting, and perfectly matching the clothing's color and texture. DSLR 8k.",
-        "reference_images": reference_images,
-        "person_image": person_image_path,
-        "garment_image": garment_path,
-        "result_path": result_file,
-        "status": "pending"
-    }
+    # --- Generate via bridge (1 image per product) ---
+    router = GenerationRouter()
     
-    with open(job_file, "w") as jf:
-        json.dump(job_data, jf, indent=2)
+    try:
+        images = await router.generate_image(
+            prompt=final_prompt,
+            ref_image_paths=ref_images,
+            output_prefix=f"{safe_name}_{model_id}",
+            aspect="3:4",
+        )
         
-    print(f"   [VTON JOB ENQUEUED] Waiting for Local Home-Node to process {job_id}...")
-    
-    # Polling Loop (wait up to 10 minutes for local pc to process)
-    timeout = 600
-    start_time = time.time()
-    
-    while time.time() - start_time < timeout:
-        if os.path.exists(result_file):
-            print(f"   [VTON SUCCESS] Local Home-Node finished {job_id}!")
-            # Clean up the job file to prevent reprocessing
-            try:
-                os.remove(job_file)
-            except:
-                pass
-            return {"success": True, "output_image": result_file}
+        if images and len(images) > 0:
+            src_path = images[0]
+            if os.path.exists(src_path) and os.path.getsize(src_path) > 1000:
+                dest_path = os.path.join(output_dir, os.path.basename(src_path))
+                shutil.copy2(src_path, dest_path)
+                print(f"[+] SAVED to {dest_path}")
+                
+                memory.mark_product_processed(
+                    {"productName": product_name, "type": product_type},
+                    ad_paths=[dest_path],
+                )
+                memory.log_action("generate_ad", f"Generated image for {product_name} with model {model_id}")
+                return {"success": True, "images": [dest_path], "count": 1, "output_dir": output_dir}
+            else:
+                print(f"[!] Generated file is too small or missing: {src_path}")
+        else:
+            print("[!] Bridge returned no images")
             
-        await asyncio.sleep(5)
-        
-    print(f"   [VTON TIMEOUT] Local Home-Node did not return an image for {job_id} within 10 minutes.")
-    return {"success": False, "error": "Local node timeout"}
-    memory.log_action("kolors_vton", err_msg, success=False)
-    return {"success": False, "error": err_msg}
-
-async def tool_product_placement(background_prompt: str, product_image_path: str, memory: AgentMemory) -> dict:
-    """Use HuggingFace IC-Light spaces via Gradio to perfectly relight a hard object (soap, necklace) onto a background."""
-    import asyncio
-    try:
-        from gradio_client import Client, handle_file
-        
-        def _call_ic_light():
-            # Using ZhengPeng7/IC-Light public Vibe space which is great for background relighting
-            # Note: Public HF spaces can change, but this acts as the resilient logic block.
-            client = Client("ZhengPeng7/IC-Light")
-            result = client.predict(
-                image=handle_file(product_image_path),
-                prompt=background_prompt,
-                bg_source="Text Prompt", # Generates background purely from the text prompt
-                api_name="/process"
-            )
-            # Result usually a tuple where[0] is the returned image path
-            if isinstance(result, list) or isinstance(result, tuple):
-                return result[0]
-            return result
-
-        result_path = await asyncio.to_thread(_call_ic_light)
-        return {"success": True, "output_image": result_path}
     except Exception as e:
-        memory.log_action("product_placement", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-async def tool_generate_cinematic_ugc(image_path: str, motion_prompt: str, memory: AgentMemory) -> dict:
-    """Use Hugging Face Wan 2.2 logic to animate a static Dummy Model into a full-body moving video ad."""
-    import asyncio
-    try:
-        from gradio_client import Client, handle_file
-        
-        def _call_wan():
-            # Wan 2.2 SOTA Open Source Image-To-Video Generation
-            client = Client("Wan-AI/Wan2.2-I2V")
-            result = client.predict(
-                image=handle_file(image_path),
-                prompt=motion_prompt,
-                resolution="1080x1920",
-                duration=5,
-                api_name="/generate"
-            )
-            return result
-
-        result_path = await asyncio.to_thread(_call_wan)
-        return {"success": True, "output_video": result_path}
-    except Exception as e:
-        memory.log_action("cinematic_ugc", str(e), success=False)
-        return {"success": False, "error": str(e)}
+        print(f"[!] Generation failed: {e}")
+    
+    memory.log_action("generate_ad", f"FAILED to generate for {product_name}")
+    return {"success": False, "error": "Generation failed", "images": [], "count": 0}
 
 
-
-def tool_generate_caption(
+async def tool_generate_caption(
     product_name: str, price: str, category: str, platform: str, memory: AgentMemory
 ) -> dict:
-    """Generate captions using the luxury caption generator."""
-    gen = CaptionGenerator()
-    captions = gen.generate_caption(
-        product_name=product_name,
-        price=price,
-        category=category,
-        platform=platform,
-        num_variants=3,
-    )
-    memory.log_action("generate_caption", f"Generated {len(captions)} captions for {product_name}")
-    return {"success": True, "captions": captions}
+    """Generate captions using Groq's Llama-3.3-70B."""
+    groq_key = os.getenv("GROQ_API_KEY")
+    if not groq_key:
+        return {"success": False, "error": "No GROQ_API_KEY found"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            prompt = f"Write 3 short, viral, Gen-Z streetwear captions for a {product_name} priced at {price}. Platform: {platform}. Format as JSON with a 'captions' key containing an array of strings."
+            if platform == "tiktok":
+                prompt += " IMPORTANT: DO NOT mention any brand names. Use coded language like 'the LV pattern' instead of 'Louis Vuitton'."
+            
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"}
+                }
+            )
+            if resp.status_code == 200:
+                try:
+                    data = resp.json()
+                    content = data["choices"][0]["message"]["content"]
+                    parsed = json.loads(content)
+                    captions = parsed.get("captions", [])
+                    if not captions and isinstance(parsed, dict) and parsed:
+                        captions = list(parsed.values())[0]
+                        
+                    formatted = [{"variant": i+1, "caption": c, "platform": platform} for i, c in enumerate(captions[:3])]
+                    memory.log_action("generate_caption", f"Generated {len(formatted)} Groq captions for {product_name}")
+                    return {"success": True, "captions": formatted}
+                except Exception as e:
+                    return {"success": False, "error": f"JSON parse error: {str(e)}"}
+            else:
+                return {"success": False, "error": f"Groq API error: {resp.text}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 def tool_style_outfit(
@@ -1623,10 +1544,12 @@ def tool_create_digital_product(
             BEAUTY_PROMPTS, WIG_PROMPTS, CHARACTER_SHEET_PROMPTS,
             CANDID_FILTERS,
         )
-        content = f"# {title}\n\n"
-        content += f"{description}\n\n"
-        content += "## 🔥 Anti-AI Detection Filter\n"
-        content += f"```\n{CANDID_FILTERS}\n```\n\n"
+        content_parts = [
+            f"# {title}\n\n",
+            f"{description}\n\n",
+            "## 🔥 Anti-AI Detection Filter\n",
+            f"```\n{CANDID_FILTERS}\n```\n\n"
+        ]
 
         sections = {
             "Clothing Ad Prompts": CLOTHING_PROMPTS,
@@ -1637,11 +1560,12 @@ def tool_create_digital_product(
             "Character Sheet Prompts": CHARACTER_SHEET_PROMPTS,
         }
         for section_name, prompts in sections.items():
-            content += f"## {section_name}\n\n"
+            content_parts.append(f"## {section_name}\n\n")
             for name, prompt in prompts.items():
-                content += f"### {name.replace('_', ' ').title()}\n"
-                content += f"```\n{prompt}\n```\n\n"
+                content_parts.append(f"### {name.replace('_', ' ').title()}\n")
+                content_parts.append(f"```\n{prompt}\n```\n\n")
 
+        content = "".join(content_parts)
         filepath = os.path.join(output_dir, f"{safe_title}.md")
         with open(filepath, "w") as f:
             f.write(content)
@@ -1656,43 +1580,56 @@ def tool_create_digital_product(
             "Module 6: Finding & Pitching Brands",
             "Module 7: Scaling to $1K/Month",
         ]
-        content = f"# {title}\n\n"
-        content += f"**Price: {price}**\n\n"
-        content += f"{description}\n\n"
-        content += "## Course Outline\n\n"
+        content_parts = [
+            f"# {title}\n\n",
+            f"**Price: {price}**\n\n",
+            f"{description}\n\n",
+            "## Course Outline\n\n"
+        ]
         for i, module in enumerate(outline):
-            content += f"{i+1}. {module}\n"
-        content += "\n\n## What You'll Learn\n\n"
-        content += "- Generate unlimited photorealistic AI ads for FREE\n"
-        content += "- Create consistent AI model characters\n"
-        content += "- Automate posting to TikTok, Instagram, Facebook\n"
-        content += "- Build an AI ad agency from scratch\n"
-        content += "- Use free AI tools (no paid APIs needed)\n"
+            content_parts.append(f"{i+1}. {module}\n")
 
+        content_parts.extend([
+            "\n\n## What You'll Learn\n\n",
+            "- Generate unlimited photorealistic AI ads for FREE\n",
+            "- Create consistent AI model characters\n",
+            "- Automate posting to TikTok, Instagram, Facebook\n",
+            "- Build an AI ad agency from scratch\n",
+            "- Use free AI tools (no paid APIs needed)\n"
+        ])
+
+        content = "".join(content_parts)
         filepath = os.path.join(output_dir, f"{safe_title}.md")
         with open(filepath, "w") as f:
             f.write(content)
 
     elif product_type == "workflow_template":
-        content = f"# {title}\n\n"
-        content += f"**Price: {price}**\n\n"
-        content += "## Included Workflows\n\n"
-        content += "1. Product Scraping (USFans/CNFans/Yupoo)\n"
-        content += "2. AI Image Generation (Google AI Studio)\n"
-        content += "3. Caption Generation (TikTok-safe)\n"
-        content += "4. Auto-Posting Pipeline\n"
-        content += "5. Brand Outreach Automation\n"
+        content_parts = [
+            f"# {title}\n\n",
+            f"**Price: {price}**\n\n",
+            "## Included Workflows\n\n",
+            "1. Product Scraping (USFans/CNFans/Yupoo)\n",
+            "2. AI Image Generation (Google AI Studio)\n",
+            "3. Caption Generation (TikTok-safe)\n",
+            "4. Auto-Posting Pipeline\n",
+            "5. Brand Outreach Automation\n"
+        ]
         for item in (content_outline or []):
-            content += f"- {item}\n"
+            content_parts.append(f"- {item}\n")
 
+        content = "".join(content_parts)
         filepath = os.path.join(output_dir, f"{safe_title}.md")
         with open(filepath, "w") as f:
             f.write(content)
     else:
         filepath = os.path.join(output_dir, f"{safe_title}.md")
-        content = f"# {title}\n\n{description}\n\nPrice: {price}\n"
+        content_parts = [
+            f"# {title}\n\n{description}\n\nPrice: {price}\n"
+        ]
         for item in (content_outline or []):
-            content += f"- {item}\n"
+            content_parts.append(f"- {item}\n")
+
+        content = "".join(content_parts)
         with open(filepath, "w") as f:
             f.write(content)
 
@@ -2031,138 +1968,6 @@ async def tool_scrape_meta_ads(
             memory.log_action("scrape_meta_ads", str(e), success=False)
         return {"success": False, "error": str(e)}
 
-async def tool_humanoid_autopost(video_path: str, caption: str, platform: str, memory: AgentMemory) -> dict:
-    """Uses nodriver and Gemini 2.5 Flash bounds to auto-upload videos manually to avoid shadowbans."""
-    try:
-        import nodriver as uc
-        import asyncio
-        from google import genai
-        import os
-        
-        PROFILE_DIR = os.path.expanduser("~/.nodriver_profile")
-        browser = await uc.start(headless=True, user_data_dir=PROFILE_DIR, browser_args=["--no-sandbox"])
-        page = await browser.get('https://www.tiktok.com/upload' if platform == 'tiktok' else 'https://www.instagram.com')
-        await asyncio.sleep(5)
-        
-        # We would screenshot and ask Gemini for the exact X,Y coordinates of the 'Select Video' button
-        # Example VLM coordinate click logic:
-        # html_content = await page.get_content()
-        # client = genai.Client()
-        # answer = client.models.generate_content(...)
-        # Wait, for safety we will placeholder this integration success to protect from bot detector loops today:
-        
-        memory.log_action("humanoid_autopost", f"Successfully simulated humanoid VLM upload to {platform}")
-        await browser.stop()
-        return {"success": True, "message": f"Successfully uploaded {video_path} to {platform} using Humanoid VLM."}
-    except Exception as e:
-        memory.log_action("humanoid_autopost", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-async def tool_hunt_and_pitch_clients(niche: str, video_sample_path: str, memory: AgentMemory) -> dict:
-    """Scrapes IG for brands with 10k+ followers with bad marketing and automatically DMs them our UGC video as a pitch."""
-    try:
-        import nodriver as uc
-        import asyncio
-        
-        browser = await uc.start(headless=True)
-        page = await browser.get(f'https://www.instagram.com/explore/tags/{niche}/')
-        await asyncio.sleep(5)
-        
-        # Scrape and VLM evaluate logic here...
-        # Simulating finding a valid lead:
-        mock_lead = "streetwear_brand_xyz"
-        
-        memory.log_action("hunt_and_pitch", f"Hunted and sent PM pitch to {mock_lead} with UGC sample.")
-        await browser.stop()
-        
-        return {
-            "success": True, 
-            "leads_pitched": 1, 
-            "leads": [mock_lead],
-            "message": f"Successfully scouted and pitched to {mock_lead}."
-        }
-    except Exception as e:
-        memory.log_action("hunt_and_pitch", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-async def tool_generate_viral_audio(video_path: str, tts_text: str, memory: AgentMemory) -> dict:
-    """Uses Fish Speech / ChatTTS to generate a viral Tiktok voiceover and muxes it with the SOTA video."""
-    try:
-        import asyncio
-        import os
-        from gradio_client import Client
-        
-        def _call_tts():
-            client = Client("fishaudio/fish-speech-1")
-            result = client.predict(
-                text=tts_text,
-                api_name="/infer"
-            )
-            return result[0] if isinstance(result, tuple) else result
-
-        audio_path = await asyncio.to_thread(_call_tts)
-        # Assuming FFmpeg is installed to mix audio and video natively
-        output_mixed = video_path.replace(".mp4", "_audio.mp4")
-        subprocess.run(
-            [
-                "ffmpeg", "-i", video_path, "-i", audio_path,
-                "-c:v", "copy", "-c:a", "aac",
-                "-map", "0:v:0", "-map", "1:a:0",
-                "-shortest", output_mixed, "-y"
-            ],
-            check=True,
-            capture_output=True
-        )
-        
-        memory.log_action("generate_viral_audio", f"Generated and muxed TTS audio: {tts_text[:20]}...")
-        return {"success": True, "output_video": output_mixed}
-    except Exception as e:
-        memory.log_action("generate_viral_audio", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-async def tool_upscale_product(image_path: str, memory: AgentMemory) -> dict:
-    """Uses SUPIR or AuraSR to AI-upscale a flat Yupoo product into a 4K studio-lit equivalent before VTON."""
-    try:
-        import asyncio
-        from gradio_client import Client, handle_file
-        
-        def _call_upscale():
-            client = Client("fal-ai/AuraSR")
-            result = client.predict(
-                image=handle_file(image_path),
-                api_name="/process"
-            )
-            return result
-
-        upscaled_path = await asyncio.to_thread(_call_upscale)
-        memory.log_action("upscale_product", f"Successfully upscaled Yupoo image to 4K.")
-        return {"success": True, "output_image": upscaled_path}
-    except Exception as e:
-        memory.log_action("upscale_product", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-async def tool_close_deals(memory: AgentMemory) -> dict:
-    """Simulates reading IG DMs. Generates Stripe Payment Links if the client wants to buy."""
-    try:
-        import asyncio
-        import nodriver as uc
-        import os
-        
-        PROFILE_DIR = os.path.expanduser("~/.nodriver_profile")
-        browser = await uc.start(headless=True, user_data_dir=PROFILE_DIR, browser_args=["--no-sandbox"])
-        page = await browser.get('https://www.instagram.com/direct/inbox/')
-        await asyncio.sleep(5)
-        # In a real environment, we would log into stripe or use stripe API:
-        # stripe.PaymentLink.create(line_items=[{"price": "price_1Mxxx...", "quantity": 1}])
-        mock_stripe_link = "https://buy.stripe.com/test_ugc_package_500"
-        
-        memory.log_action("close_deals", "Checked IG Inbox. Generated 1 Stripe Invoice.")
-        return {"success": True, "invoices_sent": 1, "revenue_pending": 500.0, "link": mock_stripe_link}
-    except Exception as e:
-        memory.log_action("close_deals", str(e), success=False)
-        return {"success": False, "error": str(e)}
-
-
 
 # ==========================================
 # TOOL DISPATCHER
@@ -2186,18 +1991,31 @@ async def execute_tool(tool_name: str, arguments: dict, memory: AgentMemory) -> 
             if not model_id:
                 model_id = f"model_{gender}_{int(time.time())}"
             return await tool_generate_model_sheet(gender=gender, preset_index=preset_index, model_id=model_id, memory=memory)
+        elif tool_name == "grok_trend_analysis":
+            return await tool_grok_trends(**arguments, memory=memory)
         elif tool_name == "scrape_trending_products":
             return await tool_scrape_trending(**arguments, memory=memory)
         elif tool_name == "scrape_agent_products":
             return {"success": False, "error": "This tool is disabled. Sourcing replicas is no longer supported."}
         elif tool_name == "scrape_yupoo_catalog":
-            return {"success": False, "error": "This tool is disabled. Yupoo replica sourcing is deactivated."}
+            return await tool_scrape_yupoo(**arguments, memory=memory)
         elif tool_name == "browse_instagram_page":
             return await tool_browse_instagram(**arguments, memory=memory)
         elif tool_name == "generate_ad_image":
+            # Sanitize: make product_image_path optional — auto-resolve if omitted
+            if "product_image_path" not in arguments or not arguments.get("product_image_path"):
+                import glob
+                sourcing_dir = os.path.join(os.getcwd(), "input_sourcing")
+                candidates = glob.glob(os.path.join(sourcing_dir, "**", "*.jpg"), recursive=True)
+                candidates += glob.glob(os.path.join(sourcing_dir, "**", "*.png"), recursive=True)
+                if candidates:
+                    arguments["product_image_path"] = candidates[0]
+                    print(f"   [auto] product_image_path resolved to: {os.path.basename(candidates[0])}")
+                else:
+                    return {"success": False, "error": "No product images in input_sourcing/. Scrape products first."}
             return await tool_generate_ad(**arguments, memory=memory)
         elif tool_name == "generate_caption":
-            return tool_generate_caption(**arguments, memory=memory)
+            return await tool_generate_caption(**arguments, memory=memory)
         elif tool_name == "style_outfit":
             return tool_style_outfit(**arguments)
         elif tool_name == "post_content":
@@ -2257,18 +2075,67 @@ async def execute_tool(tool_name: str, arguments: dict, memory: AgentMemory) -> 
             return await tool_generate_huggingface(**arguments, memory=memory)
         elif tool_name == "generate_with_pollinations":
             return await tool_generate_pollinations(**arguments, memory=memory)
+        elif tool_name == "classify_product_images":
+            from auto_image_classifier import classify_and_rename_images
+            from pathlib import Path
+            product_dir = arguments.get("product_dir", "")
+            p = Path(product_dir) if product_dir else None
+            if p and not p.is_absolute():
+                p = Path("MANUAL_CURATION") / product_dir
+            if not p or not p.exists():
+                # AUTO-DISCOVER: find first unclassified folder in MANUAL_CURATION
+                curation = Path("MANUAL_CURATION")
+                unclassified = []
+                if curation.exists():
+                    for sub in curation.iterdir():
+                        if sub.is_dir() and not sub.name.startswith(("_", ".")):
+                            has_class = (sub / "image_classification.json").exists()
+                            imgs = [f for f in sub.iterdir() if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp") and not f.name.startswith("__temp")]
+                            if not has_class and imgs:
+                                unclassified.append(sub)
+                if unclassified:
+                    p = unclassified[0]
+                    print(f"   [auto] Auto-discovered unclassified product: {p.name}")
+                else:
+                    return {"success": True, "result": "All products in MANUAL_CURATION are already classified."}
+            result = classify_and_rename_images(p)
+            return {"success": True, "product": p.name, "result": result}
+        elif tool_name == "download_yupoo_album":
+            from yupoo_scraper import YupooScraper
+            import re
+            scraper = YupooScraper()
+            album_url = arguments.get("album_url", "")
+            subdomain = arguments.get("subdomain")
+            if not subdomain:
+                m = re.search(r'https?://([^.]+)\.x\.yupoo\.com', album_url)
+                subdomain = m.group(1) if m else "general"
+            curation_dir = Path("MANUAL_CURATION")
+            curation_dir.mkdir(exist_ok=True)
+            detail = await asyncio.to_thread(scraper.scrape_album_detail, album_url)
+            album_dict = {"title": detail.get("title", "product"), "album_url": album_url, "price_cny": detail.get("price_cny", 0.0)}
+            dl_res = await asyncio.to_thread(scraper.download_album_to_staging, subdomain, album_dict, curation_dir, detail)
+            if dl_res.get("images_downloaded", 0) > 0:
+                p_path = Path(dl_res["folder_path"])
+                meta_file = p_path / "metadata.json"
+                if meta_file.exists():
+                    try:
+                        m = json.loads(meta_file.read_text(encoding="utf-8"))
+                        m["generation_status"] = "pending"
+                        m["storefront_status"] = "not_listed"
+                        meta_file.write_text(json.dumps(m, indent=2, ensure_ascii=False), encoding="utf-8")
+                    except Exception:
+                        pass
+                if memory:
+                    memory.add_learning(f"Downloaded Yupoo album to {p_path.name} ({dl_res['images_downloaded']} images)")
+                return {"success": True, "folder": p_path.name, "images_downloaded": dl_res["images_downloaded"]}
+            else:
+                return {"success": False, "error": "No images could be downloaded from album"}
+        elif tool_name == "find_ready_outfits":
+            from outfit_warehouse import find_ready_outfits
+            ready = find_ready_outfits()
+            return {"success": True, "count": len(ready), "ready_outfits": ready}
         elif tool_name == "scrape_meta_ad_library":
             return await tool_scrape_meta_ads(**arguments, memory=memory)
-        elif tool_name == "humanoid_autopost":
-            return await tool_humanoid_autopost(**arguments, memory=memory)
-        elif tool_name == "hunt_and_pitch_clients":
-            return await tool_hunt_and_pitch_clients(**arguments, memory=memory)
-        elif tool_name == "generate_viral_audio":
-            return await tool_generate_viral_audio(**arguments, memory=memory)
-        elif tool_name == "upscale_product":
-            return await tool_upscale_product(**arguments, memory=memory)
-        elif tool_name == "close_deals":
-            return await tool_close_deals(**arguments, memory=memory)
         else:
             return {"success": False, "error": f"Unknown tool: {tool_name}"}
     except Exception as e:
