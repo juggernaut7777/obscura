@@ -469,18 +469,26 @@ export default function ProductPage({ params }) {
                     <thead>
                       <tr style={{ borderBottom: "2px solid #c9a96e" }}>
                         <th style={{ padding: "10px 12px", textAlign: "left", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Size</th>
-                        <th style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Bust</th>
-                        <th style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Length</th>
-                        <th style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>Sleeve</th>
+                        {Object.keys(Object.values(product.sizeGuide)[0] || {}).map((col) => (
+                          <th key={col} style={{ padding: "10px 12px", textAlign: "center", color: "#c9a96e", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>
+                            {col.replace('_', ' ')}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(product.sizeGuide).map(([size, m], i) => (
+                      {Object.entries(product.sizeGuide).map(([size, measurements], i) => (
                         <tr key={size} style={{ borderBottom: "1px solid #222", background: i % 2 === 0 ? "#111" : "transparent" }}>
                           <td style={{ padding: "10px 12px", fontWeight: "600", color: "#fff" }}>{size}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "center" }}>{m.bust_cm}cm <span style={{ color: "#888", fontSize: "0.75rem" }}>/ {m.bust_in}&quot;</span></td>
-                          <td style={{ padding: "10px 12px", textAlign: "center" }}>{m.length_cm}cm <span style={{ color: "#888", fontSize: "0.75rem" }}>/ {m.length_in}&quot;</span></td>
-                          <td style={{ padding: "10px 12px", textAlign: "center" }}>{m.sleeve_cm}cm <span style={{ color: "#888", fontSize: "0.75rem" }}>/ {m.sleeve_in}&quot;</span></td>
+                          {typeof measurements === "object" && measurements !== null ? (
+                            Object.values(measurements).map((val, colIdx) => (
+                              <td key={colIdx} style={{ padding: "10px 12px", textAlign: "center" }}>
+                                {typeof val === "object" && val !== null ? `${val.cm || val.bust_cm || ""}cm / ${val.in || val.bust_in || ""}″` : String(val)}
+                              </td>
+                            ))
+                          ) : (
+                            <td colSpan={4} style={{ padding: "10px 12px", textAlign: "center" }}>{String(measurements)}</td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
