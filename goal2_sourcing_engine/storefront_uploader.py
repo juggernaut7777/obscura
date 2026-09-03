@@ -787,7 +787,11 @@ def scan_and_upload():
     """Main function: scan OUTPUT_READY_FOR_SALE and MANUAL_CURATION and upload to storefront."""
     campaigns = []
     if READY_DIR.exists():
-        campaigns.extend([d for d in READY_DIR.iterdir() if d.is_dir()])
+        # ⚡ Performance optimization
+        # Why: Prevent N+1 stat calls when iterating directories
+        # What: Use os.scandir instead of Path.iterdir + is_dir
+        with os.scandir(READY_DIR) as scanner:
+            campaigns.extend([Path(e.path) for e in scanner if e.is_dir()])
     
     if not campaigns:
         log("No campaigns to upload.")
