@@ -79,16 +79,18 @@ async function startPolling() {
 // from the background worker — no content script spam needed.
 
 async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATION") {
-    const tabId = await findFlowTab();
+    let tabId = await findFlowTab();
     if (!tabId) {
         if (forceOpen) {
             console.log("⚠️  [OBSCURA v6] No Flow tab found. Auto-opening...");
-            await autoOpenFlowTab();
+            tabId = await autoOpenFlowTab();
+            await sleep(3000);
         } else {
             console.log("⚠️  [OBSCURA v6] No Flow tab found. Heartbeat skipped (no forceOpen).");
+            return;
         }
-        return;
     }
+    if (!tabId) return;
 
     try {
         // Foreground/activate tab to prevent background reCAPTCHA throttling/telemetry flagging
@@ -228,7 +230,17 @@ async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATIO
                         });
                     }
 
-                    const pid = window.location.href.split('/project/')[1]?.split('/')[0] || "NOT_FOUND";
+                    let pid = window.location.href.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i)?.[1];
+                    if (!pid) {
+                        try {
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const val = localStorage.getItem(localStorage.key(i));
+                                const m = val && val.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+                                if (m) { pid = m[1]; break; }
+                            }
+                        } catch(e) {}
+                    }
+                    pid = pid || "NOT_FOUND";
                     
                     return {
                         bearer: auth.access_token,
@@ -274,25 +286,46 @@ async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATIO
     }
 }
 
-// ─── 4. TAB MANAGEMENT ──────────────────────────────────────────
+// ─── 4. TAB MANAGEMENT (STRICT SINGLE-TAB + DEDUPLICATION) ─────────
+
+let isOpeningTab = false;
+let lastTabOpenTime = 0;
+const TAB_OPEN_COOLDOWN = 60000; // 60s cooldown between auto-open attempts
 
 async function findFlowTab() {
     try {
         const tabs = await chrome.tabs.query({});
-        // Priority 1: Flow project page
-        const flowTabs = tabs.filter(t =>
-            t.url && (
-                t.url.includes("/tools/flow") ||
-                (t.url.includes("labs.google/fx") && !t.url.includes("accounts.google.com"))
-            )
-        );
-        if (flowTabs.length > 0) return flowTabs[0].id;
+        
+        // Priority 1: Flow project or tools page (match url or pendingUrl)
+        const flowTabs = tabs.filter(t => {
+            const u = t.url || t.pendingUrl || "";
+            return u.includes("/tools/flow") || (u.includes("labs.google/fx") && !u.includes("accounts.google.com"));
+        });
+
+        if (flowTabs.length > 0) {
+            // Deduplicate: If multiple Flow tabs exist, keep ONLY the first one and close the rest
+            if (flowTabs.length > 1) {
+                const extraIds = flowTabs.slice(1).map(t => t.id);
+                chrome.tabs.remove(extraIds).catch(() => {});
+                console.log(`🧹 [OBSCURA v6] Closed ${extraIds.length} duplicate Flow tab(s). Keeping tab ${flowTabs[0].id}.`);
+            }
+            return flowTabs[0].id;
+        }
 
         // Priority 2: Any labs.google page
-        const labsTabs = tabs.filter(t =>
-            t.url && t.url.includes("labs.google") && !t.url.includes("accounts.google.com")
-        );
-        if (labsTabs.length > 0) return labsTabs[0].id;
+        const labsTabs = tabs.filter(t => {
+            const u = t.url || t.pendingUrl || "";
+            return u.includes("labs.google") && !u.includes("accounts.google.com");
+        });
+
+        if (labsTabs.length > 0) {
+            if (labsTabs.length > 1) {
+                const extraIds = labsTabs.slice(1).map(t => t.id);
+                chrome.tabs.remove(extraIds).catch(() => {});
+                console.log(`🧹 [OBSCURA v6] Closed ${extraIds.length} duplicate labs.google tab(s).`);
+            }
+            return labsTabs[0].id;
+        }
 
         return null;
     } catch (e) {
@@ -301,7 +334,24 @@ async function findFlowTab() {
 }
 
 async function autoOpenFlowTab() {
+    // Guard 1: Never open if already in progress or under cooldown
+    if (isOpeningTab || (Date.now() - lastTabOpenTime < TAB_OPEN_COOLDOWN)) {
+        console.log("⏳ [OBSCURA v6] Auto-open blocked: tab creation already in progress or under 60s cooldown.");
+        return;
+    }
+
+    // Guard 2: Double check if any Flow or labs.google tab already exists
+    const existingTabId = await findFlowTab();
+    if (existingTabId) {
+        console.log(`✅ [OBSCURA v6] Reusing existing Flow tab ${existingTabId}. No new tab created.`);
+        return existingTabId;
+    }
+
+    isOpeningTab = true;
+    lastTabOpenTime = Date.now();
+
     try {
+        console.log("🌐 [OBSCURA v6] Opening EXACTLY ONE Flow tab...");
         const tab = await chrome.tabs.create({
             url: "https://labs.google/fx/tools/flow",
             active: false
@@ -322,9 +372,12 @@ async function autoOpenFlowTab() {
             }, 15000);
         });
 
-        console.log("🌐 [OBSCURA v6] Auto-opened Flow tab.");
+        console.log("🌐 [OBSCURA v6] Flow tab loaded successfully.");
+        return tab.id;
     } catch (e) {
         console.log("⚠️  [OBSCURA v6] Failed to auto-open tab:", e.message);
+    } finally {
+        isOpeningTab = false;
     }
 }
 

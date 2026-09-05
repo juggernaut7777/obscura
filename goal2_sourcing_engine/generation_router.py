@@ -366,17 +366,6 @@ class GenerationRouter:
 
                     elif resp.status_code == 503:
                         safe_print(f"  [*] Router: Bridge active but tokens stale. Requested fresh token (attempt {attempt}/15). Waiting 2s...")
-                        if attempt == 1 or attempt % 5 == 0:
-                            # Auto-wake Chrome on labs.google so extension pushes fresh token
-                            try:
-                                import subprocess
-                                subprocess.Popen([
-                                    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                                    "--profile-directory=Profile 4",
-                                    "https://labs.google/fx/tools/flow"
-                                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                            except Exception:
-                                pass
                     else:
                         safe_print(f"  [!] Router: Bridge returned unexpected status {resp.status_code}.")
             except Exception:
