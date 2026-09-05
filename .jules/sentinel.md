@@ -1,0 +1,4 @@
+## 2024-05-18 - Fix Command Injection in Interactive CLI Scripts
+**Vulnerability:** Found `os.system()` executing user input directly through string concatenation in `goal2_sourcing_engine/start_engine.py` which allowed arbitrary command execution.
+**Learning:** In locally run utility scripts, interactive `input()` is often mistakenly treated as trusted data and blindly concatenated into shell commands. This is especially risky when generating complex dynamic CLI flags for other tools.
+**Prevention:** Always use `subprocess.run()` with a list of arguments (array-based command invocation) to explicitly separate the executable path, static flags, and user input variables, thereby avoiding evaluation by a system shell. Use `shlex.join()` if you need to print the safe command string for logging.
