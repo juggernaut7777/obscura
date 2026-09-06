@@ -446,20 +446,29 @@ def extract_metadata_from_campaign(campaign_dir):
     # 2. Gallery-ready flat lay images (front_flat_lay.jpg, back_flat_lay.jpg)
     # These are the actual downloaded source photos used directly as flat lays.
     gallery_names = ("front_flat_lay", "back_flat_lay", "top_front_flat_lay", "top_back_flat_lay", "bottom_front_flat_lay", "bottom_back_flat_lay", "front_angle_1", "back_angle_1", "front_angle_2", "back_angle_2")
-    for f in sorted(campaign_dir.iterdir()):
-        if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-            # Include AI generated model shots or scraped product shots
-            if f.name.startswith(("01_", "02_", "03_", "04_", "05_", "angle_", "img_", "product_")) or any(t in f.name.lower() for t in ("editorial", "lifestyle", "ghost", "hero", "angle")):
-                metadata["images"].append(f)
-            # Include gallery-ready flat lay images (downloaded source photos)
-            elif f.stem.lower() in gallery_names:
-                metadata["images"].append(f)
+
+    # ⚡ Performance optimization
+    # Why: Calling sorted(campaign_dir.iterdir()) triggers multiple underlying stat operations per loop iteration, and the fallback repeats the iteration.
+    # What: Consolidate to a single os.scandir() pass, which caches file attributes, sorting once and reusing the result.
+    all_images = []
+    with os.scandir(campaign_dir) as scanner:
+        entries = sorted([e for e in scanner if e.is_file()], key=lambda e: e.name)
+        for e in entries:
+            name_lower = e.name.lower()
+            if name_lower.endswith((".png", ".jpg", ".jpeg", ".webp")):
+                all_images.append(Path(e.path))
+
+    for f in all_images:
+        # Include AI generated model shots or scraped product shots
+        if f.name.startswith(("01_", "02_", "03_", "04_", "05_", "angle_", "img_", "product_")) or any(t in f.name.lower() for t in ("editorial", "lifestyle", "ghost", "hero", "angle")):
+            metadata["images"].append(f)
+        # Include gallery-ready flat lay images (downloaded source photos)
+        elif f.stem.lower() in gallery_names:
+            metadata["images"].append(f)
     
     # Fallback: if no specific image pattern matched, include all image files in the directory
     if not metadata["images"]:
-        for f in sorted(campaign_dir.iterdir()):
-            if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-                metadata["images"].append(f)
+        metadata["images"].extend(all_images)
     
     # Collect remaining source images for the secondary details/photos tab
     metadata["source_images"] = []
