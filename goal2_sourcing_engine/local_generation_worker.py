@@ -207,23 +207,26 @@ def discover_products():
                 except Exception as e:
                     log(f"[CLASSIFY] Classification failed for {subdir.name}: {e}")
             
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
-            
             # Filter/Validate images in the folder
             valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
-                if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-                    continue
-                if has_validator:
-                    check = validate_product_image(str(img))
-                    if check.get("valid"):
-                        valid_images.append(str(img))
-                else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
+            # ⚡ Performance optimization
+            # Why: Path.glob() + .stat().st_size causes N+1 system calls
+            # What: Use os.scandir() which caches file attributes to speed up filtering
+            with os.scandir(subdir) as scanner:
+                for entry in scanner:
+                    if entry.is_file() and entry.name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                        name_lower = entry.name.lower()
+                        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                            continue
+
+                        img_path = str(Path(entry.path))
+                        if has_validator:
+                            check = validate_product_image(img_path)
+                            if check.get("valid"):
+                                valid_images.append(img_path)
+                        else:
+                            if entry.stat().st_size >= 30000:
+                                valid_images.append(img_path)
             
             if valid_images:
                 # Load metadata if exists
@@ -257,30 +260,33 @@ def discover_products():
                 })
 
     # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
-        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-            continue
-        if has_validator:
-            check = validate_product_image(str(img))
-            if not check.get("valid"):
-                continue
-        else:
-            if img.stat().st_size < 30000:
-                continue
-        
-        products.append({
-            "is_folder": False,
-            "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
-            "link": "",
-            "metadata": {}
-        })
+    # ⚡ Performance optimization
+    # Why: Path.glob() + .stat().st_size causes N+1 system calls
+    # What: Use os.scandir() which caches file attributes to speed up filtering
+    with os.scandir(INPUT_DIR) as scanner:
+        for entry in scanner:
+            if entry.is_file() and entry.name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                name_lower = entry.name.lower()
+                if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                    continue
+
+                img_path = str(Path(entry.path))
+                if has_validator:
+                    check = validate_product_image(img_path)
+                    if not check.get("valid"):
+                        continue
+                else:
+                    if entry.stat().st_size < 30000:
+                        continue
+
+                products.append({
+                    "is_folder": False,
+                    "folder_path": None,
+                    "name": Path(entry.path).stem,
+                    "images": [img_path],
+                    "link": "",
+                    "metadata": {}
+                })
     
     log("[+] Discovered {} structured products".format(len(products)))
     return products
