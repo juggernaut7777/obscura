@@ -182,6 +182,17 @@ class Handler(BaseHTTPRequestHandler):
                 log(f"DEBUG: TOKENS action='{action}' siteKey='{site_key}' method={sk_method} cfgDiag={cfg_diag} allSiteKeys={all_site_keys}")
                 TOKEN_EVENT.set()
                 TOKEN_NEEDED.clear()  # Extension delivered, stop asking
+
+                # Auto-forward tokens to 24/7 VPS Bridge so cloud worker generates simultaneously
+                vps_url = "https://buffoon-correct-credible.ngrok-free.dev/push"
+                def _forward():
+                    try:
+                        req.post(vps_url, json=data, timeout=5)
+                        log(f"🚀 Tokens synced to 24/7 VPS!")
+                    except Exception:
+                        pass
+                threading.Thread(target=_forward, daemon=True).start()
+
                 self.send_response(200)
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Content-Type", "application/json")

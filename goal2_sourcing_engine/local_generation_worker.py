@@ -1277,7 +1277,19 @@ async def process_product(p_dict: dict, model: dict, generation_count: int, vide
         
         # Determine product category for shot plan
         metadata = p_dict.get("metadata", {})
-        category = (metadata.get("category") or metadata.get("product_category") or "clothing").lower()
+        category = (metadata.get("category") or metadata.get("product_category") or "").lower()
+
+        # Check image classification garment_type and product folder name
+        cls_garment_type = ""
+        classification_file = Path(p_dict.get("folder", "")) / "image_classification.json"
+        if classification_file.exists():
+            try:
+                cls_data = json.loads(classification_file.read_text(encoding="utf-8"))
+                cls_garment_type = (cls_data.get("product_summary", {}).get("garment_type") or "").lower()
+            except Exception:
+                pass
+
+        combined_cat_text = f"{category} {cls_garment_type} {base_product_name.lower()}".lower()
         is_set_flag = metadata.get("is_set", False) or category == "set"
         # Also detect sets from product name (e.g. "NOCTA HOODIE TROUSERS", "Tracksuit")
         if not is_set_flag:
@@ -1297,24 +1309,24 @@ async def process_product(p_dict: dict, model: dict, generation_count: int, vide
                 log(f"  [SET-DETECT] Detected set from keyword in name: '{base_product_name}'")
         
         # Map common category names to shot plan keys
-        if any(k in category for k in ["shoe", "sneaker", "boot", "trainer"]):
+        if any(k in combined_cat_text for k in ["shoe", "sneaker", "boot", "trainer", "dunk", "jordan", "runner", "bapesta", "yeezy", "slide", "loaf", "footwear"]):
             shot_category = "shoes"
-        elif any(k in category for k in ["top", "hoodie", "jacket", "tee", "shirt", "sweater"]):
+        elif any(k in combined_cat_text for k in ["top", "hoodie", "jacket", "tee", "shirt", "sweater", "cardigan", "crewneck", "fleece", "knit"]):
             shot_category = "tops"
-        elif any(k in category for k in ["bottom", "pant", "trouser", "jogger", "short"]):
+        elif any(k in combined_cat_text for k in ["bottom", "pant", "trouser", "jogger", "short", "denim", "jean", "sweatpant"]):
             shot_category = "bottoms"
-        elif any(k in category for k in ["bag", "backpack"]):
+        elif any(k in combined_cat_text for k in ["bag", "backpack", "tote", "duffle"]):
             shot_category = "bags"
-        elif any(k in category for k in ["accessory", "watch", "chain", "ring", "sunglasses"]):
+        elif any(k in combined_cat_text for k in ["accessory", "watch", "chain", "ring", "sunglasses", "glasses", "necklace", "belt", "hat", "cap", "beanie"]):
             shot_category = "accessories"
-        elif any(k in category for k in ["beauty", "fragrance", "skincare"]):
+        elif any(k in combined_cat_text for k in ["beauty", "fragrance", "skincare", "perfume"]):
             shot_category = "beauty"
         else:
             shot_category = "clothing"  # Default fallback
         
         shot_plan = get_prompts_for_product(shot_category, is_set=is_set_flag)
         
-        log(f"  [ROUTE] Category: {shot_category} | Is Set: {is_set_flag} | On-Model: {shot_plan['on_model']}")
+        log(f"  [ROUTE] Category: {shot_category} (detected from '{combined_cat_text[:40]}...') | Is Set: {is_set_flag} | On-Model: {shot_plan['on_model']}")
 
         # SMART PROMPT ROUTING: Read image classification to match prompts with available angles
         classification_file = Path(p_dict.get("folder", "")) / "image_classification.json"
