@@ -162,125 +162,129 @@ def discover_products():
     except ImportError:
         log("[CLASSIFY] auto_image_classifier not available — using filenames as-is")
     
+    # ⚡ Performance optimization
+    # Why: Avoid N+1 stat calls during large directory enumeration
+    # What: Use os.scandir() instead of pathlib.Path.iterdir() and glob() to cache file sizes
     # 1. Discover subdirectories (folder-grouped products)
-    for subdir in INPUT_DIR.iterdir():
-        if subdir.is_dir() and subdir.name not in ("outfit_grid", "_rejected", "__pycache__", "_merged_outfits"):
-            # Skip MERGED folders — outfits are handled via warehouse Track 2
-            if subdir.name.startswith("MERGED_"):
-                continue
+    with os.scandir(INPUT_DIR) as scanner:
+        for subdir_entry in scanner:
+            subdir = Path(subdir_entry.path)
+            if subdir_entry.is_dir() and subdir_entry.name not in ("outfit_grid", "_rejected", "__pycache__", "_merged_outfits"):
+                # Skip MERGED folders — outfits are handled via warehouse Track 2
+                if subdir_entry.name.startswith("MERGED_"):
+                    continue
+
+                # Skip already-generated products (marker file OR registry entry)
+                generated_marker = subdir / ".generated"
+                if generated_marker.exists():
+                    continue
+
+                # Check generation registry for product_id-based dedup
+                meta_file_check = subdir / "metadata.json"
+                if meta_file_check.exists():
+                    try:
+                        _meta = json.loads(meta_file_check.read_text(encoding="utf-8"))
+                        _pid = _meta.get("product_id", "")
+                        _color = _meta.get("color", "")
+                        if _pid and is_already_generated(_pid, _color):
+                            log(f"  [REGISTRY-DEDUP] Skipping '{subdir_entry.name}' — already in generation registry")
+                            continue
+                    except Exception:
+                        pass
+
+                # AUTO-CLASSIFY: Run VLM classifier on folders without classification
+                classification_file = subdir / "image_classification.json"
+                # Skip classification for MERGED folders (they always fail with WinError 3 on color-split)
+                is_merged = subdir_entry.name.startswith("MERGED_")
+                if classifier and not classification_file.exists() and not is_merged:
+                    try:
+                        meta = {}
+                        meta_file = subdir / "metadata.json"
+                        if meta_file.exists():
+                            meta = json.loads(meta_file.read_text(encoding="utf-8"))
+
+                        log(f"[CLASSIFY] Auto-classifying images in {subdir_entry.name}...")
+                        classifier(
+                            subdir,
+                            weidian_data={"colors": meta.get("colors", []), "title": meta.get("product_name", "")},
+                            user_color=meta.get("color", "")
+                        )
+                    except Exception as e:
+                        log(f"[CLASSIFY] Classification failed for {subdir_entry.name}: {e}")
+
+                # Filter/Validate images in the folder
+                valid_images = []
+                with os.scandir(subdir_entry.path) as img_scanner:
+                    for img_entry in img_scanner:
+                        if img_entry.is_file() and img_entry.name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                            name_lower = img_entry.name.lower()
+                            if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
+                                continue
+                            if has_validator:
+                                check = validate_product_image(img_entry.path)
+                                if check.get("valid"):
+                                    valid_images.append(img_entry.path)
+                            else:
+                                if img_entry.stat().st_size >= 30000:
+                                    valid_images.append(img_entry.path)
             
-            # Skip already-generated products (marker file OR registry entry)
-            generated_marker = subdir / ".generated"
-            if generated_marker.exists():
-                continue
-            
-            # Check generation registry for product_id-based dedup
-            meta_file_check = subdir / "metadata.json"
-            if meta_file_check.exists():
-                try:
-                    _meta = json.loads(meta_file_check.read_text(encoding="utf-8"))
-                    _pid = _meta.get("product_id", "")
-                    _color = _meta.get("color", "")
-                    if _pid and is_already_generated(_pid, _color):
-                        log(f"  [REGISTRY-DEDUP] Skipping '{subdir.name}' — already in generation registry")
-                        continue
-                except Exception:
-                    pass
-            
-            # AUTO-CLASSIFY: Run VLM classifier on folders without classification
-            classification_file = subdir / "image_classification.json"
-            # Skip classification for MERGED folders (they always fail with WinError 3 on color-split)
-            is_merged = subdir.name.startswith("MERGED_")
-            if classifier and not classification_file.exists() and not is_merged:
-                try:
-                    meta = {}
+                if valid_images:
+                    # Load metadata if exists
+                    metadata = {}
                     meta_file = subdir / "metadata.json"
                     if meta_file.exists():
-                        meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                        try:
+                            with open(meta_file, "r", encoding="utf-8") as mf:
+                                metadata = json.load(mf)
+                        except Exception:
+                            pass
                     
-                    log(f"[CLASSIFY] Auto-classifying images in {subdir.name}...")
-                    classifier(
-                        subdir,
-                        weidian_data={"colors": meta.get("colors", []), "title": meta.get("product_name", "")},
-                        user_color=meta.get("color", "")
-                    )
-                except Exception as e:
-                    log(f"[CLASSIFY] Classification failed for {subdir.name}: {e}")
-            
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
-            
-            # Filter/Validate images in the folder
-            valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
+                    # Load link if exists
+                    link = metadata.get("link", "")
+                    link_file = subdir / "link.txt"
+                    if not link and link_file.exists():
+                        try:
+                            with open(link_file, "r", encoding="utf-8") as lf:
+                                link = lf.read().strip()
+                        except Exception:
+                            pass
+
+                    products.append({
+                        "is_folder": True,
+                        "folder_path": str(subdir),
+                        "folder": subdir,  # Path object for smart prompt routing
+                        "name": metadata.get("product_name") or subdir.name,
+                        "images": valid_images,
+                        "link": link,
+                        "metadata": metadata
+                    })
+
+    # ⚡ Performance optimization
+    # Why: Avoid N+1 stat calls during large directory enumeration
+    # What: Use os.scandir() instead of glob() to cache file sizes
+    # 2. Discover loose files directly in INPUT_DIR root
+    with os.scandir(INPUT_DIR) as scanner:
+        for img_entry in scanner:
+            if img_entry.is_file() and img_entry.name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                name_lower = img_entry.name.lower()
                 if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
                     continue
                 if has_validator:
-                    check = validate_product_image(str(img))
-                    if check.get("valid"):
-                        valid_images.append(str(img))
+                    check = validate_product_image(img_entry.path)
+                    if not check.get("valid"):
+                        continue
                 else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
-            
-            if valid_images:
-                # Load metadata if exists
-                metadata = {}
-                meta_file = subdir / "metadata.json"
-                if meta_file.exists():
-                    try:
-                        with open(meta_file, "r", encoding="utf-8") as mf:
-                            metadata = json.load(mf)
-                    except Exception:
-                        pass
+                    if img_entry.stat().st_size < 30000:
+                        continue
                 
-                # Load link if exists
-                link = metadata.get("link", "")
-                link_file = subdir / "link.txt"
-                if not link and link_file.exists():
-                    try:
-                        with open(link_file, "r", encoding="utf-8") as lf:
-                            link = lf.read().strip()
-                    except Exception:
-                        pass
-
                 products.append({
-                    "is_folder": True,
-                    "folder_path": str(subdir),
-                    "folder": subdir,  # Path object for smart prompt routing
-                    "name": metadata.get("product_name") or subdir.name,
-                    "images": valid_images,
-                    "link": link,
-                    "metadata": metadata
+                    "is_folder": False,
+                    "folder_path": None,
+                    "name": Path(img_entry.name).stem,
+                    "images": [img_entry.path],
+                    "link": "",
+                    "metadata": {}
                 })
-
-    # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
-    
-    for img in loose_images:
-        name_lower = img.name.lower()
-        if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
-            continue
-        if has_validator:
-            check = validate_product_image(str(img))
-            if not check.get("valid"):
-                continue
-        else:
-            if img.stat().st_size < 30000:
-                continue
-        
-        products.append({
-            "is_folder": False,
-            "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
-            "link": "",
-            "metadata": {}
-        })
     
     log("[+] Discovered {} structured products".format(len(products)))
     return products
