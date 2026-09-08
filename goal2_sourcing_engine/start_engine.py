@@ -1,6 +1,8 @@
 import os
 import sys
 import time
+import subprocess
+import shlex
 
 def print_banner():
     print("=" * 60)
@@ -76,21 +78,21 @@ def main():
                 prompt = input("Enter video prompt (e.g. Model wearing black hoodie walking down NYC street): ").strip()
                 script = input("Enter narration script (e.g. Get the new Obscura heavy weight basic hoodie now): ").strip()
                 refs = input("Enter reference image paths (optional, space separated): ").strip()
-                cmd = f'"{sys.executable}" mini_projects/compile_ugc_ad.py --prompt "{prompt}" --script "{script}"'
+                cmd_list = [sys.executable, "mini_projects/compile_ugc_ad.py", "--prompt", prompt, "--script", script]
                 if refs:
-                    cmd += f' --refs {refs}'
-                print(f"\n[*] Executing: {cmd}")
-                os.system(cmd)
+                    cmd_list.extend(["--refs"] + refs.split())
+                print(f"\n[*] Executing: {shlex.join(cmd_list)}")
+                subprocess.run(cmd_list)
                 input("\nPress Enter to return to main menu...")
             elif choice == '11':
                 print("\n[*] AI UGC & PRODUCT AD AGENCY PIPELINE [*]")
                 niche = input("Enter product niche (e.g. soap, necklace, clothes, wigs, perfume, skincare): ").strip() or "soap"
                 brand = input("Enter custom brand name (optional): ").strip()
-                cmd = f'"{sys.executable}" mini_projects/ai_ugc_ad_agency/agency_pipeline.py --niche "{niche}"'
+                cmd_list = [sys.executable, "mini_projects/ai_ugc_ad_agency/agency_pipeline.py", "--niche", niche]
                 if brand:
-                    cmd += f' --brand "{brand}"'
-                print(f"\n[*] Executing: {cmd}")
-                os.system(cmd)
+                    cmd_list.extend(["--brand", brand])
+                print(f"\n[*] Executing: {shlex.join(cmd_list)}")
+                subprocess.run(cmd_list)
                 input("\nPress Enter to return to main menu...")
             elif choice == '12':
                 print("Exiting...")
