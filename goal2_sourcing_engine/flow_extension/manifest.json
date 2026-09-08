@@ -10,7 +10,9 @@
         "storage"
     ],
     "host_permissions": [
+        "https://flow.google.com/*",
         "https://labs.google/*",
+        "https://*.google.com/*",
         "http://localhost:9877/*",
         "http://127.0.0.1:9877/*"
     ],

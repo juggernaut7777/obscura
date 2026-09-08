@@ -10,7 +10,16 @@ let isPolling  = false;
 let tokenCount = 0;
 let lastPush   = 0;
 
-// ─── 1. KEEP-ALIVE ──────────────────────────────────────────────
+async function extLog(msg) {
+    console.log(`[OBSCURA v6] ${msg}`);
+    try {
+        fetch(`${BRIDGE_URL}/ext-status`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ msg: String(msg) })
+        }).catch(() => {});
+    } catch(e) {}
+}
 // Chrome kills idle service workers after 30s.
 // Alarms + heartbeat keep it permanently alive (G-Labs technique).
 
@@ -27,8 +36,9 @@ chrome.runtime.onStartup.addListener(() => startPolling());
 
 // Auto-detect when user navigates to Flow
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete" && tab.url && tab.url.includes("labs.google")) {
+    if (changeInfo.status === "complete" && tab.url && (tab.url.includes("flow.google") || tab.url.includes("labs.google"))) {
         if (!isPolling) startPolling();
+        generateAndPushToken(false, "IMAGE_GENERATION");
     }
 });
 
@@ -83,9 +93,16 @@ async function startPolling() {
 async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATION") {
     let tabId = await findFlowTab();
     if (!tabId) {
-        console.log("ℹ️  [OBSCURA v6] No Flow tab found in Chrome. Waiting for user to open Flow...");
+        try {
+            const allTabs = await chrome.tabs.query({});
+            const urls = allTabs.map(t => (t.title || "tab") + " [" + (t.url || t.pendingUrl || "no-url") + "]").slice(0, 5).join(" ; ");
+            await extLog(`ℹ️ Waiting for Flow tab. Detected browser tabs: ${urls}`);
+        } catch (err) {
+            await extLog("ℹ️ No Flow tab found.");
+        }
         return;
     }
+    await extLog(`🔍 Found Flow tab ${tabId}. Generating fresh token for ${action}...`);
 
     try {
         // Softly activate tab if not already active
@@ -100,17 +117,96 @@ async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATIO
             // Non-critical
         }
 
+        let bgSessionToken = null;
+        let bgUserName = null;
+        const authCandidates = [
+            "https://labs.google/fx/api/auth/session",
+            "https://flow.google.com/fx/api/auth/session"
+        ];
+        for (const ep of authCandidates) {
+            try {
+                const res = await fetch(ep, { credentials: "include" });
+                if (res.ok) {
+                    const text = await res.text();
+                    if (text.trim().startsWith("{")) {
+                        const parsed = JSON.parse(text);
+                        if (parsed.access_token) {
+                            bgSessionToken = parsed.access_token;
+                            bgUserName = parsed.user?.name || "GoogleUser";
+                            await extLog(`✅ Background auth fetch succeeded from ${ep}!`);
+                            break;
+                        }
+                    }
+                } else {
+                    await extLog(`BG auth fetch from ${ep} returned ${res.status}`);
+                }
+            } catch (err) {
+                await extLog(`BG auth fetch from ${ep} error: ${err.message}`);
+            }
+        }
+
         const results = await chrome.scripting.executeScript({
             target: { tabId },
             world: "MAIN",
-            args: [ action ],
-            func: async (action) => {
+            args: [ action, bgSessionToken, bgUserName ],
+            func: async (action, bgToken, bgUser) => {
                 try {
                     // ── Step 1: Bearer token ──
-                    const authReq = await fetch("/fx/api/auth/session", { credentials: "include" });
-                    if (!authReq.ok) return { error: "Auth fetch failed: " + authReq.status };
-                    const auth = await authReq.json();
-                    if (!auth.access_token) return { error: "No access_token in session" };
+                    let auth = bgToken ? { access_token: bgToken, user: { name: bgUser } } : null;
+                    const authCandidates = [
+                        "https://labs.google/fx/api/auth/session",
+                        "/fx/api/auth/session",
+                        "/api/auth/session",
+                        "https://flow.google.com/api/auth/session",
+                        "https://flow.google.com/fx/api/auth/session"
+                    ];
+                    let attemptsDiag = [];
+                    for (const url of authCandidates) {
+                        try {
+                            const res = await fetch(url, { credentials: "include" });
+                            attemptsDiag.push(`${url}=${res.status}`);
+                            if (res.ok) {
+                                const text = await res.text();
+                                if (text.trim().startsWith("{")) {
+                                    const parsed = JSON.parse(text);
+                                    if (parsed.access_token) {
+                                        auth = parsed;
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch(e) {
+                            attemptsDiag.push(`${url}=err:${e.message}`);
+                        }
+                    }
+
+                    if (!auth || !auth.access_token) {
+                        // Scan localStorage & sessionStorage for Google OAuth bearer tokens
+                        try {
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const val = localStorage.getItem(localStorage.key(i));
+                                if (val && val.includes("ya29.")) {
+                                    const m = val.match(/(ya29\.[a-zA-Z0-9_\-]+)/);
+                                    if (m) { auth = { access_token: m[1], user: { name: "GoogleUser" } }; break; }
+                                }
+                            }
+                        } catch(e) {}
+                        if (!auth || !auth.access_token) {
+                            try {
+                                for (let i = 0; i < sessionStorage.length; i++) {
+                                    const val = sessionStorage.getItem(sessionStorage.key(i));
+                                    if (val && val.includes("ya29.")) {
+                                        const m = val.match(/(ya29\.[a-zA-Z0-9_\-]+)/);
+                                        if (m) { auth = { access_token: m[1], user: { name: "GoogleUser" } }; break; }
+                                    }
+                                }
+                            } catch(e) {}
+                        }
+                    }
+
+                    if (!auth || !auth.access_token) {
+                        return { error: `No access_token found. Attempts: ${attemptsDiag.join(", ")}` };
+                    }
 
                     // ── Step 2: Dynamic reCAPTCHA site-key (G-Labs technique) ──
                     let siteKey = null;
@@ -257,7 +353,7 @@ async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATIO
             const data = results[0].result;
 
             if (data.error) {
-                console.log("❌ [OBSCURA v6] Token gen failed:", data.error);
+                await extLog(`❌ Token gen in-page error: ${data.error}`);
                 return;
             }
 
@@ -272,11 +368,15 @@ async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATIO
                 tokenCount++;
                 lastPush = Date.now();
                 chrome.storage.local.set({ tokenCount, lastPush });
-                console.log(`✅ [OBSCURA v6] Fresh token #${tokenCount} pushed.`);
+                await extLog(`✅ Fresh token #${tokenCount} pushed to bridge (User: ${data.user}, Project: ${data.projectId})`);
+            } else {
+                await extLog(`⚠️ Bridge responded with HTTP ${pushResp.status} on /push`);
             }
+        } else {
+            await extLog(`⚠️ Script execution returned empty result: ${JSON.stringify(results)}`);
         }
     } catch (e) {
-        console.log("⚠️  [OBSCURA v6] Script injection failed:", e.message);
+        await extLog(`⚠️ Script injection failed: ${e.message}`);
     }
 }
 

@@ -236,6 +236,20 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif self.path == "/ext-status":
+            try:
+                body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                data = json.loads(body.decode("utf-8", errors="replace"))
+                log(f"🔌 [EXT] {data.get('msg', data)}")
+                self.send_response(200)
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"ok":true}')
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
         
         elif self.path == "/generate":
             try:
