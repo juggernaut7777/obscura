@@ -33,6 +33,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 console.log("🟢 [OBSCURA v6] Elite Token Bridge started.");
+startPolling();
+generateAndPushToken(false, "IMAGE_GENERATION");
 
 // ─── 2. BRIDGE POLLING (ON-DEMAND TOKENS) ───────────────────────
 // Instead of blindly pushing tokens every 3s (which got us flagged),
