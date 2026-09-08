@@ -62,45 +62,14 @@ def log(msg):
 _last_chrome_launch = 0
 
 def ensure_chrome_running():
-    """Auto-opens Chrome to Google Flow project if Chrome is closed or killed."""
-    global _last_chrome_launch
-    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    flow_url = "https://labs.google/fx/tools/flow"
-    if not os.path.exists(chrome_path):
-        return False
-
-    # Prevent launching more than once every 120 seconds
-    if time.time() - _last_chrome_launch < 120:
-        return False
-    
-    try:
-        tasks = subprocess.check_output("tasklist", shell=True).decode("utf-8", errors="ignore")
-        if "chrome.exe" not in tasks.lower():
-            _last_chrome_launch = time.time()
-            log("🌐 Chrome is closed! Auto-launching Chrome Profile 4 to Google Flow project...")
-            subprocess.Popen([
-                chrome_path,
-                "--remote-debugging-port=9222",
-                "--remote-allow-origins=*",
-                "--profile-directory=Profile 4",
-                flow_url
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return True
-    except Exception as e:
-        log(f"⚠️ Error checking/launching Chrome: {e}")
+    """Auto-launching Chrome is permanently disabled to prevent duplicate windows and tab spam."""
     return False
 
 
 def chrome_watchdog_loop():
-    """Background watchdog thread: keeps Chrome open and connected to Google Flow project."""
+    """Passive watchdog thread (auto-spawn disabled)."""
     while True:
-        try:
-            # Check every 15s: if token is stale (>60s) or missing, ensure Chrome is open
-            if TOKEN_NEEDED.is_set() or TOKENS["bearer"] is None or (time.time() - TOKENS["ts"]) > 60:
-                ensure_chrome_running()
-        except Exception:
-            pass
-        time.sleep(15)
+        time.sleep(60)
 
 
 # Start background watchdog thread

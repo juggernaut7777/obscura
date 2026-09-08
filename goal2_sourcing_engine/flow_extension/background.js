@@ -81,29 +81,21 @@ async function startPolling() {
 async function generateAndPushToken(forceOpen = false, action = "IMAGE_GENERATION") {
     let tabId = await findFlowTab();
     if (!tabId) {
-        if (forceOpen) {
-            console.log("⚠️  [OBSCURA v6] No Flow tab found. Auto-opening...");
-            tabId = await autoOpenFlowTab();
-            await sleep(3000);
-        } else {
-            console.log("⚠️  [OBSCURA v6] No Flow tab found. Heartbeat skipped (no forceOpen).");
-            return;
-        }
+        console.log("ℹ️  [OBSCURA v6] No Flow tab found in Chrome. Waiting for user to open Flow...");
+        return;
     }
-    if (!tabId) return;
 
     try {
-        // Foreground/activate tab to prevent background reCAPTCHA throttling/telemetry flagging
+        // Softly activate tab if not already active
         try {
             const tab = await chrome.tabs.get(tabId);
-            if (tab) {
+            if (tab && !tab.active) {
                 await chrome.tabs.update(tabId, { active: true });
-                await chrome.windows.update(tab.windowId, { focused: true, state: "normal" });
-                console.log(`👁️ [OBSCURA v6] Activated Flow tab ${tabId} in window ${tab.windowId} and restored window state.`);
-                await sleep(3000); // 3000ms delay to let the page wake up
+                console.log(`👁️ [OBSCURA v6] Activated Flow tab ${tabId}.`);
+                await sleep(1000);
             }
         } catch (e) {
-            console.log("⚠️  [OBSCURA v6] Failed to foreground tab:", e.message);
+            // Non-critical
         }
 
         const results = await chrome.scripting.executeScript({
@@ -298,31 +290,35 @@ async function findFlowTab() {
         
         // Priority 1: Flow project or tools page (match url or pendingUrl)
         const flowTabs = tabs.filter(t => {
-            const u = t.url || t.pendingUrl || "";
-            return u.includes("/tools/flow") || (u.includes("labs.google/fx") && !u.includes("accounts.google.com"));
+            const u = (t.url || t.pendingUrl || "").toLowerCase();
+            return (u.includes("/tools/flow") || u.includes("labs.google/fx") || u.includes("/flow")) && !u.includes("accounts.google.com");
         });
 
         if (flowTabs.length > 0) {
             // Deduplicate: If multiple Flow tabs exist, keep ONLY the first one and close the rest
             if (flowTabs.length > 1) {
-                const extraIds = flowTabs.slice(1).map(t => t.id);
-                chrome.tabs.remove(extraIds).catch(() => {});
-                console.log(`🧹 [OBSCURA v6] Closed ${extraIds.length} duplicate Flow tab(s). Keeping tab ${flowTabs[0].id}.`);
+                const extraIds = flowTabs.slice(1).map(t => t.id).filter(Boolean);
+                if (extraIds.length > 0) {
+                    chrome.tabs.remove(extraIds).catch(() => {});
+                    console.log(`🧹 [OBSCURA v6] Closed ${extraIds.length} duplicate Flow tab(s). Keeping tab ${flowTabs[0].id}.`);
+                }
             }
             return flowTabs[0].id;
         }
 
         // Priority 2: Any labs.google page
         const labsTabs = tabs.filter(t => {
-            const u = t.url || t.pendingUrl || "";
+            const u = (t.url || t.pendingUrl || "").toLowerCase();
             return u.includes("labs.google") && !u.includes("accounts.google.com");
         });
 
         if (labsTabs.length > 0) {
             if (labsTabs.length > 1) {
-                const extraIds = labsTabs.slice(1).map(t => t.id);
-                chrome.tabs.remove(extraIds).catch(() => {});
-                console.log(`🧹 [OBSCURA v6] Closed ${extraIds.length} duplicate labs.google tab(s).`);
+                const extraIds = labsTabs.slice(1).map(t => t.id).filter(Boolean);
+                if (extraIds.length > 0) {
+                    chrome.tabs.remove(extraIds).catch(() => {});
+                    console.log(`🧹 [OBSCURA v6] Closed ${extraIds.length} duplicate labs.google tab(s).`);
+                }
             }
             return labsTabs[0].id;
         }
@@ -334,51 +330,9 @@ async function findFlowTab() {
 }
 
 async function autoOpenFlowTab() {
-    // Guard 1: Never open if already in progress or under cooldown
-    if (isOpeningTab || (Date.now() - lastTabOpenTime < TAB_OPEN_COOLDOWN)) {
-        console.log("⏳ [OBSCURA v6] Auto-open blocked: tab creation already in progress or under 60s cooldown.");
-        return;
-    }
-
-    // Guard 2: Double check if any Flow or labs.google tab already exists
-    const existingTabId = await findFlowTab();
-    if (existingTabId) {
-        console.log(`✅ [OBSCURA v6] Reusing existing Flow tab ${existingTabId}. No new tab created.`);
-        return existingTabId;
-    }
-
-    isOpeningTab = true;
-    lastTabOpenTime = Date.now();
-
-    try {
-        console.log("🌐 [OBSCURA v6] Opening EXACTLY ONE Flow tab...");
-        const tab = await chrome.tabs.create({
-            url: "https://labs.google/fx/tools/flow",
-            active: false
-        });
-
-        // Wait for tab to fully load (max 15s)
-        await new Promise(resolve => {
-            const listener = (id, info) => {
-                if (id === tab.id && info.status === "complete") {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    resolve();
-                }
-            };
-            chrome.tabs.onUpdated.addListener(listener);
-            setTimeout(() => {
-                chrome.tabs.onUpdated.removeListener(listener);
-                resolve();
-            }, 15000);
-        });
-
-        console.log("🌐 [OBSCURA v6] Flow tab loaded successfully.");
-        return tab.id;
-    } catch (e) {
-        console.log("⚠️  [OBSCURA v6] Failed to auto-open tab:", e.message);
-    } finally {
-        isOpeningTab = false;
-    }
+    // Tab auto-creation is permanently disabled to prevent Chrome tab spam.
+    // The extension passively uses the Flow tab already opened by the user.
+    return await findFlowTab();
 }
 
 // ─── 5. UTILITY ──────────────────────────────────────────────────
