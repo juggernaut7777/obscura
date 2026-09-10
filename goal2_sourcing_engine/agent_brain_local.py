@@ -423,7 +423,17 @@ class LocalBrain:
         try:
             # Find the latest generated products to list
             output_dir = BASE_DIR / "output_ugc"
-            recent_images = sorted(output_dir.glob("*.png"), key=os.path.getmtime, reverse=True)[:4]
+
+            # ⚡ Performance optimization
+            # Why: Using glob().getmtime causes N+1 stat calls. os.scandir() caches file attributes, making sorting by mtime significantly faster.
+            # What: Replace glob() with os.scandir() to retrieve top 4 recent images.
+            recent_entries = []
+            if output_dir.exists():
+                with os.scandir(output_dir) as scanner:
+                    recent_entries = [e for e in scanner if e.is_file() and e.name.endswith(".png")]
+                    recent_entries.sort(key=lambda e: e.stat().st_mtime, reverse=True)
+            recent_images = [Path(e.path) for e in recent_entries[:4]]
+
             image_paths = [str(img) for img in recent_images]
             
             if not image_paths:
