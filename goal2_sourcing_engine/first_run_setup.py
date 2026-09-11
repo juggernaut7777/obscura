@@ -49,10 +49,16 @@ def main():
     if not has_products and test_dir.exists():
         print("[*] input_sourcing is empty. Copying test products...")
         import shutil
-        for f in test_dir.glob("*"):
-            if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp') and f.stat().st_size > 30000:
-                shutil.copy(f, input_dir / f.name)
-                print(f"  [+] Copied {f.name}")
+        with os.scandir(test_dir) as entries:
+            for entry in entries:
+                if entry.is_file():
+                    # ⚡ Performance optimization
+                    # Why: Avoids N+1 system calls for `.stat().st_size` by using DirEntry cache.
+                    # What: Replaced pathlib glob and stat with os.scandir.
+                    ext = os.path.splitext(entry.name)[1].lower()
+                    if ext in ('.png', '.jpg', '.jpeg', '.webp') and entry.stat().st_size > 30000:
+                        shutil.copy(entry.path, input_dir / entry.name)
+                        print(f"  [+] Copied {entry.name}")
 
     print("\n" + "=" * 50)
     print("SETUP COMPLETE. YOU ARE READY TO RUN.")
