@@ -131,15 +131,17 @@ class AutonomousManager:
         # 1. Purge non-product QC / feedback albums
         qc_keywords = ["qc-", "-qc", "customer", "feedback", "reviews", "reaction", "findqc"]
         if MANUAL_CURATION_DIR.exists():
-            for p in list(MANUAL_CURATION_DIR.iterdir()):
-                if p.is_dir():
-                    name_lower = p.name.lower()
-                    if any(k in name_lower for k in qc_keywords):
-                        for f in p.rglob("*"):
-                            if f.is_file():
-                                freed_bytes += f.stat().st_size
-                        shutil.rmtree(p, ignore_errors=True)
-                        print(f"  [-] Removed non-product QC folder: {p.name}")
+            with os.scandir(MANUAL_CURATION_DIR) as it:
+                for p_entry in list(it):
+                    if p_entry.is_dir():
+                        name_lower = p_entry.name.lower()
+                        if any(k in name_lower for k in qc_keywords):
+                            p = Path(p_entry.path)
+                            for f in p.rglob("*"):
+                                if f.is_file():
+                                    freed_bytes += f.stat().st_size
+                            shutil.rmtree(p, ignore_errors=True)
+                            print(f"  [-] Removed non-product QC folder: {p_entry.name}")
 
         # 2. Prune duplicate excess angles in curated products
         ALLOWED_LIMITS = {
@@ -155,32 +157,37 @@ class AutonomousManager:
 
         pruned_images = 0
         if MANUAL_CURATION_DIR.exists():
-            for p in MANUAL_CURATION_DIR.iterdir():
-                if not p.is_dir() or p.name.startswith(("_", ".")):
-                    continue
+            with os.scandir(MANUAL_CURATION_DIR) as it:
+                for p_entry in it:
+                    if not p_entry.is_dir() or p_entry.name.startswith(("_", ".")):
+                        continue
 
-                prefix_counts = {}
-                for f in sorted(p.iterdir()):
-                    if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
-                        # Never delete size charts or metadata
-                        if "size" in f.name.lower() or "chart" in f.name.lower():
-                            continue
+                    prefix_counts = {}
+                    # ⚡ Performance optimization
+                    # Why: Avoid N+1 stat calls during iteration and checking if file exists
+                    # What: Replaced pathlib iterdir with os.scandir which caches stats
+                    with os.scandir(p_entry.path) as fit:
+                        for f_entry in sorted(fit, key=lambda e: e.name):
+                            if f_entry.is_file() and f_entry.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+                                # Never delete size charts or metadata
+                                if "size" in f_entry.name.lower() or "chart" in f_entry.name.lower():
+                                    continue
 
-                        matched_pfx = None
-                        for pfx in ALLOWED_LIMITS:
-                            if f.name.startswith(pfx):
-                                matched_pfx = pfx
-                                break
+                                matched_pfx = None
+                                for pfx in ALLOWED_LIMITS:
+                                    if f_entry.name.startswith(pfx):
+                                        matched_pfx = pfx
+                                        break
 
-                        if matched_pfx:
-                            prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
-                            if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
-                                try:
-                                    freed_bytes += f.stat().st_size
-                                    f.unlink()
-                                    pruned_images += 1
-                                except Exception:
-                                    pass
+                                if matched_pfx:
+                                    prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
+                                    if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
+                                        try:
+                                            freed_bytes += f_entry.stat().st_size
+                                            Path(f_entry.path).unlink()
+                                            pruned_images += 1
+                                        except Exception:
+                                            pass
 
         # 3. Vacuum systemd journal logs
         try:
@@ -211,11 +218,13 @@ class AutonomousManager:
         unclassified_folders = []
 
         if MANUAL_CURATION_DIR.exists():
-            for sub in MANUAL_CURATION_DIR.iterdir():
-                if sub.is_dir() and not sub.name.startswith(("_", ".")):
-                    total_curated += 1
-                    if not (sub / "image_classification.json").exists():
-                        unclassified_folders.append(sub)
+            with os.scandir(MANUAL_CURATION_DIR) as it:
+                for sub_entry in it:
+                    if sub_entry.is_dir() and not sub_entry.name.startswith(("_", ".")):
+                        total_curated += 1
+                        sub_path = Path(sub_entry.path)
+                        if not (sub_path / "image_classification.json").exists():
+                            unclassified_folders.append(sub_path)
 
         unclassified_count = len(unclassified_folders)
         classified_count = total_curated - unclassified_count
@@ -287,7 +296,8 @@ class AutonomousManager:
             pass
 
         if OUTPUT_DIR.exists():
-            output_ready = sum(1 for d in OUTPUT_DIR.iterdir() if d.is_dir() and not d.name.startswith("."))
+            with os.scandir(OUTPUT_DIR) as it:
+                output_ready = sum(1 for d in it if d.is_dir() and not d.name.startswith("."))
 
         qfile = PROJECT_ROOT / "generation_queue.json"
         if qfile.exists():
@@ -329,7 +339,8 @@ class AutonomousManager:
                 pass
 
         if OUTPUT_DIR.exists():
-            completed = sum(1 for d in OUTPUT_DIR.iterdir() if d.is_dir() and (d / "campaign_info.json").exists())
+            with os.scandir(OUTPUT_DIR) as it:
+                completed = sum(1 for d in it if d.is_dir() and os.path.exists(os.path.join(d.path, "campaign_info.json")))
             unlisted_campaigns = max(completed - live_products, 0)
 
         actions = []
