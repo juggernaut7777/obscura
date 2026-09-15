@@ -80,8 +80,11 @@ def start_tunnel():
     global PUBLIC_URL
     try:
         log("☁️ Starting Ngrok tunnel...")
-        # Fix: Using correct production token
-        ngrok_token = os.getenv("NGROK_AUTH_TOKEN", "3CcirWo5RC3C0VxrZCPpxShwdhf_2iMxjnr1D9SGtwq54Gta3")
+        # Fix: Ensure token is securely fetched from environment
+        ngrok_token = os.getenv("NGROK_AUTH_TOKEN")
+        if not ngrok_token:
+            log("❌ NGROK_AUTH_TOKEN not found in environment. Ngrok tunnel will not start.")
+            return
         ngrok.set_auth_token(ngrok_token)
         tunnel = ngrok.connect(BRIDGE_PORT, "http")
         PUBLIC_URL = tunnel.public_url
