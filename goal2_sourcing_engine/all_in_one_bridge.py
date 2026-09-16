@@ -81,11 +81,15 @@ def start_tunnel():
     try:
         log("☁️ Starting Ngrok tunnel...")
         # Fix: Using correct production token
-        ngrok_token = os.getenv("NGROK_AUTH_TOKEN", "3CcirWo5RC3C0VxrZCPpxShwdhf_2iMxjnr1D9SGtwq54Gta3")
-        ngrok.set_auth_token(ngrok_token)
-        tunnel = ngrok.connect(BRIDGE_PORT, "http")
-        PUBLIC_URL = tunnel.public_url
-        log(f"🚀 PUBLIC URL: {PUBLIC_URL}")
+        ngrok_token = os.getenv("NGROK_AUTH_TOKEN")
+        if not ngrok_token:
+            log("⚠️ NGROK_AUTH_TOKEN not found in environment. Ngrok tunnel will not be started.")
+            PUBLIC_URL = "http://localhost:" + str(BRIDGE_PORT)
+        else:
+            ngrok.set_auth_token(ngrok_token)
+            tunnel = ngrok.connect(BRIDGE_PORT, "http")
+            PUBLIC_URL = tunnel.public_url
+            log(f"🚀 PUBLIC URL: {PUBLIC_URL}")
         
         # Save to file for easy VPS updating
         with open("ngrok_url.txt", "w") as f:
