@@ -287,7 +287,11 @@ class AutonomousManager:
             pass
 
         if OUTPUT_DIR.exists():
-            output_ready = sum(1 for d in OUTPUT_DIR.iterdir() if d.is_dir() and not d.name.startswith("."))
+            with os.scandir(OUTPUT_DIR) as scanner:
+                # ⚡ Performance optimization
+                # Why: Avoid N+1 stat calls during .is_dir()
+                # What: Use os.scandir() instead of Path.iterdir()
+                output_ready = sum(1 for e in scanner if e.is_dir() and not e.name.startswith("."))
 
         qfile = PROJECT_ROOT / "generation_queue.json"
         if qfile.exists():
@@ -329,7 +333,11 @@ class AutonomousManager:
                 pass
 
         if OUTPUT_DIR.exists():
-            completed = sum(1 for d in OUTPUT_DIR.iterdir() if d.is_dir() and (d / "campaign_info.json").exists())
+            with os.scandir(OUTPUT_DIR) as scanner:
+                # ⚡ Performance optimization
+                # Why: Avoid N+1 stat calls during .is_dir() and .exists()
+                # What: Use os.scandir() and os.path.exists() instead of Path.iterdir()
+                completed = sum(1 for e in scanner if e.is_dir() and os.path.exists(os.path.join(e.path, "campaign_info.json")))
             unlisted_campaigns = max(completed - live_products, 0)
 
         actions = []
