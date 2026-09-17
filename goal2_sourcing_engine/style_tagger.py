@@ -341,7 +341,11 @@ def tag_all_pending(curation_dir: Path = None):
     if curation_dir is None:
         curation_dir = Path(__file__).parent / "MANUAL_CURATION"
 
-    folders = [f for f in curation_dir.iterdir() if f.is_dir()]
+    with os.scandir(curation_dir) as scanner:
+        # ⚡ Performance optimization
+        # Why: Avoid N+1 stat calls during .is_dir()
+        # What: Use os.scandir() instead of Path.iterdir()
+        folders = [Path(e.path) for e in scanner if e.is_dir()]
     untagged = [f for f in folders if not (f / "style_tags.json").exists()]
 
     log.info(f"Found {len(untagged)} untagged products out of {len(folders)} total")
