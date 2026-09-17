@@ -1,0 +1,59 @@
+name: OBSCURA Autonomous Cloud Lookbook Generator
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Runs automatically every 4 hours (100% free)
+  workflow_dispatch:
+    inputs:
+      batch_count:
+        description: 'Number of curated products to generate in this run'
+        required: true
+        default: '5'
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install playwright requests httpx pillow python-dotenv
+          playwright install chromium --with-deps
+
+      - name: Restore Authenticated Google Flow Session
+        run: |
+          mkdir -p goal2_sourcing_engine/sessions
+          echo '${{ secrets.GFLOW_SESSION_JSON }}' > goal2_sourcing_engine/sessions/session_google_account.json
+          ls -lh goal2_sourcing_engine/sessions/
+
+      - name: Run Cloud Generator (16 GB RAM Runner)
+        run: |
+          xvfb-run -a python goal2_sourcing_engine/cloud_generator_gha.py --count ${{ inputs.batch_count || 5 }}
+
+      - name: Upload Generated Lookbooks as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: obscura-generated-lookbooks-${{ github.run_number }}
+          path: goal2_sourcing_engine/OUTPUT_READY_FOR_SALE/
+          retention-days: 14
+
+      - name: Commit Updated Metadata & Curation State
+        run: |
+          git config --global user.name "OBSCURA Cloud Bot"
+          git config --global user.email "bot@obscura.internal"
+          git add goal2_sourcing_engine/MANUAL_CURATION/*/metadata.json
+          git commit -m "Auto-complete lookbook generation batch [skip ci]" || echo "No changes to commit"
+          git push || echo "Push skipped or no remote changes"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
