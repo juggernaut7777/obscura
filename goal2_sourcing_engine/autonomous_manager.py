@@ -131,15 +131,20 @@ class AutonomousManager:
         # 1. Purge non-product QC / feedback albums
         qc_keywords = ["qc-", "-qc", "customer", "feedback", "reviews", "reaction", "findqc"]
         if MANUAL_CURATION_DIR.exists():
-            for p in list(MANUAL_CURATION_DIR.iterdir()):
-                if p.is_dir():
-                    name_lower = p.name.lower()
-                    if any(k in name_lower for k in qc_keywords):
-                        for f in p.rglob("*"):
-                            if f.is_file():
-                                freed_bytes += f.stat().st_size
-                        shutil.rmtree(p, ignore_errors=True)
-                        print(f"  [-] Removed non-product QC folder: {p.name}")
+            # ⚡ Performance optimization
+            # Why: pathlib.Path.iterdir() and stat() calls cause massive N+1 syscalls
+            # What: Replaced iterdir with os.scandir to read all metadata at once
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                for entry in scanner:
+                    if entry.is_dir():
+                        name_lower = entry.name.lower()
+                        if any(k in name_lower for k in qc_keywords):
+                            p_path = Path(entry.path)
+                            for f in p_path.rglob("*"):
+                                if f.is_file():
+                                    freed_bytes += f.stat().st_size
+                            shutil.rmtree(p_path, ignore_errors=True)
+                            print(f"  [-] Removed non-product QC folder: {entry.name}")
 
         # 2. Prune duplicate excess angles in curated products
         ALLOWED_LIMITS = {
@@ -155,32 +160,41 @@ class AutonomousManager:
 
         pruned_images = 0
         if MANUAL_CURATION_DIR.exists():
-            for p in MANUAL_CURATION_DIR.iterdir():
-                if not p.is_dir() or p.name.startswith(("_", ".")):
-                    continue
+            # ⚡ Performance optimization
+            # Why: Nested pathlib.Path.iterdir() and stat() cause N+1 syscall overhead
+            # What: Iterating over MANUAL_CURATION_DIR using os.scandir
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                for p_entry in scanner:
+                    if not p_entry.is_dir() or p_entry.name.startswith(("_", ".")):
+                        continue
 
-                prefix_counts = {}
-                for f in sorted(p.iterdir()):
-                    if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
-                        # Never delete size charts or metadata
-                        if "size" in f.name.lower() or "chart" in f.name.lower():
-                            continue
+                    prefix_counts = {}
+                    with os.scandir(p_entry.path) as p_scanner:
+                        # ⚡ Performance optimization
+                        # Why: stat() during sort is expensive
+                        # What: Sort DirEntry array to bypass Path(f).stat()
+                        entries = sorted(p_scanner, key=lambda e: e.name)
+                        for f_entry in entries:
+                            if f_entry.is_file() and f_entry.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+                                # Never delete size charts or metadata
+                                if "size" in f_entry.name.lower() or "chart" in f_entry.name.lower():
+                                    continue
 
-                        matched_pfx = None
-                        for pfx in ALLOWED_LIMITS:
-                            if f.name.startswith(pfx):
-                                matched_pfx = pfx
-                                break
+                                matched_pfx = None
+                                for pfx in ALLOWED_LIMITS:
+                                    if f_entry.name.startswith(pfx):
+                                        matched_pfx = pfx
+                                        break
 
-                        if matched_pfx:
-                            prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
-                            if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
-                                try:
-                                    freed_bytes += f.stat().st_size
-                                    f.unlink()
-                                    pruned_images += 1
-                                except Exception:
-                                    pass
+                                if matched_pfx:
+                                    prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
+                                    if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
+                                        try:
+                                            freed_bytes += f_entry.stat().st_size
+                                            Path(f_entry.path).unlink()
+                                            pruned_images += 1
+                                        except Exception:
+                                            pass
 
         # 3. Vacuum systemd journal logs
         try:
