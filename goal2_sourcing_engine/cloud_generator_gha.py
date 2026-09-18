@@ -72,19 +72,45 @@ def enter_flow_studio_if_needed(page, project_url=None):
             page.wait_for_timeout(10000)
             safe_log(f"    [Studio Gate] URL after click: {page.url} | Title={page.title()}")
 
-        # If redirected to Google accounts page (Single Sign-On confirmation)
+        # If redirected to Google accounts page (Single Sign-On account chooser)
         if "accounts.google.com" in page.url:
-            safe_log("    [Studio Gate] Google Accounts SSO detected. Auto-confirming...")
+            safe_log("    [Studio Gate] Google Accounts SSO / Chooser detected...")
             try:
-                acc = page.locator("[data-identifier], [data-email]").first
-                if acc.is_visible():
-                    acc.click()
-                    page.wait_for_timeout(8000)
-            except Exception:
-                pass
+                page.screenshot(path=str(OUTPUT_DIR / f"debug_google_sso_{int(time.time())}.png"))
+                sso_dump = page.evaluate('''() => {
+                    const els = Array.from(document.querySelectorAll('li, div[role="link"], button, a')).map(e => ({
+                        tag: e.tagName,
+                        role: e.getAttribute('role'),
+                        text: (e.textContent || '').trim().slice(0, 60)
+                    })).filter(x => x.text.length > 0).slice(0, 20);
+                    return els;
+                }''')
+                safe_log(f"    [SSO Chooser DOM] Elements: {sso_dump}")
+
+                clicked_acc = page.evaluate('''() => {
+                    const candidates = Array.from(document.querySelectorAll('li, div[role="link"], div[jsname], div[data-profileidentifier]'));
+                    for (const c of candidates) {
+                        const t = (c.textContent || '').trim();
+                        if (t.includes('@') || t.includes('Signed in') || t.includes('Flow User')) {
+                            c.click();
+                            return t;
+                        }
+                    }
+                    const first = document.querySelector('ul > li, div[role="list"] > div, div[role="link"]');
+                    if (first) {
+                        first.click();
+                        return 'first_list_item';
+                    }
+                    return null;
+                }''')
+                safe_log(f"    [SSO Chooser Clicked] -> {clicked_acc}")
+                page.wait_for_timeout(10000)
+                safe_log(f"    [SSO Chooser Result] URL={page.url} | Title={page.title()}")
+            except Exception as sso_err:
+                safe_log(f"    [SSO Error] {sso_err}")
 
         # If we are now inside flow but not yet on project URL, navigate
-        if project_url and ("/about" in page.url or "/project/" not in page.url):
+        if project_url and ("/about" in page.url or "flow.google.com" in page.url):
             safe_log(f"    [Studio Gate] Navigating to target project workspace: {project_url}...")
             try:
                 page.goto(project_url, wait_until="domcontentloaded", timeout=60000)
