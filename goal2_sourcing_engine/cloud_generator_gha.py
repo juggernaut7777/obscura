@@ -46,6 +46,61 @@ def sanitize_slug(name):
     clean = re.sub(r'_+', '_', clean).strip('_')
     return clean[:50] or "product"
 
+def find_and_focus_editor(page, project_url=None):
+    """Find ProseMirror prompt editor and focus it cleanly, dismissing overlays."""
+    safe_log(f"    [Editor] Current page URL: {page.url} | Title: {page.title()}")
+    
+    # 1. Dismiss Google cookie banner, intro modals, tour dialogs
+    try:
+        page.evaluate('''() => {
+            const b = document.getElementById("glue-cookie-notification-bar-1");
+            if (b) b.remove();
+            const btns = Array.from(document.querySelectorAll('button'));
+            for (const btn of btns) {
+                const txt = (btn.textContent || '').trim();
+                const aria = btn.getAttribute('aria-label') || '';
+                if (txt.includes('OK, got it') || txt.includes('Accept all') || txt.includes('Close') || aria === 'Close') {
+                    btn.click();
+                }
+            }
+            // Dismiss cdk-overlay-backdrop if present
+            const bd = document.querySelector('.cdk-overlay-backdrop');
+            if (bd) bd.click();
+        }''')
+    except Exception as ce:
+        safe_log(f"    [Editor] Banner clear note: {ce}")
+
+    # 2. Check direct selectors with short timeout
+    for sel in ["div.ProseMirror", "[contenteditable='true']", "div[contenteditable]"]:
+        loc = page.locator(sel).first
+        try:
+            if loc.is_visible():
+                loc.click(timeout=3000, force=True)
+                safe_log(f"    [Editor] Focused via selector: {sel}")
+                return loc
+        except Exception:
+            continue
+
+    # 3. If not found, log DOM info & take debug screenshot
+    debug_shot = OUTPUT_DIR / "debug_flow_page.png"
+    try:
+        page.screenshot(path=str(debug_shot))
+        safe_log(f"    [Editor] Debug screenshot saved to {debug_shot}")
+    except Exception:
+        pass
+
+    # 4. If project_url provided and we seem lost, try reload
+    if project_url and "flow.google.com" not in page.url:
+        safe_log(f"    [Editor] Page navigated away to {page.url}, reloading {project_url}...")
+        page.goto(project_url, wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(8000)
+
+    # 5. Final attempt with wait_for
+    loc = page.locator("div.ProseMirror, [contenteditable='true']").first
+    loc.wait_for(state="visible", timeout=15000)
+    loc.click(force=True)
+    return loc
+
 # ==========================================
 # CATEGORY DETECTION & PROMPT EXPANSION
 # ==========================================
@@ -298,9 +353,8 @@ def generate_product_campaign(context, page, product_dir, meta):
         # Measure pre-existing images
         pre_images = page.evaluate('() => Array.from(document.querySelectorAll("img.image")).map(i => i.src)')
 
-        # Focus ProseMirror editor
-        editor = page.locator("div.ProseMirror, [contenteditable='true']").first
-        editor.click()
+        # Focus ProseMirror editor with overlay dismissal
+        editor = find_and_focus_editor(page, project_url=PROJECT_URL)
         page.wait_for_timeout(random.randint(300, 500))
         page.keyboard.press("Control+A")
         page.keyboard.press("Backspace")
@@ -454,6 +508,11 @@ def main():
         sess = json.load(f)
     storage_state = sess.get("storage_state")
 
+    global PROJECT_URL
+    if not os.getenv("GFLOW_PROJECT_URL") and sess.get("project_id"):
+        PROJECT_URL = f"https://flow.google.com/project/{sess['project_id']}"
+    safe_log(f"[*] Target Flow Project URL: {PROJECT_URL}")
+
     completed = 0
     failed = 0
 
@@ -475,7 +534,8 @@ def main():
 
         safe_log(f"Loading Flow project: {PROJECT_URL}...")
         page.goto(PROJECT_URL, wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_timeout(5000)
+        page.wait_for_timeout(10000)
+        safe_log(f"[*] Initial load URL: {page.url} | Title: {page.title()}")
 
         # Clear cookie banners and intro modals
         try:

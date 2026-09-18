@@ -46,6 +46,7 @@ jobs:
           xvfb-run -a python goal2_sourcing_engine/cloud_generator_gha.py --count ${{ inputs.batch_count || 5 }}
 
       - name: Upload Generated Lookbooks as Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: obscura-generated-lookbooks-${{ github.run_number }}
@@ -53,11 +54,13 @@ jobs:
           retention-days: 14
 
       - name: Commit Updated Metadata & Curation State
+        if: success()
         run: |
           git config --global user.name "OBSCURA Cloud Bot"
           git config --global user.email "bot@obscura.internal"
-          git add goal2_sourcing_engine/queue_pending.json goal2_sourcing_engine/MANUAL_CURATION/*/metadata.json
+          git add -A goal2_sourcing_engine/queue_pending.json
           git commit -m "Auto-complete lookbook generation batch [skip ci]" || echo "No changes to commit"
           git push || echo "Push skipped or no remote changes"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
