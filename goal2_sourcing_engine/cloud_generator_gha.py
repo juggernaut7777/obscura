@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-cloud_generator_gha.py - OBSCURA Autonomous Cloud Generator for GitHub Actions (16 GB RAM)
-Fully autonomous:
+cloud_generator_gha.py - OBSCURA Autonomous Cloud Lookbook Generator for GitHub Actions (16 GB RAM)
+================================================================================================
+Fully autonomous generation engine running on GitHub Actions Ubuntu cloud runners:
   1. Multi-Category Prompt Library (Tops, Bottoms, Shoes, Bags, Accessories)
-  2. Dual-Sizing: TikTok / Reels (9:16) & Instagram Feed Posts (3:4 / 1:1)
-  3. Anti-Ban Rate Limiting & Randomized Jitter Pacing (30-65s delay)
-  4. Quality Audit Gate (Binary integrity, dimension verification, AI VLM evaluator)
-  5. Automatic Curation State & Metadata Synchronization
+  2. Dual-Platform Formatting via Pillow: True 9:16 Vertical (TikTok/Reels) & 1:1 Square (IG Posts)
+  3. Queue Discovery: Reads lightweight queue_pending.json or MANUAL_CURATION directory
+  4. Omni Flash 10s UGC Video Brief Synthesis (ugc_video_brief.json)
+  5. Human-like anti-ban pacing & randomized jitter delays
+  6. Automatic Curation State & Queue Status Synchronization
 """
 
 import os
@@ -15,15 +17,18 @@ import time
 import json
 import glob
 import re
+import io
 import random
 import argparse
 from pathlib import Path
+from PIL import Image
 from playwright.sync_api import sync_playwright
 
 BASE_DIR = Path(__file__).resolve().parent
 CURATION_DIR = BASE_DIR / "MANUAL_CURATION"
 OUTPUT_DIR = BASE_DIR / "OUTPUT_READY_FOR_SALE"
 SESSION_FILE = BASE_DIR / "sessions" / "session_google_account.json"
+QUEUE_FILE = BASE_DIR / "queue_pending.json"
 PROJECT_URL = os.getenv("GFLOW_PROJECT_URL", "https://flow.google.com/project/4dc53153-d3a1-4c37-aebc-2908e97516e5")
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -58,14 +63,10 @@ def detect_category(product_name: str, meta: dict) -> str:
         return "bags"
     if any(w in text for w in ("watch", "sunglass", "glasses", "necklace", "chain", "ring", "bracelet", "belt", "hat", "cap", "beanie")):
         return "accessories"
-    if any(w in text for w in ("hoodie", "jacket", "coat", "puffer", "vest", "sweater", "crewneck", "tee", "shirt", "jersey", "top")):
-        return "tops"
     return "tops"
 
 def build_category_prompts(category: str, name: str, color: str) -> dict:
-    """Generate tailored prompts for both TikTok (9:16) and Instagram (3:4/1:1) formats."""
     c = color.strip() if color else "luxury"
-    
     prompts = {}
 
     if category == "tops":
@@ -73,102 +74,185 @@ def build_category_prompts(category: str, name: str, color: str) -> dict:
             f"Full-length vertical 9:16 high-fashion editorial lookbook photo of a model wearing an OBSCURA {c} top garment, "
             f"standing with natural runway posture in an industrial brutalist concrete studio. Paired with relaxed tailored black trousers "
             f"and luxury chunky sneakers. Soft sculptural studio rim lighting, authentic heavy cotton fabric drape, deep seam contrast, "
-            f"RAW photograph, 8k Vogue runway standard, ultra-sharp textile details."
+            f"vertical 9:16 framing, RAW photograph, 8k Vogue runway standard, ultra-sharp textile details."
         )
         prompts["ig_feed_post"] = (
             f"Waist-up medium portrait editorial photo of a high-fashion model wearing this OBSCURA {c} top garment. "
             f"Minimalist off-white studio cyclorama backdrop. Shot on 85mm prime lens with crisp key strobe lighting, "
-            f"highlighting the structural collar construction, drop-shoulder tailoring, visible fabric grain, and metallic hardware. "
-            f"Commercial luxury lookbook aesthetic, Vogue Hommes standard, RAW photo."
+            f"highlighting structural collar construction, drop-shoulder tailoring, and visible fabric grain. "
+            f"Square 1:1 centered composition, Vogue Hommes standard, 8k resolution, RAW photo."
         )
-
     elif category == "bottoms":
         prompts["tiktok_9_16"] = (
             f"Full-body vertical 9:16 editorial streetwear photo of a model wearing these exact OBSCURA {c} trousers. "
             f"Walking through a modern minimalist brutalist courtyard, showing how the pants stack effortlessly over luxury high-top sneakers. "
-            f"Focus on the deep utility cargo pockets, relaxed straight-leg silhouette, and durable heavyweight twill grain. "
-            f"Overcast clean daylight, realistic fabric folds, authentic candid street editorial standard, RAW photo."
+            f"Focus on deep utility cargo pockets, relaxed straight-leg silhouette, and durable twill grain. "
+            f"Vertical 9:16 composition, RAW photograph, SSENSE editorial lookbook quality."
         )
         prompts["ig_feed_post"] = (
             f"Luxury architectural flat lay photo of these exact OBSCURA {c} trousers arranged with intentional organic folds "
             f"on a massive slab of raw textured dark slate rock. Dramatic 45-degree directional studio strobe casting sculpted micro-shadows "
-            f"along the seams, pocket edges, and hardware toggles. Ultra-crisp edge-to-edge detail, 8k resolution, RAW photograph."
+            f"along the seams, pocket edges, and hardware toggles. Centered square 1:1 format, ultra-crisp detail, RAW photograph."
         )
-
     elif category == "shoes":
         prompts["tiktok_9_16"] = (
             f"Low-angle vertical 9:16 street-level editorial shot of a model wearing these exact OBSCURA {c} luxury sneakers on-foot. "
-            f"Stepping down onto a clean textured concrete sidewalk during golden hour, with tailored dark trousers breaking perfectly over the collar. "
-            f"Dynamic candid walking motion, sharp focus on sneaker paneling, textured outsole, and premium leather grain, RAW photo."
+            f"Stepping down onto a clean textured concrete sidewalk during golden hour, tailored dark trousers breaking perfectly over the collar. "
+            f"Dynamic candid walking motion, sharp focus on sneaker paneling and premium leather grain, vertical 9:16 orientation, RAW photo."
         )
         prompts["ig_feed_post"] = (
             f"High-end luxury commercial product photograph of these exact OBSCURA {c} sneakers displayed on an elevated matte black "
-            f"monolithic pedestal. Overhead softbox lighting with subtle silver fill, accentuating pristine stitch lines, premium materials, "
-            f"and sole architecture. Clean high-fashion sneaker campaign standard, ultra-sharp 8k RAW photo."
+            f"monolithic pedestal. Overhead softbox lighting with subtle silver fill, accentuating pristine stitch lines and sole architecture. "
+            f"Square 1:1 centered crop, ultra-clean studio background, Hypebeast Footwear editorial standard, RAW photo."
         )
-
     elif category == "bags":
         prompts["tiktok_9_16"] = (
-            f"Vertical 9:16 high-fashion editorial photo of a model in a minimalist charcoal tailored coat, effortlessly carrying this "
+            f"Vertical 9:16 high-fashion editorial photo of a model in a minimalist charcoal coat, effortlessly carrying this "
             f"OBSCURA {c} luxury leather bag over their arm. Architectural museum gallery setting with ambient soft daylight. "
-            f"Natural high-fashion posture, sharp tactile focus on the pebbled leather grain and brushed metal hardware, RAW photo."
+            f"Tactile focus on pebbled leather grain, edge paint, and brushed metal hardware. Vertical 9:16 framing, Vogue editorial, RAW photo."
         )
         prompts["ig_feed_post"] = (
-            f"Luxury editorial still life photo of this exact OBSCURA {c} bag positioned on an Italian honed travertine marble block. "
-            f"Clean diffused morning side-light highlighting the supple leather drape, precise edge-painting, and luxury zipper pulls. "
-            f"Minimalist campaign standard, zero clutter, 8k RAW photography."
+            f"Luxury editorial still life photo of this exact OBSCURA {c} bag positioned on an Italian travertine marble block. "
+            f"Clean diffused morning side-light highlighting the supple leather drape and luxury hardware. Square 1:1 format, RAW photo."
         )
-
-    else: # accessories / jewelry / watches / hats / sunglasses
+    else:  # accessories
         prompts["tiktok_9_16"] = (
             f"Vertical 9:16 high-fashion close-range editorial portrait of a model wearing this OBSCURA {c} accessory. "
             f"Dramatic cinematic side-lighting with soft shadows. Ultra-sharp focus on the accessory detailing, metallic luster, "
-            f"and luxury finishing. Vogue editorial standard, natural skin texture, RAW photo."
+            f"and luxury finishing. Vertical 9:16 composition, Vogue editorial standard, RAW photo."
         )
         prompts["ig_feed_post"] = (
             f"Macro editorial commercial product photo of this OBSCURA {c} luxury accessory displayed on a minimalist textured "
             f"volcanic stone plinth. Crisp overhead directional strobe emphasizing micro-engravings, brushed metal bevels, and craftsmanship. "
-            f"SSENSE campaign quality, 8k resolution, RAW photo."
+            f"Square 1:1 centered composition, SSENSE campaign quality, 8k resolution, RAW photo."
         )
 
     return prompts
 
-# ==========================================
-# QUALITY AUDITOR GATE
-# ==========================================
-def audit_image_binary(data: bytes) -> tuple[bool, str]:
-    """Inspects binary bytes for file health, magic headers, and minimum size."""
-    if len(data) < 40000:
-        return False, f"File size too small ({len(data)} bytes) - likely HTML redirect or blank tile"
+def build_ugc_video_brief(category, name, color):
+    c = color.strip() if color else "luxury"
+    scripts = {
+        "tops": (
+            f"Stop buying overpriced blanks. OBSCURA just dropped this {c} heavyweight top and the drape is unreal. "
+            f"500GSM french terry, raw dropped shoulders, perfectly tailored collar. Link in bio to cop."
+        ),
+        "bottoms": (
+            f"Finding pants that stack cleanly on footwear without bunching is nearly impossible. "
+            f"OBSCURA engineered these {c} trousers with structured utility lines and custom heavyweight twill. Link in bio."
+        ),
+        "shoes": (
+            f"On-foot check: the new OBSCURA {c} luxury silhouette. Italian calfskin paneling, custom sculpted sole, "
+            f"and unmatched all-day comfort. Limited release, link in bio."
+        ),
+        "bags": (
+            f"The everyday luxury piece you've been looking for. OBSCURA {c} architectural bag in full-grain textured leather. "
+            f"Heavy brushed hardware, structured silhouette. Link in bio."
+        ),
+        "accessories": (
+            f"Details make or break an outfit. This OBSCURA {c} custom piece brings instant subtle luxury. "
+            f"Engineered micro-finish, weighted feel. Available now in bio."
+        )
+    }
+    script = scripts.get(category, scripts["tops"])
+    video_prompt = (
+        f"Authentic front-camera 9:16 smartphone fit-check video of a fashion influencer showing off an OBSCURA {c} {category} piece. "
+        f"Influencer speaks naturally to camera, turns 360 degrees to demonstrate fabric drape and tailored fit. "
+        f"Natural daylight, handheld subtle movement, genuine social media UGC aesthetic, 10s video length with synchronized native speech."
+    )
+    return {
+        "duration_seconds": 10,
+        "format": "9:16 vertical",
+        "model_engine": "Omni Flash (veo_3_1_i2v_lite)",
+        "script": script,
+        "video_prompt": video_prompt
+    }
 
-    # Check magic bytes
-    if data[:4] == b"RIFF" and b"WEBP" in data[:16]:
-        return True, "Valid WebP image"
-    if data[:3] == b"\xff\xd8\xff":
-        return True, "Valid JPEG image"
-    if data[:8] == b"\x89PNG\r\n\x1a\n":
-        return True, "Valid PNG image"
-
-    # Check if it's HTML error
+# ==========================================
+# IMAGE AUDIT & PILLOW ASPECT RATIO PROCESSOR
+# ==========================================
+def process_and_audit_image(data: bytes, format_key: str, out_path: Path) -> tuple[bool, str]:
+    """
+    Validates image binary with PIL, guarantees file integrity,
+    and applies smart aspect ratio formatting:
+      - 'tiktok_9_16': true 9:16 vertical aspect ratio
+      - 'ig_feed_post': true 1:1 square aspect ratio
+    Saves as optimized high-quality WebP.
+    """
+    if len(data) < 20000:
+        return False, f"File size too small ({len(data)} bytes) - likely blank or error"
     if b"<html" in data[:100].lower() or b"<!doctype" in data[:100].lower():
         return False, "Received HTML error page instead of binary image"
 
-    return True, "Unknown binary format, size valid"
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+        w, h = img.size
+        if w < 200 or h < 200:
+            return False, f"Image dimensions too small ({w}x{h})"
 
-# ==========================================
-# ANTI-BAN PACING CONTROLS
-# ==========================================
-def anti_ban_sleep(min_sec=30, max_sec=65, reason="Anti-ban jitter"):
+        # Convert palette or RGBA to RGB cleanly
+        if img.mode in ("RGBA", "P"):
+            bg = Image.new("RGB", img.size, (255, 255, 255))
+            if img.mode == "RGBA":
+                bg.paste(img, mask=img.split()[3])
+            else:
+                bg.paste(img)
+            img = bg
+        elif img.mode != "RGB":
+            img = img.convert("RGB")
+
+        w, h = img.size
+        target_ratio = (9.0 / 16.0) if "tiktok" in format_key else 1.0
+        current_ratio = w / h
+
+        # Smart center-crop if ratio deviates
+        if abs(current_ratio - target_ratio) > 0.02:
+            if current_ratio > target_ratio:
+                # Too wide: crop horizontal edges
+                new_w = int(h * target_ratio)
+                left = (w - new_w) // 2
+                img = img.crop((left, 0, left + new_w, h))
+            else:
+                # Too tall: crop vertical top/bottom (preserve 35% top headroom)
+                new_h = int(w / target_ratio)
+                top = int((h - new_h) * 0.35)
+                img = img.crop((0, top, w, top + new_h))
+
+        # Save to destination as high-quality WebP
+        img.save(out_path, format="WEBP", quality=95, method=6)
+        final_w, final_h = img.size
+        ratio_str = "9:16 vertical" if "tiktok" in format_key else "1:1 square"
+        return True, f"Saved {final_w}x{final_h} ({ratio_str})"
+    except Exception as e:
+        return False, f"Pillow processing failed: {e}"
+
+def anti_ban_sleep(min_sec=20, max_sec=40, reason="Anti-ban jitter"):
     delay = random.uniform(min_sec, max_sec)
-    safe_log(f"🛡️  {reason}: Pausing for {delay:.1f}s to maintain human-like activity and protect account...")
+    safe_log(f"🛡️  {reason}: Pausing for {delay:.1f}s to maintain human-like pacing...")
     time.sleep(delay)
 
 # ==========================================
 # QUEUE DISCOVERY
 # ==========================================
 def find_pending_products(limit=5):
-    dirs = glob.glob(str(CURATION_DIR / "*"))
     pending = []
+
+    # 1. Check queue_pending.json first (cloud queue)
+    if QUEUE_FILE.exists():
+        try:
+            with open(QUEUE_FILE, "r", encoding="utf-8") as f:
+                queue = json.load(f)
+            for item in queue:
+                if item.get("generation_status") != "complete":
+                    pdir = BASE_DIR / "OUTPUT_READY_FOR_SALE" / sanitize_slug(item.get("product_name", "product"))
+                    pending.append((pdir, item))
+                    if len(pending) >= limit:
+                        return pending
+        except Exception as e:
+            safe_log(f"[!] Error reading queue_pending.json: {e}")
+
+    # 2. Fallback to MANUAL_CURATION directory if present
+    dirs = glob.glob(str(CURATION_DIR / "*"))
     for d in sorted(dirs):
         meta_file = Path(d) / "metadata.json"
         if not meta_file.exists():
@@ -182,6 +266,7 @@ def find_pending_products(limit=5):
                     break
         except Exception:
             continue
+
     return pending
 
 # ==========================================
@@ -202,10 +287,11 @@ def generate_product_campaign(context, page, product_dir, meta):
     safe_log(f"========================================================")
 
     prompts_by_format = build_category_prompts(category, name, color)
+    ugc_brief = build_ugc_video_brief(category, name, color)
     saved_images = []
 
     for format_key, prompt in prompts_by_format.items():
-        format_label = "TikTok/Reels (9:16)" if "tiktok" in format_key else "Instagram Feed Post"
+        format_label = "TikTok/Reels (9:16)" if "tiktok" in format_key else "Instagram Feed Post (1:1)"
         safe_log(f"\n[*] Generating format: {format_label}...")
         safe_log(f"    Prompt: {prompt[:90]}...")
 
@@ -213,21 +299,21 @@ def generate_product_campaign(context, page, product_dir, meta):
         pre_images = page.evaluate('() => Array.from(document.querySelectorAll("img.image")).map(i => i.src)')
 
         # Focus ProseMirror editor
-        editor = page.locator("div.ProseMirror").first
+        editor = page.locator("div.ProseMirror, [contenteditable='true']").first
         editor.click()
-        page.wait_for_timeout(random.randint(300, 600))
+        page.wait_for_timeout(random.randint(300, 500))
         page.keyboard.press("Control+A")
         page.keyboard.press("Backspace")
         
         # Human-like typing
-        page.keyboard.type(prompt, delay=random.randint(10, 20))
-        page.wait_for_timeout(random.randint(600, 1000))
+        page.keyboard.type(prompt, delay=random.randint(10, 18))
+        page.wait_for_timeout(random.randint(400, 700))
 
         # Submit generation via Enter + Click
         safe_log("    Submitting generation request...")
         try:
             page.keyboard.press("Enter")
-            page.wait_for_timeout(400)
+            page.wait_for_timeout(300)
             gen_btn = page.locator("button[aria-label='Start generation']").first
             if gen_btn.is_visible():
                 gen_btn.click(force=True, no_wait_after=True, timeout=3000)
@@ -252,19 +338,17 @@ def generate_product_campaign(context, page, product_dir, meta):
             current = page.evaluate('() => Array.from(document.querySelectorAll("img.image")).map(i => i.src)')
             new_urls = [u for u in current if "flow.google.com/asb/" in u][-2:]
 
-        # Download and audit each image
+        # Download, format aspect ratio with Pillow, and audit each image
         for i, url in enumerate(new_urls[:2]):
             try:
                 resp = context.request.get(url, timeout=30000)
                 if resp.status == 200:
                     body = resp.body()
-                    is_valid, reason = audit_image_binary(body)
+                    filename = f"{format_key}_{i+1}.webp"
+                    out_path = campaign_dir / filename
+                    is_valid, reason = process_and_audit_image(body, format_key, out_path)
                     if is_valid:
-                        filename = f"{format_key}_{i+1}.webp"
-                        out_path = campaign_dir / filename
-                        with open(out_path, "wb") as fp:
-                            fp.write(body)
-                        safe_log(f"    ✅ [AUDIT PASSED] {filename} ({len(body)//1024} KB) - {reason}")
+                        safe_log(f"    ✅ [AUDIT PASSED] {filename} — {reason}")
                         saved_images.append({
                             "filename": filename,
                             "format": format_key,
@@ -277,7 +361,13 @@ def generate_product_campaign(context, page, product_dir, meta):
                 safe_log(f"    [!] Download/Audit error: {e}")
 
         # Anti-ban sleep between format generations
-        anti_ban_sleep(min_sec=25, max_sec=45, reason="Format pacing")
+        anti_ban_sleep(min_sec=15, max_sec=30, reason="Format pacing")
+
+    # Save Omni Flash UGC video brief
+    brief_file = campaign_dir / "ugc_video_brief.json"
+    with open(brief_file, "w", encoding="utf-8") as bf:
+        json.dump(ugc_brief, bf, indent=2, ensure_ascii=False)
+    safe_log(f"    🎬 Saved Omni Flash 10s UGC Video Brief: {brief_file.name}")
 
     if saved_images:
         # Write campaign metadata
@@ -290,15 +380,35 @@ def generate_product_campaign(context, page, product_dir, meta):
             "images": saved_images
         }
         with open(campaign_dir / "campaign_info.json", "w", encoding="utf-8") as f:
-            json.dump(campaign_info, f, indent=2)
+            json.dump(campaign_info, f, indent=2, ensure_ascii=False)
 
-        # Update product metadata.json to mark complete
+        # Update metadata.json if product_dir exists
         meta["generation_status"] = "complete"
         meta["campaign_folder"] = slug
         meta["generated_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
         meta["generated_images"] = [img["filename"] for img in saved_images]
-        with open(product_dir / "metadata.json", "w", encoding="utf-8") as f:
-            json.dump(meta, f, indent=2, ensure_ascii=False)
+        if product_dir.exists():
+            meta_target = product_dir / "metadata.json"
+            try:
+                with open(meta_target, "w", encoding="utf-8") as f:
+                    json.dump(meta, f, indent=2, ensure_ascii=False)
+            except Exception:
+                pass
+
+        # Update queue_pending.json
+        if QUEUE_FILE.exists():
+            try:
+                with open(QUEUE_FILE, "r", encoding="utf-8") as f:
+                    q_data = json.load(f)
+                for item in q_data:
+                    if item.get("product_name") == name or item.get("dir_name") == product_dir.name:
+                        item["generation_status"] = "complete"
+                        item["completed_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
+                        item["campaign_folder"] = slug
+                with open(QUEUE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(q_data, f, indent=2, ensure_ascii=False)
+            except Exception as qe:
+                safe_log(f"    [!] Error updating queue_pending.json: {qe}")
 
         safe_log(f"🏆 CAMPAIGN COMPLETE: {len(saved_images)} certified lookbook ads saved for {name}!")
         return True
@@ -316,7 +426,7 @@ def main():
     args = parser.parse_args()
 
     pending = find_pending_products(limit=args.count)
-    safe_log(f"[*] Queue Scan: Found {len(pending)} pending product(s) in MANUAL_CURATION.")
+    safe_log(f"[*] Queue Scan: Found {len(pending)} pending product(s) in queue.")
 
     if not pending:
         safe_log("Queue is clear. No generation required.")
@@ -329,33 +439,27 @@ def main():
             pcolor = meta.get("classified_summary", {}).get("primary_color") or meta.get("color") or ""
             pcat = detect_category(pname, meta)
             prompts = build_category_prompts(pcat, pname, pcolor)
-            safe_log(f"\nProduct: {pname}")
-            safe_log(f"  Category: {pcat} | Color: {pcolor}")
-            safe_log(f"  TikTok 9:16 Prompt: {prompts['tiktok_9_16'][:110]}...")
-            safe_log(f"  IG Feed Prompt:     {prompts['ig_feed_post'][:110]}...")
-        safe_log("\n✅ Dry run completed successfully! All prompts and categories verified.")
+            brief = build_ugc_video_brief(pcat, pname, pcolor)
+            safe_log(f"Product: {pname} | Cat: {pcat} | Color: {pcolor}")
+            safe_log(f"  TikTok: {prompts['tiktok_9_16'][:60]}...")
+            safe_log(f"  IG: {prompts['ig_feed_post'][:60]}...")
+            safe_log(f"  UGC Script: {brief['script'][:60]}...")
         return
 
-    # Check for session file
-    sess_path = SESSION_FILE
-    if not sess_path.exists():
-        s_files = glob.glob(str(BASE_DIR / "sessions" / "*.json"))
-        if s_files:
-            sess_path = Path(s_files[0])
-        else:
-            safe_log(f"[-] Error: No Google session JSON found in {BASE_DIR / 'sessions'}")
-            sys.exit(1)
+    if not SESSION_FILE.exists():
+        safe_log(f"❌ FATAL: Session file not found at {SESSION_FILE}")
+        sys.exit(1)
 
-    with open(sess_path, "r", encoding="utf-8") as f:
+    with open(SESSION_FILE, "r", encoding="utf-8") as f:
         sess = json.load(f)
     storage_state = sess.get("storage_state")
 
-    safe_log(f"[*] Loaded active session from: {sess_path.name}")
-    safe_log(f"[*] Launching Chromium runner for batch of {len(pending)} products...")
+    completed = 0
+    failed = 0
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=True,
+            headless=False,
             args=[
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
@@ -369,33 +473,45 @@ def main():
         )
         page = context.new_page()
 
-        safe_log(f"Navigating to Flow Project: {PROJECT_URL}...")
-        page.goto(PROJECT_URL, wait_until="domcontentloaded", timeout=45000)
-        page.wait_for_timeout(6000)
+        safe_log(f"Loading Flow project: {PROJECT_URL}...")
+        page.goto(PROJECT_URL, wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(5000)
 
-        # Clear cookie banners
-        page.evaluate('''() => {
-            const b = document.getElementById("glue-cookie-notification-bar-1");
-            if (b) b.remove();
-            const ok = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('OK, got it'));
-            if (ok) ok.click();
-        }''')
+        # Clear cookie banners and intro modals
+        try:
+            page.evaluate('''() => {
+                const b = document.getElementById("glue-cookie-notification-bar-1");
+                if (b) b.remove();
+                const btns = Array.from(document.querySelectorAll('button'));
+                const ok = btns.find(b => b.textContent.includes('OK, got it') || b.getAttribute('aria-label') === 'Close');
+                if (ok) ok.click();
+            }''')
+        except Exception:
+            pass
         page.wait_for_timeout(1000)
 
-        completed_total = 0
-        for idx, (pdir, meta) in enumerate(pending, start=1):
-            safe_log(f"\n>>> Processing Batch Item {idx}/{len(pending)}")
-            success = generate_product_campaign(context, page, pdir, meta)
-            if success:
-                completed_total += 1
+        for i, (pdir, meta) in enumerate(pending):
+            pname = meta.get("product_name") or pdir.name
+            safe_log(f"\n[JOB {i+1}/{len(pending)}] Processing: {pname}")
 
-            # Inter-batch anti-ban cooldown pause
-            if idx < len(pending):
-                anti_ban_sleep(min_sec=35, max_sec=70, reason="Inter-product account protection cooldown")
+            try:
+                success = generate_product_campaign(context, page, pdir, meta)
+                if success:
+                    completed += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                failed += 1
+                safe_log(f"[ERROR] Campaign failure for {pname}: {e}")
+
+            if i < len(pending) - 1:
+                anti_ban_sleep(min_sec=30, max_sec=60, reason="Inter-product cooldown")
 
         browser.close()
 
-    safe_log(f"\n🎉 ALL BATCHES COMPLETE: Successfully generated {completed_total}/{len(pending)} products!")
+    safe_log(f"\n========================================================")
+    safe_log(f"🏁 RUN COMPLETE: {completed} Succeeded | {failed} Failed")
+    safe_log(f"========================================================")
 
 if __name__ == "__main__":
     main()
