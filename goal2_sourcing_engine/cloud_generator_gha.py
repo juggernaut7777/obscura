@@ -46,48 +46,66 @@ def sanitize_slug(name):
     clean = re.sub(r'_+', '_', clean).strip('_')
     return clean[:50] or "product"
 
+def enter_flow_studio_if_needed(page, project_url=None):
+    """If on /about or landing page, click 'Create with Google Flow' or 'Sign in' and enter studio."""
+    safe_log(f"    [Studio Gate] Checking page: URL={page.url} | Title={page.title()}")
+
+    # Check if on /about landing page or outside studio
+    if "/about" in page.url or "flow.google.com" not in page.url or "/project/" not in page.url:
+        btn_clicked = page.evaluate('''() => {
+            const btns = Array.from(document.querySelectorAll('a, button, [role="button"]'));
+            const createBtn = btns.find(b => (b.textContent || '').includes('Create with Google Flow'));
+            if (createBtn) {
+                createBtn.click();
+                return 'Create with Google Flow';
+            }
+            const signinBtn = btns.find(b => (b.textContent || '').trim() === 'Sign in');
+            if (signinBtn) {
+                signinBtn.click();
+                return 'Sign in';
+            }
+            return null;
+        }''')
+
+        if btn_clicked:
+            safe_log(f"    [Studio Gate] Clicked '{btn_clicked}', waiting for navigation...")
+            page.wait_for_timeout(10000)
+            safe_log(f"    [Studio Gate] URL after click: {page.url} | Title={page.title()}")
+
+        # If redirected to Google accounts page (Single Sign-On confirmation)
+        if "accounts.google.com" in page.url:
+            safe_log("    [Studio Gate] Google Accounts SSO detected. Auto-confirming...")
+            try:
+                acc = page.locator("[data-identifier], [data-email]").first
+                if acc.is_visible():
+                    acc.click()
+                    page.wait_for_timeout(8000)
+            except Exception:
+                pass
+
+        # If we are now inside flow but not yet on project URL, navigate
+        if project_url and ("/about" in page.url or "/project/" not in page.url):
+            safe_log(f"    [Studio Gate] Navigating to target project workspace: {project_url}...")
+            try:
+                page.goto(project_url, wait_until="domcontentloaded", timeout=60000)
+                page.wait_for_timeout(8000)
+                safe_log(f"    [Studio Gate] Project page URL: {page.url} | Title={page.title()}")
+            except Exception as pe:
+                safe_log(f"    [Studio Gate] Project navigation note: {pe}")
+
 def find_and_focus_editor(page, project_url=None):
     """Find ProseMirror prompt editor and focus it cleanly, dismissing overlays."""
     safe_log(f"    [Editor] Current page URL: {page.url} | Title: {page.title()}")
 
-    # 0. Check if landed on /about or promo page with "Create with Google Flow" button
-    create_btn = page.locator("text='Create with Google Flow', button:has-text('Create with Google Flow'), a:has-text('Create with Google Flow')").first
-    try:
-        if "/about" in page.url or create_btn.is_visible():
-            safe_log("    [Editor] On /about landing page. Clicking 'Create with Google Flow'...")
-            create_btn.click(timeout=5000, force=True)
-            page.wait_for_timeout(8000)
-            safe_log(f"    [Editor] After Create click: URL={page.url} | Title={page.title()}")
-    except Exception as eb:
-        safe_log(f"    [Editor] Note on Create button: {eb}")
-
-    # If still on /about or outside studio, re-route to project_url
-    if project_url and ("/about" in page.url or "/project/" not in page.url):
-        try:
-            safe_log(f"    [Editor] Re-navigating to project URL: {project_url}...")
-            page.goto(project_url, wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_timeout(8000)
-            safe_log(f"    [Editor] Direct project nav: URL={page.url} | Title={page.title()}")
-        except Exception as pe:
-            safe_log(f"    [Editor] Project nav note: {pe}")
-
-    # If project list / gallery page with 'New project' or existing project cards
-    try:
-        new_btn = page.locator("button:has-text('New project'), [aria-label='New project'], a:has-text('New project')").first
-        if new_btn.is_visible():
-            safe_log("    [Editor] Found 'New project' button. Clicking...")
-            new_btn.click(force=True)
-            page.wait_for_timeout(8000)
-            safe_log(f"    [Editor] After 'New project' click: URL={page.url}")
-    except Exception:
-        pass
+    # Ensure studio is entered
+    enter_flow_studio_if_needed(page, project_url=project_url)
 
     # 1. Dismiss Google cookie banner, intro modals, tour dialogs
     try:
         page.evaluate('''() => {
             const b = document.getElementById("glue-cookie-notification-bar-1");
             if (b) b.remove();
-            const btns = Array.from(document.querySelectorAll('button'));
+            const btns = Array.from(document.querySelectorAll('button, a'));
             for (const btn of btns) {
                 const txt = (btn.textContent || '').trim();
                 const aria = btn.getAttribute('aria-label') || '';
@@ -128,7 +146,7 @@ def find_and_focus_editor(page, project_url=None):
 
     # 4. Final attempt with wait_for
     loc = page.locator("div.ProseMirror, [contenteditable='true']").first
-    loc.wait_for(state="visible", timeout=15000)
+    loc.wait_for(state="visible", timeout=20000)
     loc.click(force=True)
     return loc
 
@@ -565,47 +583,10 @@ def main():
 
         safe_log(f"Loading Flow project: {PROJECT_URL}...")
         page.goto(PROJECT_URL, wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_timeout(8000)
+        page.wait_for_timeout(6000)
         safe_log(f"[*] Initial load URL: {page.url} | Title: {page.title()}")
 
-        # Check for /about landing page and click "Create with Google Flow"
-        create_btn = page.locator("text='Create with Google Flow', button:has-text('Create with Google Flow'), a:has-text('Create with Google Flow')").first
-        try:
-            if "/about" in page.url or create_btn.is_visible():
-                safe_log("[*] Detected /about landing page. Clicking 'Create with Google Flow' to enter studio...")
-                create_btn.click(timeout=5000, force=True)
-                page.wait_for_timeout(10000)
-                safe_log(f"[*] After Create click: URL={page.url} | Title={page.title()}")
-        except Exception as ce:
-            safe_log(f"[!] Note on initial Create button: {ce}")
-
-        # Clear cookie banners and intro modals
-        try:
-            page.evaluate('''() => {
-                const b = document.getElementById("glue-cookie-notification-bar-1");
-                if (b) b.remove();
-                const btns = Array.from(document.querySelectorAll('button'));
-                for (const btn of btns) {
-                    const txt = (btn.textContent || '').trim();
-                    const aria = btn.getAttribute('aria-label') || '';
-                    if (txt.includes('OK, got it') || txt.includes('Accept all') || txt.includes('Close') || aria === 'Close') {
-                        btn.click();
-                    }
-                }
-            }''')
-        except Exception:
-            pass
-        page.wait_for_timeout(2000)
-
-        # If not inside a project yet, re-navigate now that the session is inside studio
-        if "/project/" not in page.url and PROJECT_URL:
-            safe_log(f"[*] Navigating to target project workspace: {PROJECT_URL}...")
-            try:
-                page.goto(PROJECT_URL, wait_until="domcontentloaded", timeout=60000)
-                page.wait_for_timeout(8000)
-                safe_log(f"[*] Post-project navigation: URL={page.url} | Title={page.title()}")
-            except Exception as pe:
-                safe_log(f"[!] Project navigation note: {pe}")
+        enter_flow_studio_if_needed(page, project_url=PROJECT_URL)
 
         for i, (pdir, meta) in enumerate(pending):
             pname = meta.get("product_name") or pdir.name
