@@ -34,9 +34,11 @@ jobs:
           playwright install chromium --with-deps
 
       - name: Restore Authenticated Google Flow Session
+        env:
+          SESSION_DATA: ${{ secrets.GFLOW || secrets.GFLOW_SESSION_JSON }}
         run: |
           mkdir -p goal2_sourcing_engine/sessions
-          echo '${{ secrets.GFLOW_SESSION_JSON }}' > goal2_sourcing_engine/sessions/session_google_account.json
+          printf "%s" "$SESSION_DATA" > goal2_sourcing_engine/sessions/session_google_account.json
           ls -lh goal2_sourcing_engine/sessions/
 
       - name: Run Cloud Generator (16 GB RAM Runner)
