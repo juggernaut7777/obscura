@@ -1,9 +1,9 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function POST(request) {
   try {
@@ -21,10 +21,10 @@ export async function POST(request) {
     
     // Execute python script
     const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
-    const command = `python order_fulfillment.py --checkout-file "${tempFile}"`;
+    const args = ["order_fulfillment.py", "--checkout-file", tempFile];
     
-    console.log(`[API CHECKOUT] Executing: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    console.log(`[API CHECKOUT] Executing: python ${args.join(" ")}`);
+    const { stdout, stderr } = await execFileAsync("python", args, { cwd });
     
     // Clean up temporary file
     try {
