@@ -1,0 +1,4 @@
+## 2024-05-24 - [Command Injection via exec]
+**Vulnerability:** Node.js `child_process.exec` was used to execute shell commands with untrusted user input directly interpolated into the command string (e.g., `orderId`, `tracking` in `/api/admin/orders/route.js`). This allowed arbitrary command execution by passing shell metacharacters like `&&` or `;`.
+**Learning:** Relying on `exec` is inherently dangerous when any part of the command string comes from request payloads. The API assumed inputs were benign strings but provided no sanitization before shell execution.
+**Prevention:** Always use `child_process.execFile` or `spawn` when running external binaries. Pass arguments as an array to ensure they are treated strictly as arguments to the executable, never evaluated by an intermediate shell.
