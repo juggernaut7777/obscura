@@ -62,3 +62,4 @@ playwright_profile/
 test_mem.json
 benchmark*.py
 output.txt
+test_perf_dir/

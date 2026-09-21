@@ -153,34 +153,41 @@ class AutonomousManager:
             "other_": 1,
         }
 
+        # ⚡ Performance optimization
+        # Why: Iterating over Path objects and calling `.stat().st_size` performs unnecessary N+1 stat calls.
+        # What: Changed `Path.iterdir()` to `os.scandir()` which caches file attributes significantly improving performance.
         pruned_images = 0
         if MANUAL_CURATION_DIR.exists():
-            for p in MANUAL_CURATION_DIR.iterdir():
-                if not p.is_dir() or p.name.startswith(("_", ".")):
-                    continue
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                for p_entry in scanner:
+                    if not p_entry.is_dir() or p_entry.name.startswith(("_", ".")):
+                        continue
 
-                prefix_counts = {}
-                for f in sorted(p.iterdir()):
-                    if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
-                        # Never delete size charts or metadata
-                        if "size" in f.name.lower() or "chart" in f.name.lower():
-                            continue
+                    prefix_counts = {}
+                    with os.scandir(p_entry.path) as sub_scanner:
+                        # Sort entries by name to match previous `sorted(p.iterdir())` behavior
+                        entries = sorted(list(sub_scanner), key=lambda e: e.name)
+                        for f_entry in entries:
+                            if f_entry.is_file() and f_entry.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+                                # Never delete size charts or metadata
+                                if "size" in f_entry.name.lower() or "chart" in f_entry.name.lower():
+                                    continue
 
-                        matched_pfx = None
-                        for pfx in ALLOWED_LIMITS:
-                            if f.name.startswith(pfx):
-                                matched_pfx = pfx
-                                break
+                                matched_pfx = None
+                                for pfx in ALLOWED_LIMITS:
+                                    if f_entry.name.startswith(pfx):
+                                        matched_pfx = pfx
+                                        break
 
-                        if matched_pfx:
-                            prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
-                            if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
-                                try:
-                                    freed_bytes += f.stat().st_size
-                                    f.unlink()
-                                    pruned_images += 1
-                                except Exception:
-                                    pass
+                                if matched_pfx:
+                                    prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
+                                    if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
+                                        try:
+                                            freed_bytes += f_entry.stat().st_size
+                                            os.unlink(f_entry.path)
+                                            pruned_images += 1
+                                        except Exception:
+                                            pass
 
         # 3. Vacuum systemd journal logs
         try:
