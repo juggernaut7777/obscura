@@ -162,9 +162,19 @@ def discover_products():
     except ImportError:
         log("[CLASSIFY] auto_image_classifier not available — using filenames as-is")
     
+    # ⚡ Performance optimization
+    # Why: Avoid N+1 stat calls during directory traversal. Using Path.iterdir() and glob() creates many stat calls.
+    # What: Use os.scandir() which caches file attributes like .is_dir(), .is_file(), and .stat().
     # 1. Discover subdirectories (folder-grouped products)
-    for subdir in INPUT_DIR.iterdir():
-        if subdir.is_dir() and subdir.name not in ("outfit_grid", "_rejected", "__pycache__", "_merged_outfits"):
+    try:
+        with os.scandir(INPUT_DIR) as it:
+            entries = list(it)
+    except FileNotFoundError:
+        entries = []
+
+    for entry in entries:
+        if entry.is_dir() and entry.name not in ("outfit_grid", "_rejected", "__pycache__", "_merged_outfits"):
+            subdir = Path(entry.path)
             # Skip MERGED folders — outfits are handled via warehouse Track 2
             if subdir.name.startswith("MERGED_"):
                 continue
@@ -207,23 +217,28 @@ def discover_products():
                 except Exception as e:
                     log(f"[CLASSIFY] Classification failed for {subdir.name}: {e}")
             
-            images = []
-            for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-                images.extend(list(subdir.glob(ext)))
+            images_entries = []
+            try:
+                with os.scandir(subdir) as sub_it:
+                    for sub_entry in sub_it:
+                        if sub_entry.is_file() and sub_entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                            images_entries.append(sub_entry)
+            except FileNotFoundError:
+                pass
             
             # Filter/Validate images in the folder
             valid_images = []
-            for img in images:
-                name_lower = img.name.lower()
+            for img_entry in images_entries:
+                name_lower = img_entry.name.lower()
                 if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
                     continue
                 if has_validator:
-                    check = validate_product_image(str(img))
+                    check = validate_product_image(img_entry.path)
                     if check.get("valid"):
-                        valid_images.append(str(img))
+                        valid_images.append(img_entry.path)
                 else:
-                    if img.stat().st_size >= 30000:
-                        valid_images.append(str(img))
+                    if img_entry.stat().st_size >= 30000:
+                        valid_images.append(img_entry.path)
             
             if valid_images:
                 # Load metadata if exists
@@ -257,27 +272,32 @@ def discover_products():
                 })
 
     # 2. Discover loose files directly in INPUT_DIR root
-    loose_images = []
-    for ext in ["*.png", "*.jpg", "*.jpeg", "*.webp"]:
-        loose_images.extend(list(INPUT_DIR.glob(ext)))
+    loose_images_entries = []
+    try:
+        with os.scandir(INPUT_DIR) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                    loose_images_entries.append(entry)
+    except FileNotFoundError:
+        pass
     
-    for img in loose_images:
-        name_lower = img.name.lower()
+    for img_entry in loose_images_entries:
+        name_lower = img_entry.name.lower()
         if any(bad in name_lower for bad in BAD_IMAGE_KEYWORDS):
             continue
         if has_validator:
-            check = validate_product_image(str(img))
+            check = validate_product_image(img_entry.path)
             if not check.get("valid"):
                 continue
         else:
-            if img.stat().st_size < 30000:
+            if img_entry.stat().st_size < 30000:
                 continue
         
         products.append({
             "is_folder": False,
             "folder_path": None,
-            "name": img.stem,
-            "images": [str(img)],
+            "name": Path(img_entry.path).stem,
+            "images": [img_entry.path],
             "link": "",
             "metadata": {}
         })
