@@ -131,15 +131,17 @@ class AutonomousManager:
         # 1. Purge non-product QC / feedback albums
         qc_keywords = ["qc-", "-qc", "customer", "feedback", "reviews", "reaction", "findqc"]
         if MANUAL_CURATION_DIR.exists():
-            for p in list(MANUAL_CURATION_DIR.iterdir()):
-                if p.is_dir():
-                    name_lower = p.name.lower()
-                    if any(k in name_lower for k in qc_keywords):
-                        for f in p.rglob("*"):
-                            if f.is_file():
-                                freed_bytes += f.stat().st_size
-                        shutil.rmtree(p, ignore_errors=True)
-                        print(f"  [-] Removed non-product QC folder: {p.name}")
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                entries = list(scanner)
+                for p in entries:
+                    if p.is_dir():
+                        name_lower = p.name.lower()
+                        if any(k in name_lower for k in qc_keywords):
+                            for f in Path(p.path).rglob("*"):
+                                if f.is_file():
+                                    freed_bytes += f.stat().st_size
+                            shutil.rmtree(p.path, ignore_errors=True)
+                            print(f"  [-] Removed non-product QC folder: {p.name}")
 
         # 2. Prune duplicate excess angles in curated products
         ALLOWED_LIMITS = {
@@ -155,32 +157,43 @@ class AutonomousManager:
 
         pruned_images = 0
         if MANUAL_CURATION_DIR.exists():
-            for p in MANUAL_CURATION_DIR.iterdir():
-                if not p.is_dir() or p.name.startswith(("_", ".")):
-                    continue
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                curation_entries = list(scanner)
+                for p in curation_entries:
+                    if not p.is_dir() or p.name.startswith(("_", ".")):
+                        continue
 
-                prefix_counts = {}
-                for f in sorted(p.iterdir()):
-                    if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
-                        # Never delete size charts or metadata
-                        if "size" in f.name.lower() or "chart" in f.name.lower():
-                            continue
+                    prefix_counts = {}
+                    with os.scandir(p.path) as p_scanner:
+                        # ⚡ Performance optimization
+                        # Why: Path.iterdir() combined with f.stat().st_size creates N+1 stat overhead.
+                        # What: Using os.scandir() caches the file attributes like st_size directly.
+                        p_entries = list(p_scanner)
 
-                        matched_pfx = None
-                        for pfx in ALLOWED_LIMITS:
-                            if f.name.startswith(pfx):
-                                matched_pfx = pfx
-                                break
+                        # Sort entries to match previous sorted(p.iterdir()) behavior
+                        p_entries.sort(key=lambda e: e.name)
 
-                        if matched_pfx:
-                            prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
-                            if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
-                                try:
-                                    freed_bytes += f.stat().st_size
-                                    f.unlink()
-                                    pruned_images += 1
-                                except Exception:
-                                    pass
+                        for f_entry in p_entries:
+                            if f_entry.is_file() and f_entry.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+                                # Never delete size charts or metadata
+                                if "size" in f_entry.name.lower() or "chart" in f_entry.name.lower():
+                                    continue
+
+                                matched_pfx = None
+                                for pfx in ALLOWED_LIMITS:
+                                    if f_entry.name.startswith(pfx):
+                                        matched_pfx = pfx
+                                        break
+
+                                if matched_pfx:
+                                    prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
+                                    if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
+                                        try:
+                                            freed_bytes += f_entry.stat().st_size
+                                            Path(f_entry.path).unlink()
+                                            pruned_images += 1
+                                        except Exception:
+                                            pass
 
         # 3. Vacuum systemd journal logs
         try:
