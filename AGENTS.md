@@ -1,5 +1,5 @@
 # 🧠 AGENTS.md — OBSCURA AI Fashion Pipeline Master Knowledge File
-> **Last Updated:** 2026-06-05
+> **Last Updated:** 2026-07-30
 > **Purpose:** This is the single source of truth for the entire project. Any AI agent (Gemini, Claude, Antigravity, Codex) that reads this file should fully understand the project without needing any prior context.
 
 ---
@@ -8,10 +8,9 @@
 
 **Brand:** OBSCURA — AI-powered luxury fashion content & resale business.
 
-**Revenue Streams:**
-1. **Blanks & Streetwear Resale:** Source premium blanks and independent designer fashion from Chinese sellers (Weidian, 1688, Taobao), generate AI model photos, sell via storefront.
-2. **AI Content Agency:** Find small fashion brands with bad product photos on Instagram, pitch them AI-generated lookbook upgrades for a fee.
-3. **UGC Generation:** Create user-generated-content style videos/photos using AI for brand campaigns.
+**Business Operations:**
+1. **OBSCURA Luxury Fashion Resale:** Source premium blanks and independent designer streetwear from Chinese suppliers (Weidian, 1688, Taobao), generate AI model photos, sell via Next.js storefront.
+2. **Standalone AI UGC & Product Ad Agency (`mini_projects/ai_ugc_ad_agency/`):** Completely independent B2B ad agency business. Uses AI image (Flow API) and video models (Veo 3.1) to generate studio product photos, lifestyle model photos, and 9:16 video ad campaigns for external client brands across 10 niches (soap, necklace, wristwatch, bags, clothes, wigs, perfume, skincare, glasses, shoes).
 
 **Aesthetic Standard:** Every image must look like it belongs in Vogue or a Balenciaga campaign. See `FASHION_MANIFESTO.md` for the non-negotiable quality rules.
 
@@ -23,12 +22,13 @@
 ┌─────────────────────────────────────────────────────┐
 │                   SOURCING LAYER                     │
 │                                                      │
-│  auto_scout_v2.py        ← Main storefront scraper  │
-│  brand_website_sourcer.py ← Original brand scraping  │
-│  crawl4ai_scraper.py     ← Generic web scraping     │
+│  chinese_sourcing_agent.py ← Weidian/1688/Taobao    │
+│  yupoo_scraper.py        ← Yupoo album scraper      │
 │  competitor_spy.py       ← Competitor monitoring     │
 │  tiktok_trend_scraper.py ← TikTok trend mining      │
 │  brand_scout.py          ← IG lead generation        │
+│  sourcing_utils.py       ← Contact sheet generation  │
+│  reverse_search.py       ← Bing reverse image search │
 └───────────────┬─────────────────────────────────────┘
                 │ products / catalogs → Discord / downloads
                 ▼
@@ -38,20 +38,24 @@
 │  discord_listener.py     ← Discord bot (review UI)   │
 │  review_pending/         ← JSON mappings per sheet   │
 │  MANUAL_CURATION/        ← Approved HQ images        │
+│  color_matcher.py        ← CN→EN color mapping       │
+│  auto_image_classifier.py ← VLM image categorization │
 └───────────────┬─────────────────────────────────────┘
                 │ approved products
                 ▼
 ┌─────────────────────────────────────────────────────┐
-│                GENERATION LAYER                      │
+│          CLOUD AI GENERATION LAYER (24/7)           │
 │                                                      │
-│  local_generation_worker.py ← AI image generation    │
-│  flow_bridge.py           ← Connects to Flow API    │
-│  scene_director.py        ← Scene/location planning │
-│  photo_director.py        ← Lighting/camera/pose    │
-│  prompt_library.py        ← 50KB of tuned prompts   │
-│  vision_evaluator.py      ← Quality scoring         │
-│  style_tagger.py          ← Auto gender/niche tags  │
-│  carousel_builder.py      ← Multi-image carousels   │
+│  cloud_generator_gha.py ← Cloud Lookbook Generator  │
+│  .github/workflows/obscura_cloud_generator.yml       │
+│  generation_router.py   ← Direct Flow API Dispatch  │
+│  google_token_manager.py← OAuth 2.0 Rotation Pool   │
+│  prompt_library.py      ← Curated prompts/categories│
+│  vision_evaluator.py    ← VLM Quality scoring       │
+│  scene_director.py      ← Editorial scene planning  │
+│  photo_director.py      ← Lighting/camera/pose      │
+│  style_tagger.py        ← Auto gender/niche tags    │
+│  composite_builder.py   ← 9:16 outfit composites    │
 └───────────────┬─────────────────────────────────────┘
                 │ generated lookbook images
                 ▼
@@ -68,14 +72,16 @@
 └─────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────┐
-│                  BRAIN / INFRA                       │
+│              CLOUD AUTH & INFRASTRUCTURE            │
 │                                                      │
+│  Azure VPS (20.215.232.214) ← 24/7 autonomous runner│
+│  google_accounts.json    ← Permanent OAuth refresh  │
+│  Persistent Profile      ← VPS browser disk profile │
 │  litellm_router.py       ← API key rotation/fallback│
-│  agent_brain_local.py    ← Local orchestration agent │
-│  agent_tools.py          ← Tool definitions (100KB) │
-│  agent_memory.py         ← Persistent memory        │
-│  brain_memory.json       ← Memory state file        │
-│  .env                    ← All API keys             │
+│  agent_brain_vps.py      ← VPS orchestration agent  │
+│  agent_tools_vps.py      ← VPS tool definitions     │
+│  agent_memory.py         ← Persistent agent memory  │
+│  .env                    ← API keys & configurations│
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -83,21 +89,27 @@
 
 ## 3. CRITICAL FILE MAP
 
-### 📦 Sourcing (Goal 2)
+### 📦 Sourcing
 | File | Purpose | Status |
 |------|---------|--------|
-| `auto_scout_v2.py` | Main scouter for legitimate Chinese brands and 1688 unbranded basics. | **ACTIVE** |
-| `brand_website_sourcer.py` | Scrapes original brand websites (Zara, Nike) for flat-lay images using ScrapeGraphAI + Gemini. | **ACTIVE but underused** |
-| `crawl4ai_scraper.py` | Generic web scraper using crawl4ai library. | **ACTIVE** |
+| `chinese_sourcing_agent.py` | Primary Weidian/1688/Taobao scraper using Playwright/Stealth. Extracts prices, variants, sizes, images. | **ACTIVE — CORE** |
+| `yupoo_scraper.py` | Yupoo album scraper for HQ uncensored product photos. | **ACTIVE — CORE** |
 | `brand_scout.py` | Searches Instagram for small brands with bad content → generates pitch DMs. "Agency Mode". | **ACTIVE** |
-| `competitor_spy.py` | Monitors competitor stores and pricing. | **ACTIVE** |
+| `competitor_spy.py` | Monitors competitor stores and pricing via Bing Visual Search. | **ACTIVE** |
 | `tiktok_trend_scraper.py` | Scrapes TikTok for trending fashion products/hashtags. | **ACTIVE** |
 | `meta_ad_scraper.py` | Scrapes Meta Ad Library for competitor ad creatives. | **ACTIVE** |
-| `vlm_product_sourcer.py` | Main Yupoo scraper (Replica Sourcing). | **ARCHIVED — REPS REMOVED** |
-| `reddit_seller_scout.py` | Mines Reddit for replica sellers. | **ARCHIVED — REPS REMOVED** |
-| `reddit_designer_scout.py` | Mines Reddit for blanks/designers. | **ARCHIVED — REPS REMOVED** |
-| `smart_sourcer.py` | Alternative sourcing logic (older approach). | **LEGACY** |
-| `yupoo_sourcing_agent.py` | Older Yupoo scraper. | **LEGACY** |
+| `sourcing_utils.py` | Contact sheet generation, image grouping, dedup utilities. | **ACTIVE** |
+| `reverse_search.py` | Bing Visual Search stealth reverse image lookup for finding Chinese suppliers. | **ACTIVE** |
+| `color_matcher.py` | Maps VLM-detected color names to Chinese Weidian variant text. | **ACTIVE** |
+
+### 👕 Outfit & Fulfillment
+| File | Purpose | Status |
+|------|---------|--------|
+| `outfit_warehouse.py` | Warehouse staging manifest for outfit assembly (tops + bottoms + shoes). | **ACTIVE** |
+| `auto_matcher.py` | 24/7 VPS outfit matching service. Scans MANUAL_CURATION for style tags, pairs items. | **ACTIVE** |
+| `auto_stock_sync.py` | Automated stock sync between Weidian and storefront catalog. | **ACTIVE** |
+| `auto_fulfillment.py` | Automated order fulfillment and DDP agent dispatch. | **ACTIVE** |
+| `start_engine.py` | CLI Control Center launcher — menu for all pipeline operations. | **ACTIVE** |
 
 ### 🤖 Discord Bot
 | File | Purpose | Status |
@@ -107,22 +119,30 @@
 ### 🎨 Generation
 | File | Purpose | Status |
 |------|---------|--------|
-| `local_generation_worker.py` | Main AI image generation worker. Processes MANUAL_CURATION queue. | **ACTIVE — CORE** |
-| `flow_bridge.py` | Bridge to external AI generation APIs (e.g., Flux/Flow). | **ACTIVE** |
+| `cloud_generator_gha.py` | Primary Autonomous Cloud Generation worker for GitHub Actions (16GB RAM) and Azure VPS. Manages Flow execution, Pillow 9:16/1:1 formatting, and UGC brief creation. | **ACTIVE — CORE** |
+| `generation_router.py` | API dispatch engine. Handles Flow image/video generation, token refresh, OAuth key rotation. | **ACTIVE — CORE** |
+| `test_complete_generation_cycle.py` | Standalone VPS script for uploading flat lay garments as Flow ingredients and generating editorial looks. | **ACTIVE — CORE** |
+| `google_token_manager.py` | Permanent Google OAuth 2.0 refresh token rotation pool across 4 accounts. Zero login expiration. | **ACTIVE — CORE** |
 | `scene_director.py` | Plans scenes, locations, lighting for AI photoshoots. | **ACTIVE** |
 | `photo_director.py` | Camera angles, poses, composition planning. | **ACTIVE** |
-| `prompt_library.py` | 50KB of curated prompts for different product types, scenes, styles. | **ACTIVE — CORE** |
+| `prompt_library.py` | 90KB of curated prompts for different product types, scenes, styles. | **ACTIVE — CORE** |
 | `vision_evaluator.py` | VLM-based quality scoring of generated images. | **ACTIVE** |
 | `style_tagger.py` | Auto-tags products with gender, niche, category, scene using Gemini Vision. | **ACTIVE** |
 | `carousel_builder.py` | Builds multi-image carousels for social media. | **ACTIVE** |
+| `composite_builder.py` | Assembles vertical 9:16 composite flat lays (top + bottom + shoes). | **ACTIVE** |
+| `auto_image_classifier.py` | VLM image classification: front/back/detail/size_chart/model_shot. | **ACTIVE** |
+| `meta_ai_video_worker.py` | AI video generation worker for Meta AI / Flow video pipeline. | **ACTIVE** |
 
 ### 🧠 Brain / Infrastructure
 | File | Purpose | Status |
 |------|---------|--------|
 | `litellm_router.py` | **Critical.** Manages ALL API key rotation. Uses LiteLLM Router with latency-based routing and automatic fallback cascading. | **ACTIVE — CORE** |
-| `agent_brain_local.py` | Local orchestration agent that coordinates all subsystems. | **ACTIVE** |
-| `agent_tools.py` | 100KB of tool definitions for the agent brain. | **ACTIVE** |
+| `google_accounts.json` | Permanent OAuth 2.0 refresh tokens for 4 Google accounts. Eliminates web session expiration. | **ACTIVE — CORE** |
+| `.github/workflows/obscura_cloud_generator.yml` | 100% Free GitHub Actions workflow running lookbook generation every 4 hours autonomously. | **ACTIVE — CORE** |
+| `agent_brain_vps.py` | VPS orchestration agent (24/7 server version). | **ACTIVE** |
+| `agent_tools_vps.py` | VPS version of agent tools (90KB). | **ACTIVE** |
 | `agent_memory.py` | Persistent agent memory using SQLite + JSON. | **ACTIVE** |
+| `utils.py` | Shared utilities including `safe_print()` for Windows cp1252 safety. | **ACTIVE** |
 
 ### 🏪 Storefront
 | Directory | Purpose |
@@ -140,7 +160,10 @@
 | `MANUAL_CURATION/` | Approved products with HQ images + metadata.json. Ready for AI generation. |
 | `OUTPUT_READY_FOR_SALE/` | Final generated images ready for store upload. |
 | `data/` | Persistent data: `reddit_discovered_sellers.json`, `brain_sqlite.db`. |
-| `_archive/` | Archived old code. |
+| `models/` | Model roster character sheets (`f1_1.jpg`, `m1_1.jpg`) for AI generation references. |
+| `flow_extension/` | Chrome extension source code for token harvesting from Google Flow. |
+| `mini_projects/` | Self-contained side projects separated from core pipeline (KDP, UGC, lookbook PDF, lead scrapers). |
+| `_archive/` | Archived old code: `legacy/` (superseded scripts), `login_scripts/` (deprecated), `tests/` (debug scripts). |
 | `_TRASH_CLEANUP_2026/` | Files scheduled for deletion. |
 
 ---
@@ -174,18 +197,25 @@
 
 ## 6. YUPOO SOURCING — HOW IT WORKS
 
+### ⚠️ CRITICAL: IMAGE SOURCE RULE (NON-NEGOTIABLE)
+- **Product images for AI generation MUST ALWAYS come from YUPOO**, never from Weidian, Taobao, or 1688.
+- **Why:** Yupoo is where replica sellers post their HIGH-RESOLUTION, UNCENSORED product photos with brand names, logos, and details clearly visible. This is the entire purpose of Yupoo for these sellers.
+- **Weidian/Taobao/1688 listings almost always BLUR OUT brand names and logos** to avoid platform takedowns and copyright enforcement. 9 out of 10 marketplace listings have censored images.
+- **Marketplace links (Weidian/Taobao/1688) are ONLY used for:** pricing, sizing/variants, color options, and placing orders. NEVER for sourcing product images.
+- **Pipeline rule:** The scraper must download product images from the Yupoo album page. The marketplace link extracted from the Yupoo album description is saved as metadata for ordering only.
+
 ### Yupoo Structure (CRITICAL TO UNDERSTAND)
 ```
 Seller (subdomain.x.yupoo.com)
   └── Categories (e.g., /categories/4644452)
         └── Albums (individual product pages)
-              └── Images (thumbnails + HQ originals)
+              └── Images (thumbnails + HQ originals)  ← THIS IS THE IMAGE SOURCE
 ```
 
 **IMPORTANT:** A single Yupoo ALBUM can contain MULTIPLE product types/categories. For example, one album might show a hoodie, matching pants, and accessories all together. The scraper must handle this — it should NOT assume 1 album = 1 product category.
 
-### Current Seller List (Hardcoded in vlm_product_sourcer.py)
-15 trusted sellers across: Clothing (Taurus, TopAcney, 3Madman, Goat, Kobe Factory, FOG Store, Allsole, Shark Breeder, CNFashion, DDShop, TopHat), Shoes (WWTOP), Bags (BagKing), Watches (WatchRep), Accessories (LuxuryGoods).
+### Current Seller List
+Stored in `data/yupoo_sellers.json`. 15 trusted sellers across: Clothing (Taurus, TopAcney, 3Madman, Goat, Kobe Factory, FOG Store, Allsole, Shark Breeder, CNFashion, DDShop, TopHat), Shoes (WWTOP), Bags (BagKing), Watches (WatchRep), Accessories (LuxuryGoods).
 
 ### Reddit-Discovered Sellers
 Stored in `data/reddit_discovered_sellers.json`. The Reddit scout runs before each scraping session and discovers new Yupoo subdomains from r/FashionReps, r/DesignerReps, r/RepLadies, r/QualityReps, r/Repsneakers.
@@ -217,6 +247,172 @@ Stored in `data/reddit_discovered_sellers.json`. The Reddit scout runs before ea
 
 ---
 
+## 7.1 COMPLETE PIPELINE FLOW (END-TO-END)
+
+This section traces the exact data flow from a product link to a live storefront listing.
+
+### Step 1: Product Entry (Discord)
+```
+User pastes Weidian/1688/Taobao link in Discord
+        │
+        ▼
+discord_listener.py → on_message()
+        │
+        ├─ parse_item_id() — extract platform item ID
+        ├─ is_imported() — check review_pending/ + MANUAL_CURATION/ for duplicates
+        ├─ ChineseSourcingAgent.scrape_product() — Playwright stealth scrape
+        │    └─ Extracts: title, price_cny, sizes, colors (Chinese), images
+        ├─ classify_images_by_color() — VLM groups images by color variant
+        └─ create_color_grouped_contact_sheets() — visual grid per color
+                │
+                ▼
+        Discord embeds: Main Product Card + per-color Contact Sheets
+        Interactive UI: Front/Back/Detail dropdown selectors + Confirm Pick button
+```
+
+### Step 2: Image Approval (Discord)
+```
+User selects images via dropdowns → clicks "Confirm Pick"
+        │
+        ▼
+ColorPickView / ProductCardView → save_pending()
+        │
+        ├─ Downloads selected HQ images from source
+        ├─ Creates folder: MANUAL_CURATION/<title>_<color>_<timestamp>_<uuid>/
+        ├─ Saves images as: front_angle_1.jpg, back_angle_1.jpg, angle_3.jpg, size.jpg
+        ├─ Writes metadata.json (see schema below)
+        ├─ Stages front image to outfit_warehouse.py for outfit assembly
+        └─ Updates Discord card → GREEN "Picked & Saved" with image breakdown
+```
+
+### Step 3: AI Generation (Autonomous Cloud — GHA 16GB Runner & Azure VPS)
+```
+cloud_generator_gha.py / VPS runner → autonomous cloud execution (Zero PC Dependency)
+        │
+        ├─ Discovers pending products from queue_pending.json or MANUAL_CURATION/
+        ├─ Synthesizes editorial multi-category prompts & 10s Omni Flash UGC video briefs
+        ├─ Flow Reference Execution:
+        │    ├─ Option A: Direct API via google_token_manager.py ya29 OAuth rotation
+        │    └─ Option B: Cloud Playwright (xvfb-run) via persistent VPS profile
+        │         └─ Uploads scraped flat lay front angle as media ingredient
+        │         └─ Adds ingredient to prompt + enters editorial styling prompt
+        ├─ Generates certified lookbooks with Nano Banana Pro (GEM_PIX_2)
+        ├─ Pillow Post-Processing: True 9:16 Vertical (TikTok/Reels) & 1:1 Square (IG)
+        └─ vision_evaluator.py — quality scores output before acceptance
+                │
+                ▼
+        OUTPUT_READY_FOR_SALE/<product_slug>/
+            ├─ tiktok_9_16_1.webp (Certified 9:16 vertical)
+            ├─ ig_feed_post_1.webp (Certified 1:1 square)
+            ├─ ugc_video_brief.json (Omni Flash 10s UGC script)
+            ├─ campaign_info.json (Complete drop metadata)
+            ├─ front_angle.jpg (source flat lay)
+            └─ back_angle.jpg (source flat lay)
+```
+
+### Step 4: Storefront Upload (Local PC)
+```
+storefront_uploader.py → scan_and_upload()
+        │
+        ├─ Scans OUTPUT_READY_FOR_SALE/ for completed campaigns
+        ├─ Copies images to storefront/public/products/<product_slug>/
+        ├─ Strips ALL supplier URLs, Chinese prices, pipeline names (Rule 16)
+        ├─ Stores private data in supplier_mappings.json (Rule 17)
+        ├─ Builds storefront/src/data/products.js
+        └─ Logs to uploaded_campaigns.json (prevents re-upload)
+```
+
+### metadata.json Schema
+```json
+{
+  "product_name": "Obsidian Heritage Track Jacket",
+  "color": "black",
+  "item_id": "7817897798",
+  "platform": "weidian",
+  "link": "https://weidian.com/item.html?itemID=7817897798",
+  "price_cny": 158.0,
+  "colors": ["Khaki", "Green", "Black", "Beige"],
+  "sizes": ["S", "M", "L", "XL", "2XL"],
+  "variant_mappings": {
+    "colors": { "Black": "Black color-blocking KC 3115" },
+    "sizes": { "S": "S", "M": "M" }
+  },
+  "selected_indices": { "front": [1, 2], "back": [], "detail": [3, 4] },
+  "product_category": "jacket",
+  "seller": { "name": "seller_name", "shipping_origin": "Guangzhou", "domestic_shipping_cny": 10.0 },
+  "generation_status": "pending",
+  "storefront_status": "not_listed"
+}
+```
+
+### Key Data Files
+| File | Purpose |
+|------|---------|
+| `review_pending/*.json` | Active Discord review state. Maps message IDs → scraped image URLs + VLM groups + pending picks. Dedup source. |
+| `supplier_mappings.json` | **STRICTLY PRIVATE.** Maps public product IDs → Chinese supplier URLs, RMB costs, Chinese variant names for procurement. |
+| `uploaded_campaigns.json` | Tracks all campaigns successfully published to storefront. Prevents duplicate listings. |
+
+---
+
+## 7.2 OBSCURA ORGANIC UGC VIDEO AD STRATEGY (NON-NEGOTIABLE)
+
+### 📌 Core Principle: Zero-Budget Organic Conversion
+- **Paid Ads Policy:** Zero budget allocated for paid ads initially. We rely 100% on high-converting **organic social reach** across **TikTok, Instagram Reels, Pinterest Watch/Idea Pins, and YouTube Shorts** until revenue is generated.
+
+### 🎥 Video Engine Engine: Omni Flash on Google Flow (NOT Veo 3.1)
+- **Model Engine:** **`Omni Flash`** on Google Flow (`veo_3_1_i2v_lite` / `flow_omni`).
+- **Generation Duration:** Exactly **10 seconds** per video generation (`10s video length`).
+- **Native Audio & Speech Generation:** **Omni Flash generates native audio & synchronized speech** directly inside the 10-second video generation payload!
+
+### 🤳 High-Converting Organic "Selfie UGC / Fit Check" Ad Formula
+- **Concept:** AI Fashion Model holding the phone front-camera / mirror selfie style, wearing the OBSCURA product (hoodie, jacket, tee, cargo pants).
+- **Format:** Authentic 9:16 vertical front-facing selfie video that feels like a real fashion influencer or TikToker doing a fit check.
+- **Speech / Script Formula (10 Seconds Native Speech):**
+  - *"Look at this top I got from OBSCURA..."*
+  - *"Stop buying overpriced blank hoodies. OBSCURA just dropped this 500GSM vintage grey fit..."*
+  - Shows close-up detail, fabric drape, and turns 360° to highlight the quality in 10 seconds.
+- **CTA:** "Link in bio to shop the drop."
+
+---
+
+## 7.3 DUAL-TRACK GENERATION SYSTEM (NON-NEGOTIABLE)
+
+### Architecture: Two Parallel Generation Paths
+
+The generation worker (`local_generation_worker.py`) runs two tracks simultaneously:
+
+#### Track 1: Singular Item Generation (ANY individual product)
+Every individual product (hoodie, pants, sneakers, etc.) receives:
+1. **Product-only shots** (ghost mannequin, flat lay, detail) — for storefront product pages
+2. **1 on-model editorial photo** — model wearing just that item with neutral styling (`CLOTHING_PROMPTS` / `MALE_UGC_PROMPTS`)
+3. **1 Omni Flash 10s UGC selfie video** — organic TikTok/Reels ad (`OBSCURA_SELFIE_UGC_AD_PROMPTS`)
+- Items are also **staged** in `outfit_warehouse.py` for Track 2 matching
+
+#### Track 2: Full Outfit Generation (warehouse-matched sets)
+When `outfit_warehouse.py` matches a **top + bottom** (same brand, compatible color):
+1. **3 on-model outfit shots** — full look editorial photography
+2. **1 outfit transition UGC video** — Omni Flash 10s video showing the complete outfit
+3. **1 composite flat lay** — vertically stacked top + bottom + shoes image
+
+### ⚠️ RULE: Singular items DO get on-model shots now
+- **Previous rule (DEPRECATED):** "On-model is ONLY for curated outfits via generate_outfit_shots()"
+- **Current rule:** Individual items get 1 on-model shot + 1 UGC video. Full outfits get 3 on-model shots + 1 outfit video.
+
+### Generation Router: Omni Flash Video Model
+- `generation_router.py` `generate_video()` now accepts `video_model="omni_flash"` parameter
+- Maps to Flow API model keys: `flow_omni_i2v` (image-to-video) or `flow_omni_t2v` (text-to-video)
+- Default (`video_model="veo"`) still uses `veo_3_1_i2v_lite` / `veo_3_1_t2v_lite`
+
+### Social Media Posting Cadence (Zero-Budget Organic)
+| Platform | Content | Frequency |
+|----------|---------|-----------|
+| TikTok | 10s UGC selfie videos | 2-3x/day |
+| Instagram Reels | Same videos + carousel product shots | 2x/day |
+| Pinterest Watch | 10s videos as Watch Pins | 1x/day |
+| YouTube Shorts | Same 10s videos | 1x/day |
+
+
+
 ## 8. KNOWN BUGS & ISSUES
 
 ### 🟢 FIXED: Reverse Image Search Pipeline (June 2026)
@@ -236,8 +432,12 @@ Stored in `data/reddit_discovered_sellers.json`. The Reddit scout runs before ea
 **Root Cause:** All 7 Gemini API keys are in the SAME Google Cloud project, so they share a single 10-15 RPM quota.
 **Fix Required:** Create separate GCP projects for separate keys, OR add Cerebras/SambaNova as additional free providers.
 
-### 🟡 ISSUE: Brand Website Sourcing Underused
-The `brand_website_sourcer.py` exists but is only called manually via CLI. It should be integrated into the main sourcing pipeline with a list of target brand websites (Zara, Nike, Essentials, etc.).
+### 🔴 REMOVED: brand_website_sourcer.py
+This file was removed from the codebase. Brand website scraping should be reimplemented if needed.
+
+### 🟢 FIXED: Dead vlm_product_sourcer Import (July 2026)
+- **Problem:** `local_generation_worker.py` line 1234 imported `from vlm_product_sourcer import VLMSourcer, SELLERS`, but `vlm_product_sourcer.py` was archived when replica sourcing was removed. This caused `ModuleNotFoundError` caught by a broad `except Exception`, making the worker silently loop every 60 seconds doing nothing.
+- **Solution:** Replaced the dead import block with a clean idle wait that logs clearly and waits 120s for new products to appear via the Discord pipeline.
 
 ---
 
@@ -297,18 +497,51 @@ For our use case, the **LiteLLM Router + Python scripts** approach is more power
 
 ---
 
-## 11. DEPLOYMENT
+## 11. DEPLOYMENT & AUTONOMOUS CLOUD ARCHITECTURE (ZERO PC DEPENDENCY)
 
-### Local (Windows)
-- Main machine for development and Discord bot
-- Playwright browsers installed locally
-- All scripts run via Python 3.11+
+### Infrastructure Diagram
+```
+┌────────────────────────────────────────────────────────┐
+│             AZURE VPS (20.215.232.214)                 │
+│             Ubuntu 22.04 LTS — 24/7 Autonomous Uptime  │
+│                                                        │
+│  Systemd Services / Background daemons:                │
+│    → discord_listener.py (Sourcing & Discord bot)      │
+│    → auto_matcher.py --watch (Outfit pairing)          │
+│    → cloud_generator_gha.py (xvfb-run headless gen)    │
+│                                                        │
+│  Autonomous Generation:                                │
+│    → Scans queue_pending.json & MANUAL_CURATION/       │
+│    → References exact scraped garment via Flow         │
+│    → Generates 9:16 and 1:1 certified lookbooks        │
+│    → Outputs directly to OUTPUT_READY_FOR_SALE/        │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+             Autonomous Git Sync & Scheduled Cron
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│        GITHUB ACTIONS RUNNER (16GB RAM CLOUD)          │
+│        .github/workflows/obscura_cloud_generator.yml   │
+│                                                        │
+│  Cron Execution: Every 4 hours (0 */4 * * *)           │
+│    → 100% free, 16GB RAM, headless Ubuntu              │
+│    → Runs cloud_generator_gha.py                       │
+│    → Commits generated outputs & updates queue         │
+└────────────────────────────────────────────────────────┘
+```
 
-### VPS (Linux)
-- For 24/7 operation of Discord bot + scraper
-- Files: `agent_brain_vps.py`, `agent_tools_vps.py`
-- Systemd services: `discord-listener.service`, `auto-matcher.service`
-- Setup guide: `VPS_SETUP_GUIDE.md`
+### 100% Autonomous Execution — Zero PC Dependency
+- **Local PC is NEVER required:** The user's home computer does NOT need to be turned on, awake, or running any scripts.
+- **No Local Bridges or Extensions:** Sourcing, curation, image referencing, AI lookbook synthesis, UGC briefs, and storefront catalog creation happen 100% in the cloud.
+- **Persistent Disk Queues:** All products in `review_pending/` and `MANUAL_CURATION/` persist safely in cloud storage and git.
+
+### Azure VPS Access Details
+- **IP:** `20.215.232.214`
+- **User:** `azureuser`
+- **SSH Key:** `~/.ssh/azure_obscura_key.pem`
+- **Directory:** `/home/azureuser/ai-ugc/`
+- **Python Virtualenv:** `/home/azureuser/ai-ugc/venv/bin/python3`
 
 ---
 
@@ -322,113 +555,150 @@ For our use case, the **LiteLLM Router + Python scripts** approach is more power
 6. **Scraper dedup MUST be permanent** — never delete history files.
 7. **Brand catalogs can contain multiple product categories** — don't assume 1 catalog page = 1 type.
 8. **Gender matching is STRICT** — male products on male models, female on female. No exceptions.
-9. **Image quality: RAW PNG only, minimum 1024x1024** for generation pipeline.
+9. **Image quality: AI-generated images must be RAW PNG, minimum 1024x1024.** Source flat lay images (downloaded from Yupoo) may be in their original format (JPG/PNG/WebP), minimum 800px on shortest side. Both AI PNGs and source JPGs appear together in the storefront gallery.
 10. **Keep the aesthetic elite** — every image must look editorial, not amateur.
 11. **ALWAYS use `Nano Banana Pro` (`GEM_PIX_2`) for images and `Veo 3.1 - Lite` for videos on Google Flow.**
 12. **Double check the multiplier for video generation to avoid burning credits (Veo 3.1 Lite costs 10 credits per video base, while Omni Flash costs 15 credits for 10s).**
-13. **NEVER open a browser window using Playwright to force manual logins.** ALWAYS use the `OBSCURA` Chrome extension loaded in the user's personal Chrome session to harvest tokens, which communicate via the token bridge server (`all_in_one_bridge.py`) on port 9877.
+13. **100% AUTONOMOUS CLOUD EXECUTION (ZERO LOCAL PC DEPENDENCY).** The AI generation pipeline MUST run fully autonomously in the cloud (via GitHub Actions 16GB runner `.github/workflows/obscura_cloud_generator.yml` or Azure VPS headless `xvfb-run`). The USER's personal local computer must NEVER be required to stay turned on for generation or pipeline operations. All Google Flow generation runs headlessly in the cloud using the authenticated session (`session_google_account.json` / `GFLOW` secret).
 14. **Video downloads use Phase 3 (base64 decode), NOT URL scraping.** After poll shows `SUCCESSFUL`, call `GET v1/media/{name}` → decode `video.encodedVideo` from base64. NEVER search poll responses for download URLs — they don't exist for videos.
 15. **PRIMARY ASPECT RATIO IS STRICTLY 9:16 (PORTRAIT)** for all image and video generation. All marketing & UGC content is optimized for TikTok, Instagram Reels, and Instagram Stories.
 16. **NEVER expose supplier links in public storefront catalogs.** The storefront uploader must hide all `supplierLink` references from public files to protect source confidentiality.
 17. **ALWAYS maintain a private `supplier_mappings.json` file** to store original Chinese marketplace URLs, costs, and variant mappings (colors/sizes translated from English to Chinese).
 18. **ALWAYS reverse-map customer options back to Chinese** when processing orders for procurement. The DDP agent needs the exact Chinese option text (e.g. `黑色`, `XL码`) to purchase the correct items.
 19. **REPLICAS REQUIRE DDP AGENTS FOR AFRICA SHIPMENTS.** Do not use Kakobuy, Superbuy, or CJ Dropshipping for replica orders due to high shipping costs and replica bans. Only use Alibaba DDP agents.
+20. **PRODUCT IMAGES FOR AI GENERATION MUST ALWAYS COME FROM YUPOO, NEVER FROM WEIDIAN/TAOBAO/1688.** Marketplace listings blur out brand names and logos to avoid takedowns (9 out of 10 have censored images). Yupoo is where sellers post uncensored, high-resolution product photos. Marketplace links are ONLY for pricing, sizing, and ordering.
+21. **DOWNLOAD ALL YUPOO IMAGES EXCEPT MODEL SHOTS.** Do NOT cap or prune the number of images. The VLM classifier deletes ONLY `model_shot` and `lifestyle` images (photos showing a human wearing the garment). ALL other images are kept: product flat lays, detail closeups, tag labels, size charts, packaging. Front/back product shots are used for AI ad generation; detail/tag/size chart images are displayed in the storefront "Photos" subcategory for customers browsing.
+22. **MULTI-COLOR PRODUCTS: GROUP IMAGES BY DETECTED COLOR.** When the VLM detects multiple colors in a product's images, it groups them by color variant (e.g., `black`, `cream`, `olive`). Each color group gets its own front/back for separate AI ad generation. Size charts, packaging, and color swatches are shared across all colors.
+23. **DOWNLOADED SOURCE PHOTOS ARE THE FLAT LAYS.** Do NOT use Flow API to generate flat lay, ghost mannequin, or detail shots. The downloaded front/back product photos from Yupoo ARE the flat lays displayed in the storefront gallery. Flow API is used ONLY for generating on-model outfit shots.
+24. **INDIVIDUAL ITEMS (tops, bottoms, single clothing) get ZERO AI generation.** Their gallery consists entirely of the downloaded source photos: front flat lay + back flat lay. No Flow API calls. No credits burned.
+25. **FULL OUTFIT MODEL SHOTS are the ONLY AI generation.** When a complete outfit is assembled (top + bottom + shoe), a single Flow API model shot is generated showing all items on one model, facing the camera. This is the only time Flow API is called for product imagery.
+26. **FRONT IMAGES GO TO THE WAREHOUSE for outfit assembly.** After downloading front/back images for individual items, the front images are staged in the warehouse. The warehouse merges matching top fronts + bottom fronts + shoe fronts into combined outfit groups. The combined outfit then gets ONE full-body model shot generated via Flow.
+27. **GALLERY IMAGE ORDER: Model shot → Front flat lay → Back flat lay → Other source images.** AI-generated model shots (if any) appear first, followed by the front and back flat lay source photos. All other downloaded images (details, tags, size charts) appear LAST after the primary gallery images.
+28. **WEIDIAN/MARKETPLACE COLOR & PRICE EXTRACTION IS MANDATORY (TOP PRIORITY).** We are merging Yupoo (HQ uncensored photos) and Weidian (supplier prices, translated color variants, sizing, stock levels) for every product in our store. Weidian color option and price extraction MUST succeed regardless of how long Playwright takes. NEVER abort, skip, or timeout Weidian variant/price extraction.
+29. **GRAND ARCHITECTURAL PURPOSE: MERGING YUPOO + WEIDIAN.** Yupoo provides the visual asset layer (unedited, uncensored HQ studio photos for AI lookbooks and storefront galleries). Weidian provides the operational data layer (supplier cost, Chinese variant mapping, inventory, ordering endpoints). Every curated item MUST merge both sources into a unified product record.
+30. **FOR SETS (hoodie + trousers): Generate ONE full outfit model shot with shoes.** The model shot shows all 3 items (top + bottom + shoe) on one model. Individual front/back flat lays for each piece (top front, top back, bottom front, bottom back) follow in the gallery. This produces the richest product page: 1 model shot + 4 flat lays per color.
+31. **WEIDIAN COLOR SELECTOR IS THE SOURCE OF TRUTH FOR AVAILABLE COLORS.** Step 1: Scrape the Weidian product page's option drawer to discover all available color variants (e.g., 黑色/Black, 蓝色/Blue, 军绿/Army Green). This gives the definitive list of colors the seller stocks. Step 2: Match/group the downloaded Yupoo source images to those Weidian colors using the VLM classifier. Each color variant gets its own front/back flat lay pair in the gallery and its own color swatch on the storefront. Colors are stored in `product_record.json` → `variants.colors[]` with both Chinese (`chinese`) and English (`english`) names.
+32. **COLOR DIFFERENTIATION IS CRITICAL FOR THE STOREFRONT.** Every color variant MUST have its own distinct gallery (front flat lay + back flat lay at minimum). Customers must be able to click a color swatch and see the ACTUAL product in that specific color — not the same images across all swatches. If images for a specific color are missing, that color swatch must NOT appear on the storefront.
+33. **AUTO-WAREHOUSE STAGING ON PICK.** When a user confirms an image pick in Discord, the front image is IMMEDIATELY staged to the outfit warehouse (`outfit_warehouse.py`). The discord bot does NOT wait for the generation worker. This enables instant outfit assembly detection — as soon as a matching top + bottom exist, Discord notifies the user.
+34. **PRODUCT COMPLETION SUMMARY.** When ALL color cards for a product have been confirmed or skipped, Discord posts a summary card showing: each color's status (confirmed/skipped), image counts per color, price estimate, and warehouse staging status. This is the user's confirmation that the product is fully processed.
+35. **COMPOSITE FLAT LAYS.** When an outfit is generated (top + bottom + optional shoe), `composite_builder.py` creates a single 9:16 portrait image stacking all flat lays vertically. This composite image appears in the storefront gallery alongside the individual flat lays and model shot.
+36. **NEVER SUGGEST OR FALL BACK TO STANDARD TEXT-TO-IMAGE APIS (NON-NEGOTIABLE).** Generic text-to-image APIs (OpenAI DALL-E, Gemini Imagen, Flux, Midjourney) CANNOT perform garment image referencing — they cannot place the exact scraped product flat lay onto the specific brand model's face and body. Google Flow (`Nano Banana Pro` / `GEM_PIX_2`) with its multi-image reference inputs is the ONLY permitted generation engine. Never suggest API fallbacks that lack real image referencing.
+
 
 ---
 
-## 13. GOOGLE FLOW API & CREDIT RUNBOOK
+### 12.1 IMAGE GENERATION PIPELINE ARCHITECTURE (CRITICAL)
 
-### Model Preferences (NON-NEGOTIABLE)
-- **Always** use **`Nano Banana Pro`** (`GEM_PIX_2`) for images (high-fidelity premium look).
-- **Always** use **`Veo 3.1 - Lite`** (`veo_3_1_t2v_lite`) for videos (highest quality/cost efficiency).
-- **Omni Flash** (`omni_flash`) is allowed ONLY when duration control is needed (it lets you set 5s/10s). Costs 15 credits for 10s.
-
-### Credit Cost Structure
-- **Image Generation**: Always **0 credits** (even with a `4x` multiplier).
-- **Video Generation**:
-  - `Veo 3.1 - Lite`: **10 credits** per video (8s, fixed). Multiplier scale: `1x = 10`, `2x = 20`, `3x = 30`, `4x = 40` credits.
-  - `Veo 3.1 - Fast`: **20 credits** per video (base).
-  - `Veo 3.1 - Quality`: **50 credits** per video (base).
-  - `Omni Flash`: **15 credits** per 10s video. Supports custom duration (5s/10s via UI). Only use when explicitly approved.
-
-### Direct HTTP API Architecture (NON-NEGOTIABLE)
-All generation goes through the Direct HTTP API using tokens from the OBSCURA Chrome extension via `all_in_one_bridge.py` on port 9877. **NEVER use Playwright browser automation for Flow.**
-
-#### Image Generation (Synchronous)
 ```
-POST /v1/projects/{pid}/flowMedia:batchGenerateImages
-  → Response contains fifeUrl download links immediately
-  → Download fifeUrl → done
-```
-- **Model Key:** `GEM_PIX_2` (Nano Banana Pro)
-- **Reference Images:** Upload via `POST /v1/flow/uploadImage` → get `asset_id` → pass as `imageInputs: [{imageInputType: "IMAGE_INPUT_TYPE_REFERENCE", name: asset_id}]`
-
-#### Video Generation (Async 3-Phase)
-```
-Phase 1: POST /v1/video:batchAsyncGenerateVideoText
-  → Returns media_name (job ID)
-
-Phase 2: POST /v1/video:batchCheckAsyncVideoGenerationStatus
-  → Poll every 8s until mediaGenerationStatus == "MEDIA_GENERATION_STATUS_SUCCESSFUL"
-  → ⚠️ This endpoint NEVER returns download URLs!
-
-Phase 3: GET /v1/media/{media_name}
-  → Returns JSON with video.encodedVideo (base64-encoded MP4)
-  → base64.b64decode(encodedVideo) → save as .mp4
-```
-
-#### Video API Model Keys & Payload
-| Model | API Key | Mode | Duration | Credits |
-|-------|---------|------|----------|---------|
-| Veo 3.1 Lite | `veo_3_1_t2v_lite` | Text-to-Video | 8s fixed | 10 |
-| Veo 3.1 Lite (I2V) | `veo_3_1_i2v_lite` | Image-to-Video | 8s fixed | 10 |
-| Veo 3.1 Fast | `veo_3_1_t2v_fast` | Text-to-Video | 8s fixed | 20 |
-| Omni Flash | `omni_flash` | Text-to-Video | 5s/10s selectable | 15 (10s) |
-
-#### Reference Images for Video (Image-to-Video)
-To use a reference image with video generation:
-1. Upload the image via `POST /v1/flow/uploadImage` (same as image gen) → get `asset_id`
-2. Switch the model key from `veo_3_1_t2v_lite` to `veo_3_1_i2v_lite`
-3. Add the reference in the request object:
-```json
-{
-  "aspectRatio": "VIDEO_ASPECT_RATIO_LANDSCAPE",
-  "videoModelKey": "veo_3_1_i2v_lite",
-  "imageInput": { "name": "<asset_id>" },
-  "textInput": { "structuredPrompt": { "parts": [{"text": "<prompt>"}] } }
-}
+┌──────────────────────────────────────────────────────────┐
+│                 SOURCE IMAGE DOWNLOAD                     │
+│                                                           │
+│  Yupoo/Weidian → Download front + back of each garment   │
+│  Per color variant: front_angle.jpg + back_angle.jpg      │
+│  Also: detail_close, tag_label, size_chart (secondary)    │
+└──────────────┬────────────────────────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────────────────────┐
+│              INDIVIDUAL ITEM PROCESSING                   │
+│                                                           │
+│  Tops / Bottoms / Single Clothing:                        │
+│    → NO AI generation (zero Flow API calls)               │
+│    → Front photo = gallery flat lay front                  │
+│    → Back photo = gallery flat lay back                    │
+│    → Front image → staged in WAREHOUSE for outfit merge   │
+│    → Detail/tag/chart images → secondary "Photos" tab     │
+└──────────────┬────────────────────────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────────────────────┐
+│                  WAREHOUSE (Outfit Assembly)               │
+│                                                           │
+│  Collects front images from individual items:              │
+│    top_front + bottom_front + shoe_front                   │
+│  Merges into a combined outfit group                       │
+│  Triggers FULL OUTFIT model generation                     │
+└──────────────┬────────────────────────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────────────────────┐
+│           FULL OUTFIT MODEL GENERATION (Flow API)         │
+│                                                           │
+│  ONLY AI generation in the pipeline:                      │
+│    → Upload: model face ref + top front + bottom front    │
+│      + shoe front as Flow references                      │
+│    → Generate: ONE full-body model shot (facing camera)   │
+│    → Model: GEM_PIX_2 (Nano Banana Pro), 9:16 portrait   │
+│    → Gender-matched (male model for male products)        │
+│    → Result: 01_model_front_0.png                         │
+└──────────────┬────────────────────────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────────────────────┐
+│              STOREFRONT GALLERY (per color)                │
+│                                                           │
+│  Display order:                                           │
+│    1. Model shot (AI generated, if outfit assembled)      │
+│    2. Top front flat lay (downloaded source photo)         │
+│    3. Top back flat lay (downloaded source photo)          │
+│    4. Bottom front flat lay (downloaded, if set)           │
+│    5. Bottom back flat lay (downloaded, if set)            │
+│    6. Other source images (details, tags) — LAST          │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### Video Prompting Best Practices
-Video prompts must be **cinematic and specific** — unlike image prompts, vague descriptions produce poor results.
+---
 
-**BAD (vague, generic):**
-> "A model wearing a hoodie walking"
+## 13. AUTONOMOUS GOOGLE FLOW GENERATION & PERMANENT AUTHENTICATION (LOG IN ONCE AND FOR ALL)
 
-**GOOD (cinematic, specific):**
-> "Slow cinematic tracking shot following a tall male model in a black oversized heavyweight hoodie, walking through rain-soaked neon-lit Tokyo alley at night. Camera at waist height, shallow depth of field, anamorphic lens flare. Moody editorial fashion film aesthetic, 24fps."
+### A. Why Standard Text-to-Image APIs Are Strictly Banned (Rule 36)
+- **The Core Problem:** Generic text-to-image APIs (OpenAI DALL-E, Gemini Imagen, Flux, Midjourney, Stable Diffusion) CANNOT perform garment image referencing. They can only imagine a generic item from a text description. They CANNOT take the exact scraped flat lay photo of a hoodie, pants, or jacket and composite it with 100% fidelity (exact brand logos, hardware, embroidery, wash, cut) onto a brand model.
+- **The Solution:** Google Flow (`Nano Banana Pro` / `GEM_PIX_2`) is the ONLY engine with multi-image reference inputs (`IMAGE_INPUT_TYPE_REFERENCE` / Ingredients Media). It takes:
+  1. **Reference 1:** Brand model face & body
+  2. **Reference 2:** Scraped garment front flat lay
+  3. **Reference 3:** Scraped garment back / pants / shoes
+  And renders an authentic editorial lookbook featuring that exact garment.
 
-**Key elements for fashion video prompts:**
-1. **Camera movement:** tracking shot, dolly zoom, slow pan, orbit, static close-up
-2. **Lighting:** neon, golden hour, studio softbox, moody backlit, high-key editorial
-3. **Location:** specific and atmospheric (Tokyo alley, concrete brutalist interior, desert highway)
-4. **Model action:** walking, turning, posing, adjusting collar, hands in pockets
-5. **Lens/look:** shallow DOF, anamorphic, film grain, 24fps cinematic
-6. **Garment description:** be VERY specific about the clothing ("oversized black heavyweight cotton hoodie with dropped shoulders")
+### B. Autonomous Cloud Generation Architecture (Zero PC Dependency)
+- Generation runs 100% autonomously in the cloud without requiring the user's local PC to be turned on or running any local servers.
+- **Runners:**
+  1. **Azure VPS (`20.215.232.214`):** Runs `cloud_generator_gha.py` and `test_complete_generation_cycle.py` headlessly under `xvfb-run`.
+  2. **GitHub Actions 16GB Runner:** `.github/workflows/obscura_cloud_generator.yml` runs every 4 hours autonomously on cron or via manual trigger.
+- **Execution Flow in Flow Studio:**
+  1. Open project workspace (`flow.google.com/project/<project_id>`)
+  2. Open ingredients menu (`button[aria-label="Add ingredients to the prompt box"]`)
+  3. Upload scraped front flat lay image via file chooser
+  4. Click `Add to prompt`
+  5. Type category-specific editorial prompt into `div.ProseMirror`
+  6. Click `Start generation` / press Enter
+  7. Stream & download generated RAW PNG/WebP lookbook images
+  8. Pillow Post-Processing: Certified true 9:16 vertical (TikTok/Reels) and 1:1 square (IG Posts)
+  9. Synthesize 10s Omni Flash UGC video brief (`ugc_video_brief.json`)
+  10. Output to `OUTPUT_READY_FOR_SALE/<slug>/` and update curation state
 
-### How to Maneuver the Flow UI
-1. **Agent Toggle**: Pill toggle under prompt box (`(420, 663)`).
-   - Keep **OFF** (`pressed=false`) to enable manual model, ratio, and duration settings.
-2. **Opening Controls**: Click the model summary button (e.g. `🍌 Nano Banana 2 crop_16_9 x2`) in the bottom toolbar to open the manual controls popup.
-3. **Tab Navigation**:
-   - Click the **Image tab** (`imageImage` at `(697, 427)`) first before trying to select image models.
-   - Click the **Video tab** (`play_circleVideo` at `(829, 427)`) first before trying to select video models.
-4. **Dropdown Selection**:
-   - Model dropdown is at `(763, 560)`. Click to open options.
-   - Use normalized alphanumeric comparison to select the model (e.g., matching `"Veo 3.1 - Lite"` to `"veo 3.1 lite"`).
-5. **Duration Control (Omni Flash only):**
-   - When Omni Flash is selected, a duration slider/option appears allowing 5s or 10s.
-   - Veo 3.1 models have fixed 8s duration — no duration control available.
+### C. Why Google Sessions Expired & The "Log In Once and For All" Solution
+- **Why Sessions Expired Previously:**
+  When session cookies are captured on a home PC (residential IP) and dumped into a raw JSON file, and then injected into an ephemeral Playwright context (`browser.new_context()`) on an Azure datacenter IP (`20.215.232.214`), Google's anti-fraud system flags the sudden IP/ASN mismatch and lack of persistent device credentials. Google invalidates the session and redirects to the account chooser showing `Signed out`.
+- **The Permanent Fix (Log In ONCE on the Cloud):**
+  1. **Persistent VPS Chrome Profile (`/home/azureuser/.obscura_chrome_profile`):**
+     Instead of creating an empty temporary context every time, Playwright launches a *persistent user data directory* on the VPS disk via `launch_persistent_context`. The browser cache, LevelDB, IndexedDB, and TLS channel binding tokens remain permanently written to the VPS disk. Google recognizes it as the exact same installed desktop browser every run.
+  2. **One-Time VPS Login Procedure (60 Seconds):**
+     To log in once directly on the VPS browser:
+     - On VPS, launch Chrome with remote debugging:
+       `google-chrome-stable --remote-debugging-port=9222 --user-data-dir=/home/azureuser/.obscura_chrome_profile`
+     - On local PC, forward port 9222 via SSH:
+       `ssh -L 9222:localhost:9222 -i ~/.ssh/azure_obscura_key.pem azureuser@20.215.232.214`
+     - In local Chrome, navigate to `chrome://inspect` -> Configure -> add `localhost:9222` -> Click "inspect".
+     - Complete Google login to `flow.google.com` once.
+     - The credentials and device trust tokens are saved directly to the VPS disk. Because Google issued the session to the Azure VPS IP itself, **it NEVER expires or gets revoked on IP changes**.
+  3. **Permanent Google OAuth 2.0 Token Pool (`google_token_manager.py`):**
+     Stored in `google_accounts.json` with 4 Google accounts. OAuth 2.0 `refresh_token` credentials **NEVER expire** (unless manually revoked). They exchange for fresh `ya29` access tokens in 200ms on demand 24/7/365 across all machines with zero user interaction.
+
+### D. Model Preferences & Credit Runbook
+- **Image Generation:** Always use **`Nano Banana Pro`** (`GEM_PIX_2`) — Always **0 credits**.
+- **Video Generation:**
+  - `Veo 3.1 - Lite` (`veo_3_1_t2v_lite` / `veo_3_1_i2v_lite`): **10 credits** per 8s video. High quality, cost-efficient.
+  - `Omni Flash` (`flow_omni`): **15 credits** per 10s video. Used for organic UGC selfie ads with native audio and speech.
 
 ---
 
@@ -502,7 +772,7 @@ To support hands-off development and automated maintenance of the OBSCURA fashio
 - **Jules REST API:** Google provides an official REST API (`X-Goog-Api-Key` token auth) that allows scripting or triggering Jules sessions from external CLI tools or CI/CD pipelines.
 
 ### C. Fully Autonomous Testing Loop Strategy
-To test the pipeline end-to-end (from Yupoo/Weidian scraping, image processing, to storefront uploading and mock generation), we have built a self-healing testing loop (modeled on the Aider/SWE-agent architecture) in `goal2_sourcing_engine/pipeline_test_runner.py`:
+To test the pipeline end-to-end (from Yupoo/Weidian scraping, image processing, to storefront uploading and mock generation), we have built a self-healing testing loop (modeled on the Aider/SWE-agent architecture) in `goal2_sourcing_engine/_archive/tests/pipeline_test_runner.py`:
 
 1. **The Test Runner:** Run `python pipeline_test_runner.py` to trigger a simulated product drop (scraping a test link, checking PIL file integrity, validating Flow Bridge token freshness, generating test output, and pushing metadata to Next.js).
 2. **Autonomous Error Catching:** The test script captures all console logs, compiler diagnostics, and file trace logs.
