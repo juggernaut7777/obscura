@@ -330,8 +330,16 @@ def extract_metadata_from_campaign(campaign_dir):
         "size_charts": 0
     }
     
+    # ⚡ Performance optimization
+    # Why: Replaces multiple passes of campaign_dir.iterdir() with a single os.scandir() list
+    # What: Evaluates os.scandir into a list of Path objects to prevent N+1 stat calls and redundant directory reads
+    campaign_files = []
+    if campaign_dir.exists():
+        with os.scandir(campaign_dir) as scanner:
+            campaign_files = [Path(e.path) for e in scanner]
+
     # Check for JSON metadata files
-    for f in campaign_dir.iterdir():
+    for f in campaign_files:
         if f.suffix == ".json" and f.name not in ("checkout_links.json", "outfit_metadata.json"):
             try:
                 with open(f, "r", encoding="utf-8") as mf:
@@ -446,7 +454,8 @@ def extract_metadata_from_campaign(campaign_dir):
     # 2. Gallery-ready flat lay images (front_flat_lay.jpg, back_flat_lay.jpg)
     # These are the actual downloaded source photos used directly as flat lays.
     gallery_names = ("front_flat_lay", "back_flat_lay", "top_front_flat_lay", "top_back_flat_lay", "bottom_front_flat_lay", "bottom_back_flat_lay", "front_angle_1", "back_angle_1", "front_angle_2", "back_angle_2")
-    for f in sorted(campaign_dir.iterdir()):
+    sorted_files = sorted(campaign_files)
+    for f in sorted_files:
         if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
             # Include AI generated model shots or scraped product shots
             if f.name.startswith(("01_", "02_", "03_", "04_", "05_", "angle_", "img_", "product_")) or any(t in f.name.lower() for t in ("editorial", "lifestyle", "ghost", "hero", "angle")):
@@ -457,14 +466,14 @@ def extract_metadata_from_campaign(campaign_dir):
     
     # Fallback: if no specific image pattern matched, include all image files in the directory
     if not metadata["images"]:
-        for f in sorted(campaign_dir.iterdir()):
+        for f in sorted_files:
             if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
                 metadata["images"].append(f)
     
     # Collect remaining source images for the secondary details/photos tab
     metadata["source_images"] = []
     source_prefixes = ("source_", "detail_close_")
-    for f in sorted(campaign_dir.iterdir()):
+    for f in sorted_files:
         if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
             if f.stem.startswith(source_prefixes):
                 metadata["source_images"].append(f)
