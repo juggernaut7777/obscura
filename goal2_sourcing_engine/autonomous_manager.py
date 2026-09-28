@@ -131,15 +131,21 @@ class AutonomousManager:
         # 1. Purge non-product QC / feedback albums
         qc_keywords = ["qc-", "-qc", "customer", "feedback", "reviews", "reaction", "findqc"]
         if MANUAL_CURATION_DIR.exists():
-            for p in list(MANUAL_CURATION_DIR.iterdir()):
-                if p.is_dir():
-                    name_lower = p.name.lower()
+            # ⚡ Performance optimization
+            # Why: os.scandir avoids N+1 stat calls when accessing file attributes like is_dir and is_file
+            # What: Replaced iterdir() with os.scandir() evaluated to a list to allow concurrent modification
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                entries = list(scanner)
+            for entry in entries:
+                if entry.is_dir():
+                    name_lower = entry.name.lower()
                     if any(k in name_lower for k in qc_keywords):
+                        p = Path(entry.path)
                         for f in p.rglob("*"):
                             if f.is_file():
                                 freed_bytes += f.stat().st_size
                         shutil.rmtree(p, ignore_errors=True)
-                        print(f"  [-] Removed non-product QC folder: {p.name}")
+                        print(f"  [-] Removed non-product QC folder: {entry.name}")
 
         # 2. Prune duplicate excess angles in curated products
         ALLOWED_LIMITS = {
@@ -155,20 +161,24 @@ class AutonomousManager:
 
         pruned_images = 0
         if MANUAL_CURATION_DIR.exists():
-            for p in MANUAL_CURATION_DIR.iterdir():
-                if not p.is_dir() or p.name.startswith(("_", ".")):
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                p_entries = list(scanner)
+            for p_entry in p_entries:
+                if not p_entry.is_dir() or p_entry.name.startswith(("_", ".")):
                     continue
 
                 prefix_counts = {}
-                for f in sorted(p.iterdir()):
-                    if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
+                with os.scandir(p_entry.path) as inner_scanner:
+                    f_entries = sorted(list(inner_scanner), key=lambda x: x.name)
+                for f_entry in f_entries:
+                    if f_entry.is_file() and f_entry.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
                         # Never delete size charts or metadata
-                        if "size" in f.name.lower() or "chart" in f.name.lower():
+                        if "size" in f_entry.name.lower() or "chart" in f_entry.name.lower():
                             continue
 
                         matched_pfx = None
                         for pfx in ALLOWED_LIMITS:
-                            if f.name.startswith(pfx):
+                            if f_entry.name.startswith(pfx):
                                 matched_pfx = pfx
                                 break
 
@@ -176,8 +186,8 @@ class AutonomousManager:
                             prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
                             if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
                                 try:
-                                    freed_bytes += f.stat().st_size
-                                    f.unlink()
+                                    freed_bytes += f_entry.stat().st_size
+                                    Path(f_entry.path).unlink()
                                     pruned_images += 1
                                 except Exception:
                                     pass
