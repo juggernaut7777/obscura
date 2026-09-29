@@ -434,14 +434,26 @@ When `outfit_warehouse.py` matches a **top + bottom** (same brand, compatible co
    - Flow's top search bar intercepts generic text typing. All generation inputs must strictly target `flow-prompt-box [contenteditable="true"]` with `force=True`.
    - The white Google cookie banner (`OK, got it`) periodically overlays the bottom prompt box and must be programmatically dismissed before focusing.
 
+### 🚫 MULTIMODAL REFERENCE PROMPT RULE: ZERO TEXT COLLISION (STRICT & NON-NEGOTIABLE)
+- **The Core Law:** When referencing a garment flat lay image ingredient chip in Google Flow / Nano Banana Pro, **NEVER** write the brand name (`"OBSCURA"`), specific color names (`"blue"`, `"green"`, `"grey"`), or graphic descriptions in the prompt text.
+- **Why (The Collision Problem):**
+  1. **Text Hallucination / Watermarking:** If you write `"OBSCURA"` in the prompt, the multimodal image model treats it as a directive to render literal text, stamping `"OBSCURA"`, mock brand typography, or hallucinated graphics onto the garment.
+  2. **Embedding Collision:** If you write color names (`"grey"`, `"blue"`, `"black"`), the text token conflicts with the high-dimensional visual embedding of the reference image. If the referenced garment is vintage charcoal washed camo, writing `"black"` or `"OBSCURA"` forces the diffusion model to compromise between the text token and the image chip, generating an entirely different synthetic piece rather than faithfully transferring the real item.
+  3. **The Image Reference is the Sole Visual Truth:** The attached flat lay chip already contains 100% of the garment's visual information — color tones, fabric weave, drape, distressing, hardware, zippers, and authentic logos.
+- **Mandatory Prompt Syntax:**
+  - Refer to the item strictly as: `"the exact garment from the referenced image"`, `"the exact trousers from the referenced image"`, `"the complete matched outfit from the referenced image"`, or `"this product"`.
+  - **Do NOT** specify color (`"blue"`, `"green"`, etc.).
+  - **Do NOT** specify brand (`"OBSCURA"`, etc.).
+  - The text prompt's **ONLY** purpose is to describe: **The model, the pose, the environment / architectural scene, camera lens (e.g. 85mm prime), lighting, and shot composition.**
+
 ### 🎨 Creative Prompt Engine & Visual Standards
-Every product drop automatically generates three distinct high-converting creative formats:
+Every product drop automatically generates three distinct high-converting creative formats (with ZERO brand/color text collision):
 1. **Vertical Runway / Brutalist Lookbook (9:16):**
-   - High-fashion editorial lookbook photo of model in motion.
+   - High-fashion editorial lookbook photo of model in motion wearing "the exact garment from the referenced image".
    - Brutalist architectural concrete pavilion (Tadao Ando inspired), dramatic natural top skylight, soft shadows.
    - 85mm prime lens photography, Vogue/Balenciaga campaign standard, RAW photo, 8k resolution.
 2. **Luxury Editorial Feed Post (1:1):**
-   - Waist-up medium shot focusing on garment drape, double-layer hood / lapel structure, and heavy fabric weight (500-1000GSM).
+   - Waist-up medium shot focusing on garment drape, double-layer hood / lapel structure, and heavy fabric weight.
    - Chiaroscuro directional studio strobe lighting, high-end Parisian Haussmannian luxury interior or concrete plinth.
    - SSENSE campaign quality, 8k RAW photo.
 3. **Authentic Social GRWM / Fit-Check Selfie (9:16):**

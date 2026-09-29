@@ -85,132 +85,145 @@ def detect_category(name, meta):
         return "bags"
     return "tops"
 
-def build_category_prompts(category, name, color, is_outfit=False, outfit_details=None):
-    c = color.strip() if color else "luxury"
+def build_category_prompts(category, name=None, color=None, is_outfit=False, outfit_details=None):
+    """
+    MULTIMODAL REFERENCE PROMPT ENGINE:
+    The garment flat lay is attached as an ingredient chip in Google Flow.
+    The multimodal model derives 100% of color, fabric texture, cut, logos,
+    and graphics from the reference image chip.
+    NEVER include the brand name ('OBSCURA'), specific color names ('grey', 'blue'),
+    or text graphics in the prompt, as this causes catastrophic prompt collision,
+    hallucinated text watermarks/prints, and degrades reference fidelity.
+    Refer strictly to 'the exact garment from the referenced image' or 'this product'.
+    """
     prompts = {}
 
-    if is_outfit and outfit_details:
-        top_name = outfit_details.get("top_name", "OBSCURA top")
-        bot_name = outfit_details.get("bottom_name", "OBSCURA trousers")
+    if is_outfit:
         prompts["tiktok_9_16"] = (
-            f"Full-length vertical 9:16 high-fashion editorial runway lookbook photo of a female model wearing this complete luxury outfit: "
-            f"the {top_name} paired with {bot_name}. Model striding through a massive brutalist concrete architectural hall with dramatic natural "
-            f"top skylight and soft shadows. Highsnobiety / Vogue campaign aesthetic, sharp 85mm portrait, 8k resolution, RAW photo."
+            "Full-length vertical 9:16 high-fashion editorial runway lookbook photo of a female model wearing "
+            "the complete matched outfit from the referenced image. Model striding through a massive minimalist "
+            "brutalist concrete architectural hall with dramatic natural top skylight and soft architectural shadows. "
+            "Highsnobiety and Vogue campaign aesthetic, sharp 85mm prime portrait lens, 8k resolution, raw photo."
         )
         prompts["ig_feed_post"] = (
-            f"Square 1:1 waist-up luxury editorial lookbook photo of a high-fashion model wearing this complete matched ensemble ({top_name} and {bot_name}). "
-            f"Dramatic chiaroscuro studio lighting highlighting the contrasting fabric weights, drape, and seam architecture. Balenciaga campaign standard, RAW photo, 8k."
+            "Square 1:1 waist-up luxury editorial lookbook photo of a high-fashion model wearing "
+            "the complete matched outfit from the referenced image. Dramatic chiaroscuro studio lighting "
+            "highlighting the realistic fabric drape, weight, and tailored seam architecture. "
+            "Balenciaga campaign standard, raw photo, 8k resolution."
         )
         prompts["grwm_fit_check"] = (
-            f"Authentic vertical 9:16 smartphone mirror selfie fit-check photo of a stylish model wearing this exact matched outfit ({top_name} and {bot_name}). "
-            f"Model standing in a chic minimalist Scandinavian dressing suite, holding phone naturally. Warm morning window light, authentic TikTok UGC aesthetic, ultra-realistic."
+            "Authentic vertical 9:16 smartphone mirror selfie fit-check photo of a stylish model wearing "
+            "the complete matched outfit from the referenced image. Model standing in a chic minimalist Scandinavian "
+            "dressing suite, holding smartphone naturally. Warm morning window light, authentic TikTok UGC aesthetic, ultra-realistic."
         )
         return prompts
 
     if category == "tops":
         prompts["tiktok_9_16"] = (
-            f"Full-length vertical 9:16 high-fashion editorial lookbook photo of a female model wearing this exact OBSCURA {c} top. "
-            f"Model standing in a brutalist architectural concrete pavilion with subtle natural skylight. Paired with dark tailored cropped trousers and chunky leather boots. "
-            f"Editorial styling, sharp 85mm prime lens photography, Vogue editorial lighting, RAW photo, 8k resolution."
+            "Full-length vertical 9:16 high-fashion editorial lookbook photo of a female model wearing "
+            "the exact garment from the referenced image. Model standing in a minimalist brutalist architectural concrete pavilion "
+            "with subtle natural daylight. Paired with plain neutral tailored dark trousers and clean chunky boots. "
+            "Editorial styling, sharp 85mm prime lens photography, Vogue editorial lighting, raw photo, 8k resolution."
         )
         prompts["ig_feed_post"] = (
-            f"Medium waist-up high-fashion editorial photo of a model wearing this exact OBSCURA {c} top. "
-            f"Cinematic rim lighting emphasizing the heavy fabric drape, structured collar, and seam finishings. Minimalist concrete gallery setting. "
-            f"Square 1:1 composition, Balenciaga campaign aesthetic, 85mm portrait, RAW photo, 8k resolution."
+            "Medium waist-up high-fashion editorial photo of a model wearing the exact garment from the referenced image. "
+            "Cinematic rim lighting emphasizing the heavy fabric drape, structured collar, and seam finishings. "
+            "Minimalist concrete gallery setting. Square 1:1 composition, Balenciaga campaign aesthetic, 85mm portrait, raw photo, 8k resolution."
         )
         prompts["grwm_fit_check"] = (
-            f"Authentic vertical 9:16 smartphone mirror selfie fit-check photo of a stylish model wearing this exact OBSCURA {c} top. "
-            f"Model standing in a minimalist bedroom loft with soft golden-hour natural daylight, holding smartphone casually. "
-            f"Authentic influencer GRWM fit-check aesthetic, raw organic texture, high-res."
+            "Authentic vertical 9:16 smartphone mirror selfie fit-check photo of a stylish model wearing "
+            "the exact garment from the referenced image. Model standing in a minimalist bedroom loft with soft golden-hour "
+            "natural daylight, holding smartphone casually. Authentic influencer GRWM fit-check aesthetic, raw organic texture, ultra-realistic."
         )
     elif category == "bottoms":
         prompts["tiktok_9_16"] = (
-            f"Full-body vertical 9:16 street-editorial lookbook photo of a model wearing these exact OBSCURA {c} trousers. "
-            f"Styled with a minimal black boxy cropped tee and chunky brutalist boots. Urban architectural concrete setting with dramatic natural side-lighting. "
-            f"Crisp focus on silhouette, fabric texture, and clean hem stacking. Vertical 9:16 composition, Highsnobiety aesthetic, RAW photo."
+            "Full-body vertical 9:16 street-editorial lookbook photo of a model wearing the exact trousers from the referenced image. "
+            "Styled with a minimal plain black boxy cropped tee and clean brutalist boots. Urban architectural concrete setting "
+            "with dramatic natural side-lighting. Crisp focus on silhouette, fabric texture, and clean hem stacking. "
+            "Vertical 9:16 composition, Highsnobiety aesthetic, raw photo."
         )
         prompts["ig_feed_post"] = (
-            f"Lower-body 1:1 square editorial shot focusing on these exact OBSCURA {c} trousers in motion. "
-            f"Subtle dynamic stride in a modern brutalist pavilion. Morning architectural shadows highlighting twill texture and pockets. "
-            f"Square 1:1 framing, luxury editorial campaign standard, RAW photo, 8k."
+            "Lower-body 1:1 square editorial shot focusing on the exact trousers from the referenced image in motion. "
+            "Subtle dynamic stride in a modern brutalist pavilion. Morning architectural shadows highlighting twill texture and pockets. "
+            "Square 1:1 framing, luxury editorial campaign standard, raw photo, 8k."
         )
         prompts["grwm_fit_check"] = (
-            f"Authentic vertical 9:16 front-camera selfie fit-check video frame of a fashion creator testing the drape and silhouette of these OBSCURA {c} trousers. "
-            f"Creator holding phone angled down to capture trouser break and clean hem stacking over shoes. Modern aesthetic interior, daylight, authentic UGC style."
+            "Authentic vertical 9:16 front-camera selfie fit-check video frame of a fashion creator testing the drape and silhouette "
+            "of the exact trousers from the referenced image. Creator holding phone angled down to capture trouser break "
+            "and clean hem stacking over shoes. Modern aesthetic interior, daylight, authentic UGC style."
         )
     elif category == "shoes":
         prompts["tiktok_9_16"] = (
-            f"Vertical 9:16 high-fashion on-foot editorial photo of a model wearing these exact OBSCURA {c} shoes. "
-            f"Paired with wide-leg tailored wool trousers that break cleanly over the shoe silhouette. Minimalist polished concrete floor with soft studio rim light. "
-            f"Vertical 9:16 angle, SSENSE lookbook quality, RAW photo."
+            "Vertical 9:16 high-fashion on-foot editorial photo of a model wearing the exact shoes from the referenced image. "
+            "Paired with wide-leg neutral tailored wool trousers that break cleanly over the shoe silhouette. "
+            "Minimalist polished concrete floor with soft studio rim light. Vertical 9:16 angle, SSENSE lookbook quality, raw photo."
         )
         prompts["ig_feed_post"] = (
-            f"Dynamic close-up on-foot 1:1 editorial photo of these exact OBSCURA {c} shoes stepping forward. "
-            f"Brutalist stone surface with cinematic soft shadows. Crisp leather texture, custom sole sculpt, and meticulous stitching. "
-            f"Square 1:1 crop, Vogue runway quality, 8k RAW photo."
+            "Dynamic close-up on-foot 1:1 editorial photo of the exact shoes from the referenced image stepping forward. "
+            "Brutalist stone surface with cinematic soft shadows. Crisp material texture, sculpted sole lines, and meticulous stitching. "
+            "Square 1:1 crop, Vogue runway quality, 8k raw photo."
         )
         prompts["grwm_fit_check"] = (
-            f"Authentic vertical 9:16 smartphone unboxing and on-foot fit-check photo of these OBSCURA {c} shoes. "
-            f"Model standing on a clean light oak hardwood floor in a dressing room, angled top-down mirror view. Natural light, clean aesthetic."
+            "Authentic vertical 9:16 smartphone unboxing and on-foot fit-check photo of the exact shoes from the referenced image. "
+            "Model standing on a clean light oak hardwood floor in a dressing room, angled top-down mirror view. Natural daylight, clean aesthetic."
         )
     elif category == "bags":
         prompts["tiktok_9_16"] = (
-            f"Vertical 9:16 high-fashion editorial photo of a model in a minimalist charcoal coat, effortlessly carrying this "
-            f"OBSCURA {c} luxury leather bag over their arm. Architectural museum gallery setting with ambient soft daylight. "
-            f"Tactile focus on pebbled leather grain, edge paint, and brushed metal hardware. Vertical 9:16 framing, Vogue editorial, RAW photo."
+            "Vertical 9:16 high-fashion editorial photo of a model in a minimalist charcoal coat, effortlessly carrying "
+            "the exact bag from the referenced image over their arm. Architectural museum gallery setting with ambient soft daylight. "
+            "Tactile focus on leather grain, edge finish, and brushed hardware. Vertical 9:16 framing, Vogue editorial, raw photo."
         )
         prompts["ig_feed_post"] = (
-            f"Luxury editorial still life photo of this exact OBSCURA {c} bag positioned on an Italian travertine marble block. "
-            f"Clean diffused morning side-light highlighting the supple leather drape and luxury hardware. Square 1:1 format, RAW photo."
+            "Luxury editorial still life photo of the exact bag from the referenced image positioned on an Italian travertine marble block. "
+            "Clean diffused morning side-light highlighting the supple material drape and brushed hardware. Square 1:1 format, raw photo."
         )
         prompts["grwm_fit_check"] = (
-            f"Authentic vertical 9:16 mirror selfie of a creator styling this OBSCURA {c} bag as part of their daily luxury outfit. "
-            f"Handheld smartphone aesthetic, aesthetic Paris loft background, natural soft illumination."
+            "Authentic vertical 9:16 mirror selfie of a creator styling the exact bag from the referenced image as part of their daily luxury outfit. "
+            "Handheld smartphone aesthetic, aesthetic Paris loft background, natural soft illumination."
         )
     else:
         prompts["tiktok_9_16"] = (
-            f"Vertical 9:16 high-fashion close-range editorial portrait of a model wearing this OBSCURA {c} accessory. "
-            f"Dramatic cinematic side-lighting with soft shadows. Ultra-sharp focus on the accessory detailing, metallic luster, "
-            f"and luxury finishing. Vertical 9:16 composition, Vogue editorial standard, RAW photo."
+            "Vertical 9:16 high-fashion close-range editorial portrait of a model wearing the exact accessory from the referenced image. "
+            "Dramatic cinematic side-lighting with soft shadows. Ultra-sharp focus on the accessory detailing, metallic luster, "
+            "and luxury finishing. Vertical 9:16 composition, Vogue editorial standard, raw photo."
         )
         prompts["ig_feed_post"] = (
-            f"Macro editorial commercial product photo of this OBSCURA {c} luxury accessory displayed on a minimalist textured "
-            f"volcanic stone plinth. Crisp overhead directional strobe emphasizing micro-engravings, brushed metal bevels, and craftsmanship. "
-            f"Square 1:1 centered composition, SSENSE campaign quality, 8k resolution, RAW photo."
+            "Macro editorial commercial product photo of the exact luxury accessory from the referenced image displayed on a minimalist textured "
+            "volcanic stone plinth. Crisp overhead directional strobe emphasizing micro-engravings, brushed metal bevels, and craftsmanship. "
+            "Square 1:1 centered composition, SSENSE campaign quality, 8k resolution, raw photo."
         )
         prompts["grwm_fit_check"] = (
-            f"Authentic vertical 9:16 close-up selfie of a model putting on this OBSCURA {c} piece during their morning GRWM routine. "
-            f"Natural mirror reflection, warm sunlight, authentic creator aesthetic."
+            "Authentic vertical 9:16 close-up selfie of a model putting on the exact piece from the referenced image during their morning GRWM routine. "
+            "Natural mirror reflection, warm sunlight, authentic creator aesthetic."
         )
 
     return prompts
 
-def build_ugc_video_brief(category, name, color):
-    c = color.strip() if color else "luxury"
+def build_ugc_video_brief(category, name=None, color=None):
     scripts = {
         "tops": (
-            f"Stop buying thin, overpriced blanks. OBSCURA just dropped this {c} heavyweight piece and the drape is unreal. "
-            f"Double-layer cotton, raw dropped shoulders, perfectly tailored cut. Link in bio to cop the drop."
+            "Stop buying thin, overpriced blanks. This heavyweight piece just dropped and the drape is unreal. "
+            "Double-layer cotton, raw dropped shoulders, perfectly tailored cut. Link in bio to cop the drop."
         ),
         "bottoms": (
-            f"Finding pants that stack cleanly without bunching is nearly impossible. "
-            f"OBSCURA engineered these {c} trousers with structured utility lines and custom heavyweight twill. Link in bio."
+            "Finding pants that stack cleanly without bunching is nearly impossible. "
+            "These trousers are engineered with structured utility lines and custom heavyweight twill. Link in bio."
         ),
         "shoes": (
-            f"On-foot check: the new OBSCURA {c} luxury silhouette. Custom sculpted sole, premium materials, and unmatched all-day comfort. Link in bio."
+            "On-foot check: the new luxury silhouette. Custom sculpted sole, premium materials, and unmatched all-day comfort. Link in bio."
         ),
         "bags": (
-            f"The everyday luxury piece you've been looking for. OBSCURA {c} architectural bag in textured leather with heavy brushed hardware. Link in bio."
+            "The everyday luxury piece you've been looking for. Architectural bag in textured leather with heavy brushed hardware. Link in bio."
         ),
         "accessories": (
-            f"Details make or break an outfit. This OBSCURA {c} custom piece brings instant subtle luxury. Engineered micro-finish, weighted feel. Link in bio."
+            "Details make or break an outfit. This custom piece brings instant subtle luxury. Engineered micro-finish, weighted feel. Link in bio."
         )
     }
     script = scripts.get(category, scripts["tops"])
     video_prompt = (
-        f"Authentic front-camera 9:16 smartphone fit-check video of a fashion creator showing off an OBSCURA {c} {category} piece. "
-        f"Creator speaks naturally to camera, turns 360 degrees to demonstrate fabric drape and tailored fit. "
-        f"Natural daylight, handheld subtle movement, genuine social media UGC aesthetic, 10s video length with synchronized native speech."
+        f"Authentic front-camera 9:16 smartphone fit-check video of a fashion creator showing off the exact {category} item "
+        "from the referenced image. Creator speaks naturally to camera, turns 360 degrees to demonstrate fabric drape and tailored fit. "
+        "Natural daylight, handheld subtle movement, genuine social media UGC aesthetic, 10s video length with synchronized native speech."
     )
     return {
         "duration_seconds": 10,
