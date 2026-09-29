@@ -155,20 +155,29 @@ class AutonomousManager:
 
         pruned_images = 0
         if MANUAL_CURATION_DIR.exists():
-            for p in MANUAL_CURATION_DIR.iterdir():
-                if not p.is_dir() or p.name.startswith(("_", ".")):
+            # ⚡ Performance optimization
+            # Why: Path.iterdir() followed by stats sorting and filtering triggers N+1 system calls for large sets of images
+            # What: Swapped to os.scandir() which inherently caches file attributes, bypassing redundant filesystem stats
+            with os.scandir(MANUAL_CURATION_DIR) as scanner:
+                entries = list(scanner)
+            for p_entry in entries:
+                if not p_entry.is_dir() or p_entry.name.startswith(("_", ".")):
                     continue
 
                 prefix_counts = {}
-                for f in sorted(p.iterdir()):
-                    if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
+                with os.scandir(p_entry.path) as sub_scanner:
+                    sub_entries = list(sub_scanner)
+                sub_entries.sort(key=lambda e: e.name)
+
+                for f_entry in sub_entries:
+                    if f_entry.is_file() and f_entry.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
                         # Never delete size charts or metadata
-                        if "size" in f.name.lower() or "chart" in f.name.lower():
+                        if "size" in f_entry.name.lower() or "chart" in f_entry.name.lower():
                             continue
 
                         matched_pfx = None
                         for pfx in ALLOWED_LIMITS:
-                            if f.name.startswith(pfx):
+                            if f_entry.name.startswith(pfx):
                                 matched_pfx = pfx
                                 break
 
@@ -176,8 +185,8 @@ class AutonomousManager:
                             prefix_counts[matched_pfx] = prefix_counts.get(matched_pfx, 0) + 1
                             if prefix_counts[matched_pfx] > ALLOWED_LIMITS[matched_pfx]:
                                 try:
-                                    freed_bytes += f.stat().st_size
-                                    f.unlink()
+                                    freed_bytes += f_entry.stat().st_size
+                                    Path(f_entry.path).unlink()
                                     pruned_images += 1
                                 except Exception:
                                     pass
