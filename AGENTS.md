@@ -411,6 +411,53 @@ When `outfit_warehouse.py` matches a **top + bottom** (same brand, compatible co
 | Pinterest Watch | 10s videos as Watch Pins | 1x/day |
 | YouTube Shorts | Same 10s videos | 1x/day |
 
+---
+
+## 7.4 AUTONOMOUS CLOUD PERSISTENT GENERATION & PROMPT ENGINE (SEPTEMBER 2026)
+
+### ☁️ Infrastructure & Authentication (Zero PC Dependency)
+- **Host:** Azure VPS (`20.215.232.214`), Ubuntu 24.04 LTS.
+- **Service:** `obscura-generator.service` running `cloud_generator_gha.py --daemon` under `xvfb-run`.
+- **Permanent Chrome Session:** Persistent user data directory stored at `/home/azureuser/.obscura_chrome_profile`. Cookies, device tokens, and IndexedDB state for Google Flow Pro are permanently on disk, eliminating session expirations.
+
+### 🎯 Key DOM & Extraction Discoveries (Certified Working)
+1. **In-Page Authenticated Extraction (`/asb/` Protocol):**
+   - Google Flow serves generated images from `https://flow.google.com/asb/...`.
+   - Standard HTTP GET requests (`context.request.get(url)`) fail with HTTP 400 because internal assets require the browser page session origin and headers.
+   - **Solution:** Extract images via in-page JavaScript `fetch(target.src)` inside `page.evaluate()`, read blob as Data URL, and decode base64 into raw bytes. 100% reliable, zero 400 errors.
+2. **Differential Pre-Generation Snapshotting:**
+   - When garments (`front_angle.jpg`) are uploaded as media ingredients, Flow adds the ingredient thumbnail to the canvas.
+   - To prevent downloading the uploaded flat lay instead of the generated model shot:
+     `existing_srcs = set(page.evaluate("() => Array.from(document.querySelectorAll('img')).map(i => i.src)"))`
+     The generator only accepts images whose URL was *not* in `existing_srcs` and has model tile dimensions.
+3. **Selector Strictness & Cookie Shield:**
+   - Flow's top search bar intercepts generic text typing. All generation inputs must strictly target `flow-prompt-box [contenteditable="true"]` with `force=True`.
+   - The white Google cookie banner (`OK, got it`) periodically overlays the bottom prompt box and must be programmatically dismissed before focusing.
+
+### 🎨 Creative Prompt Engine & Visual Standards
+Every product drop automatically generates three distinct high-converting creative formats:
+1. **Vertical Runway / Brutalist Lookbook (9:16):**
+   - High-fashion editorial lookbook photo of model in motion.
+   - Brutalist architectural concrete pavilion (Tadao Ando inspired), dramatic natural top skylight, soft shadows.
+   - 85mm prime lens photography, Vogue/Balenciaga campaign standard, RAW photo, 8k resolution.
+2. **Luxury Editorial Feed Post (1:1):**
+   - Waist-up medium shot focusing on garment drape, double-layer hood / lapel structure, and heavy fabric weight (500-1000GSM).
+   - Chiaroscuro directional studio strobe lighting, high-end Parisian Haussmannian luxury interior or concrete plinth.
+   - SSENSE campaign quality, 8k RAW photo.
+3. **Authentic Social GRWM / Fit-Check Selfie (9:16):**
+   - Authentic smartphone mirror selfie or front-camera fit check.
+   - Fashion creator holding iPhone in a minimalist Scandinavian penthouse dressing suite, soft morning window light.
+   - Highly relatable, organic TikTok/Reels aesthetic driving high-converting social engagement.
+
+### 👕 Warehouse Multi-Piece Outfit Assembly (`outfit_warehouse.py`)
+- Automatically pairs complementary tops, bottoms, and footwear staged in `MANUAL_CURATION/` by brand and color family.
+- Generates complete unified outfit campaigns where the AI model wears both items simultaneously with matching silhouette stacking and footwear.
+
+### 🧠 VLM Intelligence & Classification Architecture
+- **Dual-Phase Classification:** Uses LiteLLM Router cascading across Google Gemini Vision with failover.
+- **Model Exclusion Rule:** Human model shots from Yupoo are deleted during classification to prevent contaminating AI generation. Only flat lays, ghost mannequins, detail close-ups, and size charts are retained.
+- **Temp-File Protection:** Files are protected against recursive rename collisions (`__temp_classify_*` strip filters).
+
 
 
 ## 8. KNOWN BUGS & ISSUES
