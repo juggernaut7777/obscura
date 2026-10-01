@@ -1,0 +1,4 @@
+## 2024-10-01 - Command Injection in Next.js API Routes calling Python Scripts
+**Vulnerability:** Found multiple instances of Command Injection vulnerabilities in Next.js API routes (`checkout`, `admin/orders`, `admin/upload`) where user-controlled input was concatenated directly into bash commands via `child_process.exec`.
+**Learning:** This codebase heavily relies on passing parameters from web endpoints to local Python scripts for backend processing. Using `exec` with string interpolation creates critical injection points because attackers can easily break out of quotes and execute arbitrary shell commands (e.g., using `&& pwned`).
+**Prevention:** When bridging Node.js and Python via child processes, always use `child_process.execFile` or `child_process.spawn`. Pass the executable as the first argument, and provide all subsequent parameters strictly as an array of strings to completely bypass shell parsing and interpolation.
