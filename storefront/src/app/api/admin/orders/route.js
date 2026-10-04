@@ -1,5 +1,5 @@
 import { exec } from "child_process";
-import fs from "fs";
+import { promises as fs } from "fs";
 import path from "path";
 import { promisify } from "util";
 
@@ -9,10 +9,18 @@ const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
 
 export async function GET() {
   try {
-    if (!fs.existsSync(activeOrdersPath)) {
-      return Response.json([]);
+    let data;
+    try {
+      // ⚡ Performance optimization
+      // Why: Synchronous fs.readFileSync blocks the single-threaded Node.js event loop, delaying all other concurrent Next.js API requests.
+      // What: Replaced fs.readFileSync and fs.existsSync with the asynchronous fs.readFile method.
+      data = await fs.readFile(activeOrdersPath, "utf-8");
+    } catch (e) {
+      if (e.code === "ENOENT") {
+        return Response.json([]);
+      }
+      throw e;
     }
-    const data = fs.readFileSync(activeOrdersPath, "utf-8");
     const orders = JSON.parse(data);
     // Return sorted newest first
     orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
