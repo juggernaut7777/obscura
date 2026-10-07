@@ -5,37 +5,46 @@ const manualCurationPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_en
 
 export async function GET() {
   try {
-    if (!fs.existsSync(manualCurationPath)) {
+    try {
+      await fs.promises.access(manualCurationPath);
+    } catch {
       return Response.json([]);
     }
 
     const items = [];
-    const children = fs.readdirSync(manualCurationPath);
+    // ⚡ Performance optimization
+    // Why: Synchronous fs operations block the Node.js event loop and sequential loops increase response time.
+    // What: Replaced all Sync fs methods with promises and used Promise.all to fetch warehouse items concurrently.
+    const children = await fs.promises.readdir(manualCurationPath);
 
-    for (const child of children) {
+    const promises = children.map(async (child) => {
       const folderPath = path.join(manualCurationPath, child);
-      const stat = fs.statSync(folderPath);
+      const stat = await fs.promises.stat(folderPath);
 
       if (stat.isDirectory() && child !== "_rejected") {
         let metadata = { product_name: child };
         const metadataPath = path.join(folderPath, "metadata.json");
 
-        if (fs.existsSync(metadataPath)) {
+        try {
+          await fs.promises.access(metadataPath);
           try {
-            metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
+            const data = await fs.promises.readFile(metadataPath, "utf-8");
+            metadata = JSON.parse(data);
           } catch (e) {
             console.error(`[API WAREHOUSE] Failed to parse metadata.json in ${child}:`, e);
           }
+        } catch {
+          // File does not exist
         }
 
         // Extract thumbnail base64 image
         let thumbnail = null;
         try {
-          const files = fs.readdirSync(folderPath);
+          const files = await fs.promises.readdir(folderPath);
           const imgFile = files.find(f => f.startsWith("angle_") && /\.(png|jpg|jpeg|webp)$/i.test(f)) ||
                           files.find(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
           if (imgFile) {
-            const imgData = fs.readFileSync(path.join(folderPath, imgFile));
+            const imgData = await fs.promises.readFile(path.join(folderPath, imgFile));
             const base64 = imgData.toString("base64");
             let ext = path.extname(imgFile).substring(1).toLowerCase();
             if (ext === "jpg") ext = "jpeg";
@@ -45,13 +54,19 @@ export async function GET() {
           console.error(`[API WAREHOUSE] Image thumbnail load failed in ${child}:`, e);
         }
 
-        items.push({
+        return {
           folderName: child,
           metadata,
           thumbnail,
           mtime: stat.mtime
-        });
+        };
       }
+      return null;
+    });
+
+    const results = await Promise.all(promises);
+    for (const result of results) {
+      if (result) items.push(result);
     }
 
     // Sort newest staged items first

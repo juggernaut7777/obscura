@@ -9,10 +9,15 @@ const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
 
 export async function GET() {
   try {
-    if (!fs.existsSync(activeOrdersPath)) {
+    try {
+      await fs.promises.access(activeOrdersPath);
+    } catch {
       return Response.json([]);
     }
-    const data = fs.readFileSync(activeOrdersPath, "utf-8");
+    // ⚡ Performance optimization
+    // Why: Synchronous fs operations block the Node.js single-threaded event loop
+    // What: Replaced fs.existsSync and fs.readFileSync with async fs.promises methods
+    const data = await fs.promises.readFile(activeOrdersPath, "utf-8");
     const orders = JSON.parse(data);
     // Return sorted newest first
     orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
