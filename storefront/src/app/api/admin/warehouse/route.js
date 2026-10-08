@@ -1,58 +1,67 @@
-import fs from "fs";
+import fsPromises from "fs/promises";
 import path from "path";
 
 const manualCurationPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine\\MANUAL_CURATION";
 
 export async function GET() {
   try {
-    if (!fs.existsSync(manualCurationPath)) {
+    // ⚡ Performance optimization
+    // Why: fs.existsSync and other Sync methods block the Node.js event loop
+    // What: Refactored to use fsPromises.access, readdir (withFileTypes), and Promise.all to map over directories concurrently
+    try {
+      await fsPromises.access(manualCurationPath);
+    } catch {
       return Response.json([]);
     }
 
-    const items = [];
-    const children = fs.readdirSync(manualCurationPath);
+    const children = await fsPromises.readdir(manualCurationPath, { withFileTypes: true });
 
-    for (const child of children) {
-      const folderPath = path.join(manualCurationPath, child);
-      const stat = fs.statSync(folderPath);
+    const itemPromises = children.map(async (child) => {
+      if (child.isDirectory() && child.name !== "_rejected") {
+        const folderPath = path.join(manualCurationPath, child.name);
 
-      if (stat.isDirectory() && child !== "_rejected") {
-        let metadata = { product_name: child };
+        let metadata = { product_name: child.name };
         const metadataPath = path.join(folderPath, "metadata.json");
 
-        if (fs.existsSync(metadataPath)) {
-          try {
-            metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
-          } catch (e) {
-            console.error(`[API WAREHOUSE] Failed to parse metadata.json in ${child}:`, e);
+        try {
+          const metaData = await fsPromises.readFile(metadataPath, "utf-8");
+          metadata = JSON.parse(metaData);
+        } catch (e) {
+          if (e.code !== 'ENOENT') {
+            console.error(`[API WAREHOUSE] Failed to parse metadata.json in ${child.name}:`, e);
           }
         }
 
         // Extract thumbnail base64 image
         let thumbnail = null;
         try {
-          const files = fs.readdirSync(folderPath);
+          const files = await fsPromises.readdir(folderPath);
           const imgFile = files.find(f => f.startsWith("angle_") && /\.(png|jpg|jpeg|webp)$/i.test(f)) ||
                           files.find(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
           if (imgFile) {
-            const imgData = fs.readFileSync(path.join(folderPath, imgFile));
+            const imgData = await fsPromises.readFile(path.join(folderPath, imgFile));
             const base64 = imgData.toString("base64");
             let ext = path.extname(imgFile).substring(1).toLowerCase();
             if (ext === "jpg") ext = "jpeg";
             thumbnail = `data:image/${ext};base64,${base64}`;
           }
         } catch (e) {
-          console.error(`[API WAREHOUSE] Image thumbnail load failed in ${child}:`, e);
+          console.error(`[API WAREHOUSE] Image thumbnail load failed in ${child.name}:`, e);
         }
 
-        items.push({
-          folderName: child,
+        const stat = await fsPromises.stat(folderPath);
+        return {
+          folderName: child.name,
           metadata,
           thumbnail,
           mtime: stat.mtime
-        });
+        };
       }
-    }
+      return null;
+    });
+
+    let items = await Promise.all(itemPromises);
+    items = items.filter(Boolean);
 
     // Sort newest staged items first
     items.sort((a, b) => new Date(b.mtime) - new Date(a.mtime));

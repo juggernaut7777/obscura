@@ -1,5 +1,5 @@
 import { exec } from "child_process";
-import fs from "fs";
+import fsPromises from "fs/promises";
 import path from "path";
 import { promisify } from "util";
 
@@ -9,10 +9,16 @@ const cwd = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_engine";
 
 export async function GET() {
   try {
-    if (!fs.existsSync(activeOrdersPath)) {
+    // ⚡ Performance optimization
+    // Why: fs.existsSync and fs.readFileSync block the Event Loop, degrading performance under load
+    // What: Refactored to use non-blocking fsPromises.access and fsPromises.readFile
+    try {
+      await fsPromises.access(activeOrdersPath);
+    } catch {
       return Response.json([]);
     }
-    const data = fs.readFileSync(activeOrdersPath, "utf-8");
+
+    const data = await fsPromises.readFile(activeOrdersPath, "utf-8");
     const orders = JSON.parse(data);
     // Return sorted newest first
     orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
