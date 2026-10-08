@@ -1,0 +1,4 @@
+## 2023-10-24 - Command Injection in Node.js API Route via exec()
+**Vulnerability:** A POST handler in Next.js API route (`storefront/src/app/api/admin/orders/route.js`) used `child_process.exec()` with unvalidated JSON request payload fields (`orderId`, `tracking`, `pipeline`) concatenated directly into a string executed by a shell command (`python order_fulfillment.py`).
+**Learning:** This existed because backend script execution (`python ...`) was quickly integrated using template literals in `exec()`, missing the risk that malicious request bodies could inject shell metacharacters and execute arbitrary OS commands on the server.
+**Prevention:** Always use `child_process.execFile()` or `spawn()` instead of `exec()`. Pass the executable and an array of arguments separately so they are passed directly to the operating system, bypassing the shell and avoiding command injection.
