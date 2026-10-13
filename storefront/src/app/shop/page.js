@@ -11,6 +11,48 @@ import ProductCard from "@/components/ProductCard";
 import { DEMO_PRODUCTS } from "@/data/products";
 import styles from "./page.module.css";
 
+function matchesCategory(product, filter) {
+  if (!filter || filter === "all") return true;
+  const f = filter.toLowerCase();
+  
+  if (f === "sale") return (product.comparePrice || 0) > product.price;
+  if (f === "new") return Boolean(product.badge && product.badge.toLowerCase().includes("new"));
+
+  // Direct category match (products now have proper categories: Tops, Bottoms, Outerwear, Sets, Accessories, Footwear)
+  const cat = (product.category || "").toLowerCase();
+  if (cat === f) return true;
+
+  // Fallback: also check name for edge cases
+  const name = (product.name || "").toLowerCase();
+  const desc = (product.description || "").toLowerCase();
+  const text = `${name} ${cat} ${desc}`;
+
+  if (f === "sets") {
+    return cat === "sets" || Boolean(
+      product.isSet ||
+      /set|tracksuit|uniform|two-piece/i.test(name)
+    );
+  }
+
+  if (f === "outerwear") {
+    return cat === "outerwear" || /jacket|puffer|shell|coat|parka|vest|windbreaker/i.test(text);
+  }
+
+  if (f === "bottoms") {
+    return cat === "bottoms" || /shorts|pants|trousers|sweatpants|jogger|denim|jeans/i.test(text);
+  }
+
+  if (f === "tops") {
+    return cat === "tops" || /hoodie|tee|t-shirt|shirt|sweatshirt|knit|crewneck|sweater/i.test(text);
+  }
+
+  if (f === "accessories") {
+    return cat === "accessories" || cat === "footwear" || /scarf|hat|cap|beanie|bag|wallet|belt|shoe|boot|sneaker|eyewear|sunglasses|jewelry/i.test(text);
+  }
+
+  return false;
+}
+
 export default function ShopPage({ searchParams }) {
   // Unwrap searchParams using React.use()
   const unwrappedParams = use(searchParams);
@@ -30,13 +72,7 @@ export default function ShopPage({ searchParams }) {
   if (isWishlistFilter) {
     products = products.filter((p) => wishlist.includes(p.id));
   } else if (categoryFilter && categoryFilter !== "all") {
-    if (categoryFilter === "sale") {
-      products = products.filter(p => p.comparePrice > 0);
-    } else if (categoryFilter === "new") {
-      products = products.filter(p => p.badge && p.badge.toLowerCase().includes('new'));
-    } else {
-      products = products.filter(p => p.category.toLowerCase() === categoryFilter.toLowerCase());
-    }
+    products = products.filter(p => matchesCategory(p, categoryFilter));
   }
 
   if (selectedColor) {
@@ -84,15 +120,16 @@ export default function ShopPage({ searchParams }) {
         {/* Shop Header */}
         <header className={styles.header}>
           <div className="container">
-            <h1 className={`heading-display ${styles.title}`}>
-              {isWishlistFilter ? 'Your Saved Wishlist' : categoryFilter ? (
-                categoryFilter === 'sale' ? 'Archive Sale' : 
-                categoryFilter === 'new' ? 'New Arrivals' :
-                categoryFilter.charAt(0).toUpperCase() + categoryFilter.slice(1)
-              ) : 'The Complete Collection'}
+            <span className="tag-spec">OBSCURA CATALOG</span>
+            <h1 className={`heading-display ${styles.title}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em", marginTop: "8px" }}>
+              {isWishlistFilter ? 'WISHLIST' : categoryFilter ? (
+                categoryFilter === 'sale' ? 'SALE' : 
+                categoryFilter === 'new' ? 'NEW ARRIVALS' :
+                categoryFilter.toUpperCase()
+              ) : 'ALL PRODUCTS'}
             </h1>
             <p className={styles.subtitle}>
-              {isWishlistFilter ? 'Your personal curation of saved pieces.' : 'Every piece in our collection is designed with intention. Browse the full catalog.'}
+              {isWishlistFilter ? 'Your saved items.' : `${products.length} ${products.length === 1 ? 'product' : 'products'} available`}
             </p>
           </div>
         </header>
@@ -107,6 +144,7 @@ export default function ShopPage({ searchParams }) {
                   key={cat} 
                   href={cat === 'all' ? '/shop' : `/shop?category=${cat}`}
                   className={`${styles.filterLink} ${(!categoryFilter && cat === 'all') || categoryFilter === cat ? styles.filterActive : ""}`}
+                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.14em", textTransform: "uppercase" }}
                 >
                   {cat}
                 </Link>
@@ -115,8 +153,9 @@ export default function ShopPage({ searchParams }) {
               <Link 
                 href="/shop?category=sale"
                 className={`${styles.filterLink} ${styles.saleLink} ${categoryFilter === 'sale' ? styles.filterActive : ""}`}
+                style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.14em", textTransform: "uppercase" }}
               >
-                Sale
+                SALE
               </Link>
             </div>
 

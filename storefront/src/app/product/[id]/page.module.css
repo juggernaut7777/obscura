@@ -84,9 +84,10 @@
 
 .mainImageWrap {
   flex: 1;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   position: relative;
 }
 
@@ -101,7 +102,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2xl);
-  padding-top: var(--space-lg);
+  padding-top: var(--space-sm);
 }
 
 .infoHeader {
@@ -111,31 +112,38 @@
 }
 
 .title {
-  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 2.8vw, 2.6rem);
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
 }
 
 .priceRow {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-md);
   margin-top: var(--space-xs);
 }
 
 .price {
-  font-size: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
   font-weight: 500;
   color: var(--text-primary);
+  letter-spacing: 0.04em;
 }
 
 .comparePrice {
-  font-size: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 1rem;
   color: var(--text-muted);
   text-decoration: line-through;
 }
 
 .description {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.8;
   color: var(--text-secondary);
 }
@@ -154,17 +162,21 @@
 }
 
 .selectorLabel {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 500;
   color: var(--text-primary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .guideBtn {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent-gold);
   text-decoration: underline;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   transition: color var(--duration-fast);
 }
 
@@ -174,17 +186,19 @@
 
 .sizeGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
   gap: var(--space-sm);
 }
 
 .sizeBtn {
   padding: 12px 0;
-  border: 1px solid var(--border-hover);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-secondary);
+  background: var(--bg-card);
   transition: all var(--duration-fast);
 }
 
@@ -195,49 +209,48 @@
 
 .selectedSize {
   background: var(--text-primary);
-  color: var(--bg-primary);
+  color: #000000;
   border-color: var(--text-primary);
 }
 
 /* ─── COLOR SWATCHES ─── */
 .colorSwatches {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: center;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .colorSwatch {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  padding: 3px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  padding: 2px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
   background: transparent;
   position: relative;
 }
 
 .colorSwatch:hover {
-  border-color: rgba(201, 169, 110, 0.6);
-  transform: scale(1.1);
+  border-color: var(--text-primary);
+  transform: scale(1.05);
 }
 
 .selectedSwatch {
-  border-color: #c9a96e !important;
-  box-shadow: 0 0 16px rgba(201, 169, 110, 0.35);
-  transform: scale(1.15);
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
+  transform: scale(1.08);
 }
 
 .swatchInner {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ─── ACTIONS ─── */
@@ -555,5 +568,122 @@
   margin-top: var(--space-xs);
   letter-spacing: 0.02em;
   font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* ─── VOGUE EDITORIAL STILLS SECTION ─── */
+.editorialSection {
+  padding: var(--space-4xl) 0;
+  border-top: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, rgba(6, 6, 6, 0.4) 0%, rgba(12, 12, 12, 0.9) 100%);
+  margin-top: var(--space-3xl);
+  margin-bottom: var(--space-4xl);
+}
+
+.editorialHeader {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto var(--space-3xl);
+}
+
+.editorialBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+}
+
+.goldDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-gold, #c9a96e);
+}
+
+.editorialTitle {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-sm);
+}
+
+.editorialSubtitle {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.editorialGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-xl);
+}
+
+.editorialCard {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background: #0d0d0d;
+  transition: transform var(--duration-normal), border-color var(--duration-normal), box-shadow var(--duration-normal);
+}
+
+.editorialCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(201, 169, 110, 0.4);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+}
+
+.editorialImageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+
+.editorialImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorialCard:hover .editorialImage {
+  transform: scale(1.04);
+}
+
+.editorialOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 18px 16px;
+  background: linear-gradient(180deg, transparent 0%, rgba(6, 6, 6, 0.95) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editorialTag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--accent-gold, #c9a96e);
+  text-transform: uppercase;
+}
+
+.editorialLocation {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: #d1d5db;
   text-transform: uppercase;
 }

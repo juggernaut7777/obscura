@@ -1,6 +1,7 @@
 "use client";
 import styles from "./CartSidebar.module.css";
 import Link from "next/link";
+import { useCurrency } from "@/context/CurrencyContext";
 import { WEIGHT_BY_CATEGORY } from "../constants/weights";
 
 function getItemWeight(item) {
@@ -18,6 +19,7 @@ function calcShipping(totalWeightKg, subtotal) {
 }
 
 export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, onRemove }) {
+  const { formatPrice } = useCurrency();
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.qty || 1), 0);
   const totalWeight = items.reduce((sum, item) => sum + getItemWeight(item), 0);
   const shipping = calcShipping(totalWeight, subtotal);
@@ -75,7 +77,7 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
                       <span>{item.qty || 1}</span>
                       <button onClick={() => onUpdateQty(item.id, (item.qty || 1) + 1)}>+</button>
                     </div>
-                    <span className={styles.itemPrice}>${(item.price * (item.qty || 1)).toFixed(2)}</span>
+                    <span className={styles.itemPrice}>{formatPrice(item.price * (item.qty || 1))}</span>
                   </div>
                 </div>
                 <button className={styles.removeBtn} onClick={() => onRemove(item.id)} aria-label="Remove item">
@@ -93,7 +95,7 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
           <div className={styles.footer}>
             <div className={styles.subtotalRow}>
               <span>Subtotal</span>
-              <span className={styles.subtotalPrice}>${subtotal.toFixed(2)}</span>
+              <span className={styles.subtotalPrice}>{formatPrice(subtotal)}</span>
             </div>
             <div className={styles.subtotalRow}>
               <span>
@@ -120,7 +122,7 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
             )}
             {shipping.fee > 0 && subtotal < 200 && (
               <p className={styles.shippingNote} style={{ color: "#a8e6cf" }}>
-                🎁 Add ${(200 - subtotal).toFixed(0)} more for FREE shipping
+                🎁 Add {formatPrice(200 - subtotal)} more for FREE shipping
               </p>
             )}
             <div
@@ -133,12 +135,12 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
             >
               <span style={{ fontWeight: 600 }}>Total</span>
               <span className={styles.subtotalPrice} style={{ fontWeight: 600 }}>
-                ${total.toFixed(2)}
+                {formatPrice(total)}
               </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
               <Link href="/checkout" className="btn btn-primary" style={{ width: "100%", textAlign: "center" }} onClick={onClose}>
-                Checkout — ${total.toFixed(2)}
+                [ CHECKOUT — {formatPrice(total)} ]
               </Link>
               <Link
                 href="/checkout"

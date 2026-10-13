@@ -1,13 +1,14 @@
 .announcementBar {
-  background: linear-gradient(90deg, #0a0a0a 0%, #1c1810 50%, #0a0a0a 100%);
-  border-bottom: 1px solid rgba(201, 169, 110, 0.2);
-  color: #c9a96e;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
+  background: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   text-align: center;
-  padding: 7px 12px;
+  padding: 6px 16px;
   position: fixed;
   top: 0;
   left: 0;
@@ -17,7 +18,7 @@
 
 .header {
   position: fixed;
-  top: 29px;
+  top: 27px;
   left: 0;
   right: 0;
   z-index: 100;
@@ -26,9 +27,9 @@
 }
 
 .scrolled {
-  background: rgba(10, 10, 10, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(6, 6, 6, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -50,26 +51,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: 2px;
   line-height: 1;
+  text-decoration: none;
 }
 
 .logoText {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 500;
-  letter-spacing: 0.25em;
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: 0.35em;
   color: var(--text-primary);
+  text-transform: uppercase;
 }
 
 .logoSub {
-  font-family: var(--font-sans);
-  font-size: 0.55rem;
-  font-weight: 400;
-  letter-spacing: 0.4em;
-  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  color: var(--text-muted);
   text-transform: uppercase;
-  margin-top: 2px;
 }
 
 /* Navigation */
@@ -80,9 +82,10 @@
 }
 
 .navLink {
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 400;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-secondary);
   transition: color var(--duration-fast) var(--ease-out);
@@ -96,7 +99,7 @@
   left: 0;
   width: 0;
   height: 1px;
-  background: var(--accent-gold);
+  background: var(--text-primary);
   transition: width var(--duration-normal) var(--ease-out);
 }
 
@@ -128,18 +131,92 @@
 
 .cartBadge {
   position: absolute;
-  top: 0;
-  right: -2px;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-full);
+  top: 2px;
+  right: 0px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: var(--radius-sm);
   background: var(--accent-gold);
-  color: var(--bg-primary);
-  font-size: 0.6rem;
-  font-weight: 600;
+  color: #000000;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Currency Selector */
+.currencySelector {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0px;
+  overflow: hidden;
+}
+
+.currencyBtn {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  padding: 4px 7px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.currencyBtn:hover {
+  color: var(--text-primary);
+}
+
+.currencyActive {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Audio Sound Button */
+.soundBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.soundBtn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.soundActive {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.soundIndicator {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.soundActive .soundIndicator {
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px var(--accent-gold);
+  animation: pulse-glow 1.5s infinite;
 }
 
 /* Mobile Menu Button */

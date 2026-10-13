@@ -42,12 +42,12 @@ export default function Footer() {
         {/* Brand */}
         <div className={styles.brand}>
           <div className={styles.logo}>
-            <span className={styles.logoText}>OBSCURA</span>
-            <span className={styles.logoSub}>GARMENTS</span>
+            <span className={styles.logoText}>O B S C U R A</span>
+            <span className={styles.logoSub}>[ ARCHIVE &amp; ATELIER ]</span>
           </div>
           <p className={styles.tagline}>
-            Curated fashion for the aesthetically inclined. 
-            Every piece handpicked, every detail intentional.
+            Architectural luxury streetwear &amp; heavyweight blank fabrication.
+            Guangzhou · London · Paris. Sourced with permanence.
           </p>
         </div>
 
@@ -89,7 +89,9 @@ export default function Footer() {
       {/* Bottom */}
       <div className={styles.bottom}>
         <div className={`container ${styles.bottomInner}`}>
-          <p>&copy; {new Date().getFullYear()} Obscura Garments. All rights reserved.</p>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", letterSpacing: "0.08em" }}>
+            &copy; {new Date().getFullYear()} OBSCURA ARCHIVE &amp; ATELIER. WORLDWIDE DDP LOGISTICS. ALL RIGHTS RESERVED.
+          </p>
           <div className={styles.paymentMethods}>
             <VisaIcon />
             <MastercardIcon />

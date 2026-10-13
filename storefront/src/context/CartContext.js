@@ -73,6 +73,7 @@ export function CartProvider({ children }) {
         addToCart,
         updateQty,
         removeItem,
+        removeFromCart: removeItem, // Alias for checkout compatibility
         clearCart,
       }}
     >
