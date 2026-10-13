@@ -2,6 +2,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { sound } from "@/utils/sound";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CartSidebar from "@/components/CartSidebar";
@@ -10,6 +12,7 @@ import styles from "./page.module.css";
 
 export default function LookbookPage() {
   const { cartItems, cartOpen, setCartOpen, updateQty, removeItem, addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   
   // Selected outfit for the Interactive Outfit Builder
   const [selectedOutfit, setSelectedOutfit] = useState(null);
@@ -107,7 +110,7 @@ export default function LookbookPage() {
         id: cartItemId,
         productId: product.id,
         name: activeColorName ? `${product.name} — ${activeColorName}` : product.name,
-        image: colorImages[0] || product.images[0] || "/placeholder.jpg",
+        image: colorImages[0] || product.images[0] || "/images/main_hero_bg.jpg",
         size: selection.size,
         color: activeColorName
       };
@@ -135,13 +138,12 @@ export default function LookbookPage() {
         <section className={styles.hero}>
           <div className={styles.heroOverlay} />
           <div className="container">
-            <span className="text-caption animate-fade-in-up">AI Campaign Lookbooks</span>
-            <h1 className={`heading-display ${styles.title} animate-fade-in-up delay-2`}>
-              Style <em>Merges</em>
+            <span className="tag-runway animate-fade-in-up">VOGUE EDITORIAL // SERIES 01</span>
+            <h1 className={`heading-display ${styles.title} animate-fade-in-up delay-2`} style={{ textTransform: "uppercase", letterSpacing: "0.05em", marginTop: "12px" }}>
+              RUNWAY <span className="heading-vogue">Silhouettes</span>
             </h1>
             <p className={`${styles.subtitle} animate-fade-in-up delay-3`}>
-              Explore complete outfits engineered together. Buy the entire visual bundle with 
-              shipping consolidation, or customize individual pieces to curate your own look.
+              Curated full-look editorial ensembles engineered together. Sourced from independent pattern makers with consolidated DDP expedited logistics.
             </p>
           </div>
         </section>
@@ -150,12 +152,12 @@ export default function LookbookPage() {
         <section className={`container ${styles.gridSection}`}>
           <div className={styles.grid}>
             {DEMO_OUTFITS.map((outfit, index) => (
-              <div key={outfit.id} className={styles.outfitCard} onClick={() => openOutfitBuilder(outfit)}>
+              <div key={outfit.id} className={styles.outfitCard} onClick={() => { sound.playClick(); openOutfitBuilder(outfit); }}>
                 <div className={styles.cardImgWrap}>
                   <img src={outfit.image} alt={outfit.name} className={styles.cardImg} loading="lazy" />
                   <div className={styles.cardOverlay} />
-                  <div className={styles.badge}>Lookbook Bundle</div>
-                  <button className={`btn btn-primary ${styles.cardCTA}`}>Shop Look</button>
+                  <div className={styles.badge}>Editorial Look</div>
+                  <button className={`btn btn-primary ${styles.cardCTA}`}>[ SHOP LOOK ]</button>
                 </div>
                 <div className={styles.cardInfo}>
                   <div className={styles.tagsRow}>
@@ -164,8 +166,8 @@ export default function LookbookPage() {
                   <h3 className={`heading-display ${styles.cardName}`}>{outfit.name}</h3>
                   <p className={styles.cardDesc}>{outfit.description}</p>
                   <div className={styles.cardPriceRow}>
-                    <span>Complete Outfit Price</span>
-                    <span className={styles.cardPrice}>${outfit.price}</span>
+                    <span>Complete Ensemble</span>
+                    <span className={styles.cardPrice}>{formatPrice(outfit.price)}</span>
                   </div>
                 </div>
               </div>
@@ -237,7 +239,7 @@ export default function LookbookPage() {
 
                         {/* Product Thumbnail */}
                         <img 
-                          src={(hasColors ? product.colors[select.colorIndex].images?.[0] : null) || product.images?.[0] || "/placeholder.jpg"} 
+                          src={(hasColors ? product.colors[select.colorIndex].images?.[0] : null) || product.images?.[0] || "/images/main_hero_bg.jpg"} 
                           alt={product.name} 
                           className={styles.productThumb} 
                         />
@@ -301,11 +303,11 @@ export default function LookbookPage() {
                       <span>Consolidated Bundle Total</span>
                       <span className={styles.discountLabel}>Shipping Consolidated</span>
                     </div>
-                    <div className={styles.totalPrice}>${calculateBundleTotal()}</div>
+                    <div className={styles.totalPrice}>{formatPrice(calculateBundleTotal())}</div>
                   </div>
                   
-                  <button className="btn btn-primary" style={{ width: "100%", padding: "1.2rem" }} onClick={handleAddBundleToCart}>
-                    Add Outfit to Bag
+                  <button className="btn btn-primary" style={{ width: "100%", padding: "1.2rem" }} onClick={() => { sound.playChime(); handleAddBundleToCart(); }}>
+                    [ ALLOCATE ENSEMBLE TO BAG ]
                   </button>
                 </div>
 

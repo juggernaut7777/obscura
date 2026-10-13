@@ -88,7 +88,7 @@ export default function SearchModal({ isOpen, onClose }) {
             >
               <div className={styles.resultImage}>
                 <img
-                  src={product.images?.[0] || "/placeholder.jpg"}
+                  src={product.images?.[0] || "/images/main_hero_bg.jpg"}
                   alt={product.name}
                 />
               </div>

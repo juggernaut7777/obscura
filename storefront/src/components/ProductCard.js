@@ -60,7 +60,7 @@ export default function ProductCard({ product, index = 0 }) {
            !l.includes("josh");
   });
 
-  const primaryImage = cleanImages[0] || images[0] || "/placeholder.jpg";
+  const primaryImage = cleanImages[0] || images[0] || "/images/main_hero_bg.jpg";
   
   // Hover angle: strictly prefer garment back flat lay or fabric detail
   const backGarment = cleanImages.find(img => 
