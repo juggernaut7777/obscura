@@ -111,10 +111,4 @@ class SoundEngine {
   }
 }
 
-export const sound = typeof window !== 'undefined' ? new SoundEngine() : {
-  playClick: () => {},
-  playSubBass: () => {},
-  playChime: () => {},
-  toggle: () => false,
-  enabled: false
-};
+export const sound = new SoundEngine();

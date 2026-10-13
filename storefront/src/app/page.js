@@ -310,9 +310,19 @@ export default function Home() {
             </div>
 
             <div className={styles.productGrid}>
-              {featured.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))}
+              {featured.length > 0 ? (
+                featured.map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))
+              ) : (
+                <div style={{ textAlign: "center", padding: "4rem 2rem", gridColumn: "1 / -1", border: "1px solid var(--border-subtle)", borderRadius: "4px", background: "rgba(255,255,255,0.02)" }}>
+                  <span className="tag-spec">ATELIER PREPARATION</span>
+                  <h3 style={{ fontSize: "1.25rem", margin: "1rem 0 0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>Archive Reallocation</h3>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", maxWidth: "480px", margin: "0 auto" }}>
+                    Edition 05 pieces are undergoing editorial capture and curation. New limited allocations arriving shortly.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -421,36 +431,38 @@ export default function Home() {
         </section>
 
         {/* ═══ NEW ARRIVALS ═══ */}
-        <section className={styles.section}>
-          <div className="container">
-            <div className={styles.sectionHeader}>
-              <div>
-                <span className="tag-spec">RECENT ACQUISITIONS</span>
-                <h2 className={`heading-display ${styles.sectionTitle}`}>LATEST DISPATCHES</h2>
+        {newArrivals.length > 0 && (
+          <section className={styles.section}>
+            <div className="container">
+              <div className={styles.sectionHeader}>
+                <div>
+                  <span className="tag-spec">RECENT ACQUISITIONS</span>
+                  <h2 className={`heading-display ${styles.sectionTitle}`}>LATEST DISPATCHES</h2>
+                </div>
+                <Link href="/shop?sort=new" className="btn btn-ghost" onClick={() => sound.playClick()}>
+                  ALL RELEASES &rarr;
+                </Link>
               </div>
-              <Link href="/shop?sort=new" className="btn btn-ghost" onClick={() => sound.playClick()}>
-                ALL RELEASES &rarr;
-              </Link>
-            </div>
 
-            <div className={styles.productGrid}>
-              {newArrivals.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))}
-            </div>
+              <div className={styles.productGrid}>
+                {newArrivals.map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))}
+              </div>
 
-            <div style={{ textAlign: "center", marginTop: "3rem" }}>
-              <Link 
-                href="/shop" 
-                className="btn btn-primary" 
-                style={{ padding: "14px 36px", letterSpacing: "0.15em", textTransform: "uppercase", fontSize: "0.85rem" }} 
-                onClick={() => sound.playClick()}
-              >
-                VIEW COMPLETE ARCHIVE ({DEMO_PRODUCTS.length} PIECES) &rarr;
-              </Link>
+              <div style={{ textAlign: "center", marginTop: "3rem" }}>
+                <Link 
+                  href="/shop" 
+                  className="btn btn-primary" 
+                  style={{ padding: "14px 36px", letterSpacing: "0.15em", textTransform: "uppercase", fontSize: "0.85rem" }} 
+                  onClick={() => sound.playClick()}
+                >
+                  VIEW COMPLETE ARCHIVE ({DEMO_PRODUCTS.length} PIECES) &rarr;
+                </Link>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ═══ NEWSLETTER ═══ */}
         <section className={styles.newsletter}>

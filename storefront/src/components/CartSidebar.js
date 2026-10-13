@@ -62,31 +62,34 @@ export default function CartSidebar({ isOpen, onClose, items = [], onUpdateQty, 
               <button className="btn btn-outline" onClick={onClose}>Continue Shopping</button>
             </div>
           ) : (
-            items.map((item) => (
-              <div key={item.id} className={styles.item}>
-                <div className={styles.itemImage}>
-                  <img src={item.image} alt={item.name} />
-                </div>
-                <div className={styles.itemInfo}>
-                  <h4 className={styles.itemName}>{item.name}</h4>
-                  {item.size && <span className={styles.itemSize}>Size: {item.size}</span>}
-                  {item.color && <span className={styles.itemSize}>Colour: {item.color}</span>}
-                  <div className={styles.itemBottom}>
-                    <div className={styles.qtyControl}>
-                      <button onClick={() => onUpdateQty(item.id, (item.qty || 1) - 1)}>−</button>
-                      <span>{item.qty || 1}</span>
-                      <button onClick={() => onUpdateQty(item.id, (item.qty || 1) + 1)}>+</button>
-                    </div>
-                    <span className={styles.itemPrice}>{formatPrice(item.price * (item.qty || 1))}</span>
+            items.map((item) => {
+              const itemKey = item.cartKey || item.id;
+              return (
+                <div key={itemKey} className={styles.item}>
+                  <div className={styles.itemImage}>
+                    <img src={item.image || "/images/main_hero_bg.jpg"} alt={item.name} />
                   </div>
+                  <div className={styles.itemInfo}>
+                    <h4 className={styles.itemName}>{item.name}</h4>
+                    {item.size && <span className={styles.itemSize}>Size: {item.size}</span>}
+                    {item.color && <span className={styles.itemSize}>Colour: {item.color}</span>}
+                    <div className={styles.itemBottom}>
+                      <div className={styles.qtyControl}>
+                        <button onClick={() => onUpdateQty(itemKey, (item.qty || 1) - 1)}>−</button>
+                        <span>{item.qty || 1}</span>
+                        <button onClick={() => onUpdateQty(itemKey, (item.qty || 1) + 1)}>+</button>
+                      </div>
+                      <span className={styles.itemPrice}>{formatPrice(item.price * (item.qty || 1))}</span>
+                    </div>
+                  </div>
+                  <button className={styles.removeBtn} onClick={() => onRemove(itemKey)} aria-label="Remove item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
                 </div>
-                <button className={styles.removeBtn} onClick={() => onRemove(item.id)} aria-label="Remove item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M18 6L6 18M6 6l12 12"/>
-                  </svg>
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

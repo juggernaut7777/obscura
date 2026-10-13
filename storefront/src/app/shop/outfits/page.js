@@ -44,7 +44,8 @@ export default function OutfitsPage() {
 
         <section className={`container ${styles.outfitsSection}`}>
           <div className={styles.grid}>
-            {DEMO_OUTFITS.map((outfit) => (
+            {DEMO_OUTFITS.length > 0 ? (
+              DEMO_OUTFITS.map((outfit) => (
               <div key={outfit.id} className={styles.outfitCard}>
                 <div className={styles.imageContainer}>
                   <img src={outfit.image} alt={outfit.name} className={styles.outfitImage} />
@@ -83,7 +84,12 @@ export default function OutfitsPage() {
                   </button>
                 </div>
               </div>
-            ))}
+            ))
+          ) : (
+            <div style={{ textAlign: "center", padding: "5rem 2rem", gridColumn: "1 / -1", border: "1px solid var(--border-subtle)", borderRadius: "4px", background: "rgba(255,255,255,0.02)" }}>
+              <p style={{ color: "var(--text-muted)" }}>No curated ensembles allocated. Edition 05 in production.</p>
+            </div>
+          )}
           </div>
         </section>
       </main>

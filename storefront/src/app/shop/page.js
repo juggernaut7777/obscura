@@ -239,9 +239,15 @@ export default function ShopPage({ searchParams }) {
               ))
             ) : (
               <div className={styles.emptyState}>
-                <h3>No products found.</h3>
-                <p>We couldn't find any items matching these filters.</p>
-                <button onClick={clearFilters} className="btn btn-outline">Clear Filters</button>
+                <h3>{DEMO_PRODUCTS.length === 0 ? "ARCHIVE REALLOCATION" : "No products found."}</h3>
+                <p>
+                  {DEMO_PRODUCTS.length === 0
+                    ? "Edition 05 pieces are undergoing editorial capture and curation. New limited allocations arriving shortly."
+                    : "We couldn't find any items matching these filters."}
+                </p>
+                {hasActiveFilters && (
+                  <button onClick={clearFilters} className="btn btn-outline">Clear Filters</button>
+                )}
               </div>
             )}
           </div>

@@ -151,27 +151,37 @@ export default function LookbookPage() {
         {/* Outfit Campaign Cards Grid */}
         <section className={`container ${styles.gridSection}`}>
           <div className={styles.grid}>
-            {DEMO_OUTFITS.map((outfit, index) => (
-              <div key={outfit.id} className={styles.outfitCard} onClick={() => { sound.playClick(); openOutfitBuilder(outfit); }}>
-                <div className={styles.cardImgWrap}>
-                  <img src={outfit.image} alt={outfit.name} className={styles.cardImg} loading="lazy" />
-                  <div className={styles.cardOverlay} />
-                  <div className={styles.badge}>Editorial Look</div>
-                  <button className={`btn btn-primary ${styles.cardCTA}`}>[ SHOP LOOK ]</button>
-                </div>
-                <div className={styles.cardInfo}>
-                  <div className={styles.tagsRow}>
-                    {outfit.tags?.map(t => <span key={t} className={styles.tag}>{t}</span>)}
+            {DEMO_OUTFITS.length > 0 ? (
+              DEMO_OUTFITS.map((outfit, index) => (
+                <div key={outfit.id} className={styles.outfitCard} onClick={() => { sound.playClick(); openOutfitBuilder(outfit); }}>
+                  <div className={styles.cardImgWrap}>
+                    <img src={outfit.image} alt={outfit.name} className={styles.cardImg} loading="lazy" />
+                    <div className={styles.cardOverlay} />
+                    <div className={styles.badge}>Editorial Look</div>
+                    <button className={`btn btn-primary ${styles.cardCTA}`}>[ SHOP LOOK ]</button>
                   </div>
-                  <h3 className={`heading-display ${styles.cardName}`}>{outfit.name}</h3>
-                  <p className={styles.cardDesc}>{outfit.description}</p>
-                  <div className={styles.cardPriceRow}>
-                    <span>Complete Ensemble</span>
-                    <span className={styles.cardPrice}>{formatPrice(outfit.price)}</span>
+                  <div className={styles.cardInfo}>
+                    <div className={styles.tagsRow}>
+                      {outfit.tags?.map(t => <span key={t} className={styles.tag}>{t}</span>)}
+                    </div>
+                    <h3 className={`heading-display ${styles.cardName}`}>{outfit.name}</h3>
+                    <p className={styles.cardDesc}>{outfit.description}</p>
+                    <div className={styles.cardPriceRow}>
+                      <span>Complete Ensemble</span>
+                      <span className={styles.cardPrice}>{formatPrice(outfit.price)}</span>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "5rem 2rem", gridColumn: "1 / -1", border: "1px solid var(--border-subtle)", borderRadius: "4px", background: "rgba(255,255,255,0.02)" }}>
+                <span className="tag-spec">EDITORIAL PRODUCTION</span>
+                <h3 style={{ fontSize: "1.25rem", margin: "1rem 0 0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>Runway Outfits in Curation</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", maxWidth: "500px", margin: "0 auto" }}>
+                  Complete two-piece and three-piece ensembles currently being assembled in the atelier.
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </section>
       </main>

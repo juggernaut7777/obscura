@@ -34,8 +34,9 @@ export function CurrencyProvider({ children }) {
   };
 
   const formatPrice = (amountUsd) => {
+    if (amountUsd == null || isNaN(amountUsd)) return "$0.00";
     const info = RATES[currency] || RATES.USD;
-    const converted = amountUsd * info.rate;
+    const converted = Number(amountUsd) * info.rate;
     if (currency === "JPY") {
       return `${info.symbol}${Math.round(converted).toLocaleString()}`;
     }
