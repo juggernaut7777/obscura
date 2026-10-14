@@ -178,7 +178,7 @@ export default function LookbookPage() {
                 <span className="tag-spec">EDITORIAL PRODUCTION</span>
                 <h3 style={{ fontSize: "1.25rem", margin: "1rem 0 0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>Runway Outfits in Curation</h3>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", maxWidth: "500px", margin: "0 auto" }}>
-                  Complete two-piece and three-piece ensembles currently being assembled in the atelier.
+                  Complete two-piece and three-piece ensembles currently being assembled in the studio.
                 </p>
               </div>
             )}

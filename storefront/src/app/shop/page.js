@@ -20,34 +20,38 @@ function matchesCategory(product, filter) {
 
   // Direct category match (products now have proper categories: Tops, Bottoms, Outerwear, Sets, Accessories, Footwear)
   const cat = (product.category || "").toLowerCase();
-  if (cat === f) return true;
+  if (cat) {
+    if (cat === f) return true;
+    if (f === "accessories" && cat === "footwear") return true;
+    return false;
+  }
 
-  // Fallback: also check name for edge cases
+  // Fallback ONLY when category is missing: check name/desc
   const name = (product.name || "").toLowerCase();
   const desc = (product.description || "").toLowerCase();
-  const text = `${name} ${cat} ${desc}`;
+  const text = `${name} ${desc}`;
 
   if (f === "sets") {
-    return cat === "sets" || Boolean(
+    return Boolean(
       product.isSet ||
-      /set|tracksuit|uniform|two-piece/i.test(name)
+      /\b(set|tracksuit|uniform|two-piece)\b/i.test(name)
     );
   }
 
   if (f === "outerwear") {
-    return cat === "outerwear" || /jacket|puffer|shell|coat|parka|vest|windbreaker/i.test(text);
+    return /\b(jacket|puffer|shell|coat|parka|vest|windbreaker)\b/i.test(text);
   }
 
   if (f === "bottoms") {
-    return cat === "bottoms" || /shorts|pants|trousers|sweatpants|jogger|denim|jeans/i.test(text);
+    return /\b(shorts|pants|trousers|sweatpants|jogger|jeans)\b/i.test(text);
   }
 
   if (f === "tops") {
-    return cat === "tops" || /hoodie|tee|t-shirt|shirt|sweatshirt|knit|crewneck|sweater/i.test(text);
+    return /\b(hoodie|tee|t-shirt|shirt|sweatshirt|knit|crewneck|sweater)\b/i.test(text);
   }
 
   if (f === "accessories") {
-    return cat === "accessories" || cat === "footwear" || /scarf|hat|cap|beanie|bag|wallet|belt|shoe|boot|sneaker|eyewear|sunglasses|jewelry/i.test(text);
+    return /\b(scarf|hat|cap|beanie|bag|wallet|belt|shoe|boot|sneaker|eyewear|sunglasses|jewelry)\b/i.test(text);
   }
 
   return false;

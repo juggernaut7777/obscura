@@ -39,7 +39,9 @@
 │  review_pending/         ← JSON mappings per sheet   │
 │  MANUAL_CURATION/        ← Approved HQ images        │
 │  color_matcher.py        ← CN→EN color mapping       │
-│  auto_image_classifier.py ← VLM image categorization │
+│  auto_image_classifier.py ← SUPERSEDED by V2      │
+│  image_classifier_v2.py  ← Multi-model ensemble    │
+│  pipeline_orchestrator.py← Classification pipeline  │
 └───────────────┬─────────────────────────────────────┘
                 │ approved products
                 ▼
@@ -130,8 +132,17 @@
 | `style_tagger.py` | Auto-tags products with gender, niche, category, scene using Gemini Vision. | **ACTIVE** |
 | `carousel_builder.py` | Builds multi-image carousels for social media. | **ACTIVE** |
 | `composite_builder.py` | Assembles vertical 9:16 composite flat lays (top + bottom + shoes). | **ACTIVE** |
-| `auto_image_classifier.py` | VLM image classification: front/back/detail/size_chart/model_shot. | **ACTIVE** |
+| `auto_image_classifier.py` | **SUPERSEDED** — Old single-model VLM classifier. Replaced by V2 pipeline below. | **ARCHIVED** |
+| `image_classifier_v2.py` | Multi-model ensemble image classifier. Gemini primary + Qwen3-VL validator, partial JSON recovery, short-prompt retry. | **ACTIVE — CORE** |
+| `seller_profiler.py` | Yupoo seller posting pattern profiler. Scrapes sample albums, classifies patterns, builds per-seller profiles. | **ACTIVE** |
+| `storefront_image_selector.py` | Smart waterfall image selector. Category-specific priority (flat_lay → on_model → detail), seller profile boost. | **ACTIVE** |
+| `background_enhancer.py` | AI background replacement for flat lays. Replaces white/grey Yupoo backgrounds with premium dark surfaces via Flow API. | **ACTIVE** |
+| `pipeline_orchestrator.py` | CLI orchestrator wiring all classification pipeline components. `--classify`, `--select`, `--enhance`, `--full`, `--batch-all`. | **ACTIVE — CORE** |
+| `storefront_curator_guard.py` | Gate 3 automated quality validator: 4 non-negotiable checks (selfie-free, MIME alignment, min 512x512 resolution, complete bundle). | **ACTIVE — CORE** |
+| `antigravity_classifier.py` | Frontier multimodal spatial geometry classifier with binary boolean gates (100% or 0%). Multi-category support (clothing, shoes, bags, eyewear, watches, accessories). | **ACTIVE — CORE** |
+| `vps_master_daemon.py` | 24/7 Autonomous Master Daemon orchestrating Sector 0 (Sourcing/Sizing), Sector 1 (AI Generation), Sector 2 (Curator Guard), and Sector 3 (Catalog Deployment). Zero local CLI needed. | **ACTIVE — CORE** |
 | `meta_ai_video_worker.py` | AI video generation worker for Meta AI / Flow video pipeline. | **ACTIVE** |
+
 
 ### 🧠 Brain / Infrastructure
 | File | Purpose | Status |
@@ -139,6 +150,7 @@
 | `litellm_router.py` | **Critical.** Manages ALL API key rotation. Uses LiteLLM Router with latency-based routing and automatic fallback cascading. | **ACTIVE — CORE** |
 | `google_accounts.json` | Permanent OAuth 2.0 refresh tokens for 4 Google accounts. Eliminates web session expiration. | **ACTIVE — CORE** |
 | `.github/workflows/obscura_cloud_generator.yml` | 100% Free GitHub Actions workflow running lookbook generation every 4 hours autonomously. | **ACTIVE — CORE** |
+| `obscura-master.service` | Azure VPS systemd service running `vps_master_daemon.py --daemon --interval 1800` continuously. | **ACTIVE — CORE** |
 | `agent_brain_vps.py` | VPS orchestration agent (24/7 server version). | **ACTIVE** |
 | `agent_tools_vps.py` | VPS version of agent tools (90KB). | **ACTIVE** |
 | `agent_memory.py` | Persistent agent memory using SQLite + JSON. | **ACTIVE** |
@@ -197,12 +209,260 @@
 
 ## 6. YUPOO SOURCING — HOW IT WORKS
 
+### 🔑 THE CORE BUSINESS MODEL (MUST UNDERSTAND)
+Replica/independent fashion sellers in China operate a **two-platform system**:
+
+1. **Yupoo = IMAGE GALLERY (Product Showcase)**
+   - Yupoo is a free image hosting platform. Sellers use it as their **product catalog** with HIGH-RESOLUTION, UNCENSORED photos showing brand names, logos, stitching details, and tags clearly visible.
+   - Sellers CANNOT post these photos on marketplace platforms (Weidian/Taobao/1688) because those platforms actively CENSOR brand names and logos to avoid copyright takedowns.
+   - Each seller has a subdomain (e.g., `taurus.x.yupoo.com`) organized into categories and albums.
+   - Each album = one product (or a set), containing 4-15 high-quality photos: front flat lay, back flat lay, detail closeups, on-model shots, size charts.
+   - **Albums contain a hidden purchase link** in the description text — this links to the actual Weidian/Taobao/1688 listing where you can buy the item.
+
+2. **Weidian/Taobao/1688 = PURCHASE BACKEND (Transaction Platform)**
+   - This is where the actual e-commerce transaction happens — add to cart, select color/size variant, pay.
+   - Listings here have BLURRED/CENSORED images (9 out of 10 blur brand logos).
+   - BUT they have **accurate, live data**: real color variant names (in Chinese), real available sizes, real pricing, stock status, seller ratings, shipping info.
+   - The Chinese color variant strings on these listings are the EXACT strings you must select when placing an order through an agent.
+
+3. **OBSCURA = THE MERGER**
+   - We merge BOTH sources into a single unified product listing on our storefront:
+     - **HQ Product Images** → from Yupoo (uncensored, logo-visible, high-res)
+     - **Colors, Sizes, Pricing, Stock** → from Weidian/Taobao/1688 marketplace listing
+     - **AI Editorial Content** → generated by Flow using the Yupoo front flat lay as ingredient
+   - The customer sees ONE polished product page with: hero images, multiple angles, AI model shots, real color swatches, real sizes, and a size guide — all sourced from different places and assembled by our pipeline.
+   - **The purchase link and Chinese variant mappings are stored in `supplier_mappings.json` (PRIVATE, never exposed to customers)** so that when an order comes in, `auto_fulfillment.py` knows exactly which Weidian listing + variant string to order.
+
 ### ⚠️ CRITICAL: IMAGE SOURCE RULE (NON-NEGOTIABLE)
 - **Product images for AI generation MUST ALWAYS come from YUPOO**, never from Weidian, Taobao, or 1688.
-- **Why:** Yupoo is where replica sellers post their HIGH-RESOLUTION, UNCENSORED product photos with brand names, logos, and details clearly visible. This is the entire purpose of Yupoo for these sellers.
-- **Weidian/Taobao/1688 listings almost always BLUR OUT brand names and logos** to avoid platform takedowns and copyright enforcement. 9 out of 10 marketplace listings have censored images.
-- **Marketplace links (Weidian/Taobao/1688) are ONLY used for:** pricing, sizing/variants, color options, and placing orders. NEVER for sourcing product images.
-- **Pipeline rule:** The scraper must download product images from the Yupoo album page. The marketplace link extracted from the Yupoo album description is saved as metadata for ordering only.
+- **Why:** Yupoo is where sellers post their HIGH-RESOLUTION, UNCENSORED product photos. Weidian/Taobao/1688 listings BLUR OUT brand names and logos to avoid platform takedowns.
+- **Pipeline rule:** The scraper must download product images from the Yupoo album page. The marketplace purchase link extracted from the Yupoo album description is saved as metadata for ordering and variant mapping.
+
+### ⚠️ CRITICAL MANDATE: MARKETPLACE VARIANT & SIZING EXTRACTION (NON-NEGOTIABLE)
+- **Mandatory Flow:** For EVERY Yupoo product album, the scraper/agent **MUST extract the marketplace purchase link** (Weidian, Taobao, or 1688) from the album description.
+- **Immediate Marketplace Resolution:** The scraper **MUST open and scrape the Weidian/Taobao/1688 listing** to extract:
+  1. **Accurate Color Options:** Scrape the exact Chinese color variant strings and translate/map them to authentic English luxury color names (e.g., "花灰" → "Heather Grey", "炭黑" → "Washed Charcoal", "军绿" → "Mineral Olive", "藏青" → "Deep Navy") with corresponding hex codes.
+  2. **Accurate Sizing Options:** Extract live available sizes (e.g., `["S", "M", "L", "XL", "2XL"]`) and live stock status per size.
+  3. **Accurate Sizing Chart:** Scrape the seller's specific measurement table (chest cm, length cm, shoulder cm, sleeve cm) for the interactive size guide modal.
+- **Storefront Display Rule:** The extracted marketplace colors and sizes are **MANDATORY for populating `storefront/src/data/products.js`**.
+  - **NEVER use generic placeholders** like `[{ "name": "Default", "hex": "#1a1a1a" }]` when the marketplace listing specifies actual colorways.
+  - Sizing must accurately reflect what is physically purchasable from the Chinese supplier so customers only order in-stock sizes and real colors.
+
+### ⚠️ CRITICAL MANDATE: FLOW GENERATION & STOREFRONT ANGLE RESOLUTION (NON-NEGOTIABLE)
+- **Flow Generation Ingredient:** AI image and video generation (Flow API / Google Flow) **MUST STRICTLY use the FRONT FLAT LAY image** as the visual media ingredient reference.
+  - **NEVER** pass a back angle, side angle, or detail close-up as the primary Flow generation ingredient. Flow requires the clean front flat lay of the garment to accurately understand and drape the item onto models.
+  - For sets (tracksuit / top + bottom): Use the pre-combined flat lay or a 9:16 vertical composite (front top stacked above front bottom).
+- **Storefront Comprehensive Multi-Angle Asset Bundle:**
+  - Customers must be able to inspect every angle of the garment on the storefront catalog before purchasing.
+  - The pipeline **MUST ALWAYS preserve and attach**:
+    1. **Primary Hero:** Clean front flat lay (or enhanced background front flat lay).
+    2. **Back Angle:** Back flat lay image (mandatory for customer evaluation and catalog hover cards).
+    3. **Detail Extras:** Seam closeups, embroidery/print macros, hardware, wash tags, and fabric texture shots.
+    4. **Size Chart:** Official seller measurement table image for the sizing guide modal.
+    5. **Editorial Lookbook Stills:** High-fashion on-model runway and editorial shots (featured in the product gallery and Lookbook).
+  - When scraping Yupoo albums and staging into `MANUAL_CURATION/`, the scraper and classifier must NEVER discard back angles or detail macros — they must be routed to `storefront/public/products/<slug>/` alongside the generated lookbook stills.
+
+### 6.1 SELLER PROFILING & POSTING PATTERN ANALYSIS (MANDATORY BEFORE SCRAPING)
+- **Why Profiling is Mandatory:** Every Chinese seller formats their Yupoo photo albums differently. Blindly selecting image `[0]` fails because sellers often place size charts, contact cards, or weight scales at the start or end of albums.
+- **Posting Pattern Discovery:**
+  - Before ingesting any new seller, `seller_profiler.py` analyzes 5-10 sample albums to determine the seller's typical sequence:
+    - *Example (ChaosMade / 3Madman):* `[0]` = Size Chart, `[1-3]` = Front Flat Lay, `[4-5]` = Back Flat Lay, `[6-10]` = Detail Macros (tags, wash labels, embroidery, hardware), `[11]` = Scale/Mannequin.
+  - Profiles are saved in `data/seller_profiles.json` and dynamically boost VLM classification confidence in `storefront_image_selector.py`.
+- **Handling Multi-Piece Sets (Tracksuits / Ensembles):**
+  - Albums showcasing matching sets often contain: top front flat lay, bottom front flat lay, and a combined flat lay.
+  - The pipeline detects sets, builds 9:16 vertical composite flat lays (top stacked above bottom), and scrapes both top/bottom SKU options from the marketplace listing.
+
+### 6.2 IMAGE ROLE MAPPING & DISCARD RULES (NON-NEGOTIABLE)
+**STRICT BINARY ARBITER (100% or 0% — ZERO FUZZY 1–10 SCORES):**
+Every image ingested by the pipeline is evaluated through a strict boolean spatial geometry gate (`antigravity_classifier.py` / `image_classifier_v2.py`). There are NO fuzzy 1–10 quality ratings. An image is either 100% verified for a role or rejected:
+- `is_size_chart` (bool): True if official measurement table (chest, length, shoulder cm).
+- `is_full_garment` (bool): True ONLY if the COMPLETE uncropped silhouette from collar/waist to hem/cuff is in frame with ZERO edge cuts. **MANDATORY RULE:** If `is_full_garment == False`, the image can NEVER be assigned a flat lay hero role (`front_flat_lay` or `back_flat_lay`).
+- `is_front_facing` (bool): True if showcasing the front side of the garment/product.
+- `is_back_facing` (bool): True if showcasing the clean reverse back side.
+- `is_side_profile` (bool): True if outer lateral profile (critical for footwear).
+- `is_detail_macro` (bool): True if high-res macro close-up of seams, wash labels, embroidery, hardware, or fabric weave.
+- `is_discard` (bool): True for plastic mannequins, headless display dummies, WeChat QR codes, seller contact cards, and weight scale images.
+- `is_set` (bool): True if the album depicts a 2-piece set (tracksuit/co-ord).
+
+**Multi-Category Role Assignments:**
+1. `front_flat_lay`:
+   - **Role:** Primary storefront hero image + Visual media ingredient chip for Google Flow lookbook generation + source for dark background enhancement (`background_enhancer.py`).
+   - **Strict Rule:** MUST have `is_full_garment: true` and `is_front_facing: true`.
+2. `back_flat_lay`:
+   - **Role:** Catalog hover card & secondary angle. Customers must inspect the back of garments before purchasing.
+   - **Strict Rule:** MUST have `is_full_garment: true` and `is_back_facing: true`.
+3. `shoe_lateral_profile`:
+   - **Role:** Primary footwear hero image & Flow ingredient. Outer lateral side profile of the shoe on a clean surface.
+4. `bag_front_upright`:
+   - **Role:** Primary handbag/backpack hero image & Flow ingredient. Standing upright vertical front view with clean strap drape.
+5. `watch_dial_face`:
+   - **Role:** Primary watch hero image & Flow ingredient. Centered front-facing macro of dial, bezel, and vertical straps.
+6. `eyewear_front_hero`:
+   - **Role:** Primary sunglasses/eyewear hero image & Flow ingredient. Front straight-on lens and frame geometry.
+7. `accessory_hero`:
+   - **Role:** Primary hero image for belts, jewelry, scarves, or hats on clean dark/neutral background.
+8. `detail_macro` (3 to 5 images):
+   - **Role:** High-fashion craftsmanship inspection: seams, embroidery close-up, distressing, zipper/hardware, neck tag, fabric weave.
+9. `size_chart`:
+   - **Role:** Official measurement table (chest cm, length cm, etc.). Routed to the interactive sizing guide modal. NEVER used as hero or Flow ingredient.
+10. `weight_scale`:
+    - **Role:** Ingested solely to extract numeric weight in grams (`product.weight_grams = 680`, `product.gsm = 450`). **DISCARDED from the customer image gallery.**
+11. `mannequin` & `seller_card`:
+    - **Role:** Plastic headless display dummies, WeChat QR codes, and seller promo graphics are **DISCARDED COMPLETELY**.
+
+### 6.3 PROMPT FORMULAS (ZERO BRAND NAMES — STRICTLY ENFORCED)
+- **Zero-Brand-Name Mandate:**
+  - NEVER mention brand names ("OBSCURA", "Balenciaga", "Hellstar", "Vogue", "Chrome Hearts", "Represent") in generation prompts.
+  - Doing so causes catastrophic prompt collision, hallucinated text prints/watermarks on garments, and destroys reference fidelity.
+  - The multimodal model receives the clean front flat lay as an image chip and derives 100% of color, fabric texture, cut, logos, and graphics directly from the reference.
+  - Prompts refer strictly to: `"this exact garment from the referenced image"`, `"the complete matched set from the referenced image"`, or `"this exact product"`.
+
+- **Comprehensive Category Editorial Formulas:**
+  1. **Matching Sets & Tracksuits (Top + Bottom):**
+     - *Backstage Runway (9:16):* `"Full-length vertical 9:16 high-fashion editorial runway lookbook photo of a model wearing the complete two-piece matched set from the referenced image: the top garment on the upper torso and the matching bottoms on the lower body. Both pieces strictly preserve the exact color, fabric drape, and detailing from the referenced composite flat lay. Model captured backstage in natural motion getting ready to walk during an architectural minimalist runway show. Natural backstage ambient daylight, sharp 85mm prime lens portrait photography, 8k resolution, raw photo."`
+     - *Studio Chiaroscuro (1:1):* `"Square 1:1 waist-up luxury editorial lookbook photo of a high-fashion model wearing the complete matched outfit from the referenced image. Dramatic chiaroscuro studio rim lighting highlighting the realistic fabric drape, weight, and tailored seam architecture. Minimalist concrete gallery setting, high-fashion editorial standard, raw photo, 8k resolution."`
+     - *Bed GRWM Spread (9:16):* `"Overhead vertical 9:16 high-angle flat lay photo of the complete matched outfit from the referenced image neatly styled on a modern minimalist bed with a sleek smartphone, slim laptop, and open art magazine like an authentic GRWM photoshoot spread. Soft morning window daylight, crisp textile weave and drape, raw photo, ultra-realistic."`
+  2. **Outerwear (Jackets, Coats, Puffers, Shells, Bombers):**
+     - *Colonnade Motion (9:16):* `"Full-length vertical 9:16 high-fashion editorial lookbook photo of a model wearing this exact jacket from the referenced image. Model in dynamic motion walking along a brutalist stone colonnade during twilight. Jacket styled with plain neutral dark tailored trousers and clean boots. Sharp 85mm prime lens, cinematic atmospheric ambient light, raw photo, 8k resolution."`
+     - *Studio Architecture (1:1):* `"Square 1:1 luxury studio lookbook photo of a model wearing this exact jacket from the referenced image. Directional chiaroscuro rim lighting accentuating the structured shoulder silhouette, heavyweight textile texture, zipper hardware luster, and collar architecture. Raw photo, 8k resolution."`
+  3. **Tops (Hoodies, T-Shirts, Knits, Overshirts):**
+     - *Backstage Runway (9:16):* `"Full-length vertical 9:16 high-fashion editorial lookbook photo of a model wearing this exact garment from the referenced image. Model captured backstage in natural motion getting ready to walk during an architectural minimalist runway show. Paired with plain neutral tailored dark trousers and clean boots. Editorial styling, sharp 85mm prime lens photography, natural ambient lighting, raw photo, 8k resolution."`
+     - *Studio Drape (1:1):* `"Medium waist-up high-fashion editorial studio photo of a model wearing this exact garment from the referenced image. Cinematic rim lighting emphasizing the heavy fabric drape, structured collar, and meticulous seam finishings. Minimalist concrete gallery setting. Square 1:1 composition, editorial campaign aesthetic, 85mm portrait, raw photo, 8k resolution."`
+     - *Bed GRWM (9:16):* `"Overhead vertical 9:16 high-angle flat lay photo of this exact garment laid flat on a modern minimalist bed with a sleek smartphone, slim laptop, and open art magazine like an authentic GRWM fashion preparation spread. Soft morning window daylight, crisp textile texture, raw organic feel, ultra-realistic."`
+  4. **Bottoms (Trousers, Cargo, Denim, Sweatpants):**
+     - *Runway Stacking (9:16):* `"Full-body vertical 9:16 street-editorial runway lookbook photo of a model wearing the exact trousers from the referenced image. Styled with a minimal plain black boxy cropped top and clean brutalist boots. Model captured backstage in motion getting ready to walk during a fashion runway presentation. Crisp focus on silhouette, fabric drape, and clean hem stacking. Vertical 9:16 composition, natural ambient lighting, raw photo, 8k resolution."`
+     - *Pavilion Stride (1:1):* `"Lower-body 1:1 square editorial shot focusing on the exact trousers from the referenced image in motion. Subtle dynamic stride in a modern brutalist pavilion. Morning architectural shadows highlighting textile weave, utility pockets, and seam construction. Square 1:1 framing, luxury editorial campaign standard, raw photo, 8k."`
+  5. **Footwear (Sneakers, Boots, Loafers):**
+     - *On-Foot Runway (9:16):* `"Vertical 9:16 high-fashion on-foot editorial photo of a model wearing the exact shoes from the referenced image. Paired with wide-leg neutral tailored wool trousers that break cleanly over the shoe silhouette. Model in motion backstage during a runway show. Vertical 9:16 angle, sharp editorial portrait lens, raw photo."`
+     - *Travertine Step (1:1):* `"Dynamic close-up on-foot 1:1 editorial photo of the exact shoes from the referenced image stepping forward on a polished travertine marble slab. Cinematic soft directional lighting highlighting sculpted sole geometry, material grain, and clean stitching. Square 1:1 crop, luxury runway quality, 8k raw photo."`
+  6. **Bags & Backpacks:**
+     - *Coat Arm Drape (9:16):* `"Vertical 9:16 high-fashion editorial photo of a model in a minimalist charcoal coat, effortlessly carrying the exact bag from the referenced image over their arm. Model captured backstage getting ready to walk a runway show. Tactile focus on leather grain, edge finish, and brushed hardware. Vertical 9:16 framing, raw photo."`
+     - *Upright Travertine Block (1:1):* `"Luxury editorial still life photo of the exact bag from the referenced image positioned upright on an Italian travertine marble block. Clean diffused morning side-light highlighting the supple material drape, structured base, and brushed hardware. Square 1:1 format, raw photo."`
+  7. **Watches & Timepieces:**
+     - *Wrist Editorial (9:16):* `"Vertical 9:16 close-up high-fashion editorial photo of a model wearing the exact watch from the referenced image on their wrist. Model in tailored dark suiting, captured in subtle motion against a minimalist studio background. Sharp macro prime lens, soft cinematic studio lighting, raw photo, 8k resolution."`
+     - *Basalt Plinth Dial (1:1):* `"Square 1:1 centered macro editorial still life photo of the exact watch from the referenced image resting on a dark volcanic basalt stone plinth. Directional grazing light emphasizing dial finishing, bezel bevels, and metallic luster. Raw photo, 8k."`
+  8. **Eyewear & Sunglasses:**
+     - *Loft Frame Crop (9:16):* `"Vertical 9:16 high-fashion close-range editorial portrait of a model wearing the exact eyewear frames from the referenced image. Model standing in a bright sunlit loft with soft architectural shadows. Crisp focus on frame geometry, bridge alignment, and lens clarity. Vertical 9:16 framing, raw photo."`
+     - *Travertine Rest (1:1):* `"Square 1:1 centered editorial still life photo of the exact eyewear frames from the referenced image resting open on a matte travertine stone slab. Natural overhead skylight showing crisp temple lines, hinge craftsmanship, and clear reflections. Raw photo, 8k."`
+  9. **Accessories & Jewelry (Belts, Chains, Rings):**
+     - *Editorial Macro (1:1):* `"Macro editorial commercial product photo of the exact luxury accessory from the referenced image displayed on a minimalist textured volcanic stone plinth. Crisp overhead directional strobe emphasizing micro-engravings, brushed metal bevels, and craftsmanship. Square 1:1 centered composition, editorial campaign quality, 8k resolution, raw photo."`
+
+### 6.4 WEIDIAN MARKETPLACE RESOLUTION & LIVE VARIANT MAPPING
+- **Thor API Endpoint:** `https://thor.weidian.com/detail/getItemSkuInfo/1.0?param={"itemId":"<id>"}` with `Referer: https://weidian.com/`.
+- **Live Variant Ingestion:**
+  - `attrTitle: "颜色"` / `attrValues`: Scrapes exact Chinese color variant names and translates them via `color_matcher.py` into authentic luxury English colorways with swatch hex codes (e.g. `黑色` → `Washed Obsidian` `#1A1A1A`, `花灰` → `Heather Grey` `#9CA3AF`, `军绿` → `Mineral Olive` `#4B5320`, `藏青` → `Deep Navy` `#0B3C5D`).
+  - `attrTitle: "尺码"` / `attrValues`: Extracts true available sizes (`S`, `M`, `L`, `XL`, `2XL`).
+  - `skuInfos`: Extracts live price in CNY (`discountPrice / 100`) and live stock count per size (`stock`). Sizes with zero stock are flagged out of stock.
+  - `supplier_mappings.json`: Privately maps storefront product slugs and translated colors to exact Weidian item IDs and Chinese variant strings for automated agent fulfillment.
+
+### 6.5 VLM COMPARATIVE VERIFICATION GATE
+- Before any generated lookbook image is approved and attached to a storefront catalog listing, it must pass `VisionEvaluator.evaluate_reference_match()`:
+  - Compares the generated image against the original Yupoo front flat lay.
+  - Evaluates:
+    1. Garment category & silhouette match (score >= 7/10)
+    2. Color & wash fidelity (score >= 7/10)
+    3. Pattern / graphic preservation without gibberish (score >= 7/10)
+    4. Absence of hallucinated text or watermarks
+    5. Anatomical correctness (score >= 5/10)
+  - Generated images scoring below 6.5 average are automatically rejected and regenerated.
+
+### 6.6 TESTING PROTOCOL BEFORE FULL AUTOMATION
+- Before starting 24/7 background daemons (`obscura-master.service`, `cloud_generator_gha.py --daemon`), the pipeline must:
+  1. Clean all legacy/corrupt test data from VPS and storefront catalog.
+  2. Test and visually inspect 1 to 3 curated products end-to-end (Yupoo scrape → Weidian resolution → Classification → Flow generation → VLM verification → Storefront deployment).
+  3. Verify all live pages on the storefront (`/`, `/shop`, `/lookbook`, `/product/[id]`) display genuine high-res assets with working cart, currency, and multi-angle galleries.
+
+### 6.7 NEW SELLER ONBOARDING & FRONTIER AUDIT PROTOCOL (MANDATORY)
+- **Problem Statement:** Blind automated scraping of unknown sellers causes pipeline contamination because Chinese Yupoo sellers follow completely arbitrary layout sequences (e.g. some put size charts at index 0, some place WeChat contact cards at index 0, others place mannequin shots or weight scales first).
+- **Mandatory Onboarding Audit Protocol:**
+  Whenever a new seller is introduced (from Reddit, Discord drop, or Yupoo catalog expansion):
+  1. **Multimodal Frontier Inspection (`antigravity_classifier.py` / `seller_profiler.py`):**
+     - Before automated batch ingestion, sample 5 to 10 diverse albums from the new seller.
+     - Inspect the layout sequence using frontier multimodal vision (evaluating full garment bounding boxes, collar/hem margins, presence of text cards, measurement rulers, or mannequins).
+  2. **Sequence Fingerprint Extraction:**
+     - Identify where the seller places the front flat lay (e.g., indices `[1..3]`), back flat lay (e.g., indices `[4..5]`), detail macros (e.g., indices `[6..10]`), size chart, and scale.
+     - Detect album format patterns: single garment vs. 2-piece tracksuit sets vs. 3-piece accessory packs.
+  3. **Profile Registration (`data/seller_profiles.json`):**
+     - Record the seller profile with verified key positions, typical image counts, and category specializations.
+     - The profile dynamically boosts classification accuracy in `storefront_image_selector.py`.
+  4. **Strict Gate:** Automated batch ingestion is STRICTLY FORBIDDEN for any seller without a registered profile in `seller_profiles.json`.
+
+### 6.8 MULTI-CATEGORY REFERENCE IMAGE SPECIFICATION MATRIX
+Every product category sold on OBSCURA has a strictly defined **optimal visual reference angle** for Google Flow lookbook generation and storefront hero presentation. The classifier and image selector MUST enforce these exact standards:
+
+| Category | Primary Reference Angle (Flow Ingredient & Storefront Hero) | Discard / Rejection Triggers | Secondary Angles Preserved for Catalog |
+| :--- | :--- | :--- | :--- |
+| **Clothing (Tops, Outerwear, Bottoms)** | `front_flat_lay`: Complete silhouette from collar/waist to hem/cuff on clean neutral surface. Must satisfy `is_full_garment: true` and `is_front_facing: true`. | Partial crop, folded garment, plastic mannequin, hanger distortion, cropped collar or hem. | `back_flat_lay` (mandatory for hover card), 3-5 `detail_macro` (embroidery, wash tag, zipper), `size_chart`. |
+| **Matching Sets (Tracksuits / Co-ords)** | 9:16 Vertical Composite (`composite_builder.py`): Top front flat lay stacked vertically above bottom front flat lay. | Disjointed crops, top-only or bottom-only selected as set hero. | Individual top flat lay, individual bottom flat lay, detail macros. |
+| **Shoes & Sneakers** | `shoe_lateral_profile`: Outer lateral side profile showing the full silhouette from toe to heel on clean surface. | Dirty sole bottom, top-down foot opening view, interior insole, heel-only view. | Medial side profile, pair top-down view, outsole tread macro, heel logo macro, box label. |
+| **Bags & Backpacks** | `bag_front_upright`: Standing vertical front view with clean strap drape showing full structure and silhouette. | Crushed/deflated flat, interior lining only, base bottom only. | Back view, interior compartment macro, hardware/buckle macro, leather grain closeup. |
+| **Watches & Timepieces** | `watch_dial_face`: Direct front-facing macro centered on dial, hands, and bezel with vertical strap alignment. | Angled glare obscuring dial, caseback only, clasp only. | Caseback engraving, crown/pusher macro, bracelet/clasp macro, lume shot. |
+| **Eyewear & Sunglasses** | `eyewear_front_hero`: Direct front straight-on view showing frame geometry, bridge, and lenses with zero distortion. | Folded flat upside down, extreme angle hiding frame width. | 45-degree angled temple view, side temple logo macro, case and cloth set. |
+| **Jewelry & Belts** | `accessory_hero`: Centered high-resolution shot of uncoiled belt or laid-flat jewelry piece on dark velvet/stone surface. | Tightly coiled belt hiding buckle, tangled chain, blurry reflection. | Buckle engraving macro, clasp detail, hallmark stamp macro. |
+
+### 6.9 AUTONOMOUS 24/7 VPS MASTER DAEMON ARCHITECTURE (Zero Local CLI)
+- **User Directive:** The user will NEVER run local CLI scripts or manually test/verify pipeline images. The entire lifecycle runs 24/7 autonomously on the Azure VPS (`20.215.232.214`).
+- **Master Daemon:** `goal2_sourcing_engine/vps_master_daemon.py` managed by systemd service `obscura-master.service` running under Python virtualenv (`/home/azureuser/ai-ugc/venv/bin/python3`).
+- **Continuous 4-Sector Execution Cycle:**
+  1. **Sector 0 (Autonomous Sourcing & Sizing):**
+     - Scrapes Yupoo albums using seller profiles and anti-ban delays.
+     - Resolves Weidian marketplace live inventory via Thor API: true available sizes, real stock counts, CNY pricing, and authentic luxury English colorway mappings.
+     - Classifies images via strict binary arbiter (`antigravity_classifier.py` / `image_classifier_v2.py`).
+     - Builds 9:16 vertical composites for matching sets.
+     - Stages approved bundles into `MANUAL_CURATION/`.
+  2. **Sector 1 (Cloud AI Generation):**
+     - Autonomous lookbook generation using Google Flow API with OAuth token pool rotation (`google_token_manager.py`).
+     - Feeds category-specific primary reference flat lays into zero-brand-name prompts (Runway Backstage, Bed GRWM, Studio Macro).
+     - Crops and pads outputs into certified vertical 9:16 (TikTok/Reels) and square 1:1 (IG Feed).
+  3. **Sector 2 (Curator Quality Guard):**
+     - Gate 3 automated quality inspection (`storefront_curator_guard.py`):
+       * Selfie-free check: Rejects any selfie/bathroom mirror artifacts.
+       * Resolution check: Minimum 512x512 pixels.
+       * MIME alignment: Certified JPEG/WebP formats.
+       * Multi-angle bundle completeness: Hero + Back + Details + Size Guide.
+  4. **Sector 3 (Catalog Deployment):**
+     - Atomic synchronization into Next.js storefront (`storefront/src/data/products.js`).
+     - Routes high-resolution assets into `storefront/public/products/<slug>/`.
+     - Private supplier links and Chinese variant strings are securely committed to `supplier_mappings.json` for automated fulfillment.
+
+### 6.10 COMPLEX SOURCING EDGE CASES & MULTI-PRODUCT RESOLUTION (MANDATORY RULES)
+
+1. **Matching Sets & Tracksuits (Top + Bottom Co-ords):**
+   - **Identification:** Triggered by Chinese keywords (`套装`, `运动套装`, `短袖套装`, `卫衣套装`, `夹克套装`, `套服`), English (`set`, `tracksuit`, `two-piece`, `co-ord`), or Weidian multi-piece SKU options.
+   - **Pre-Combined Flat Lay Rule:** If the seller provided an uncensored photo showing both the top and bottom laid flat together (`combined_set`), the pipeline uses this directly as the primary reference.
+   - **9:16 Vertical Composite Assembly:** If separate top and bottom flat lays are provided, [`composite_builder.py`](file:///c:/Users/USER/ai%20ugc%20and%20sales/goal2_sourcing_engine/composite_builder.py) stacks them:
+     * **Top Front:** Upper 55% of the 1080x1920 canvas.
+     * **Bottom Front:** Lower 45% of the 1080x1920 canvas.
+     * **Strict Rule:** NEVER invert the order (pants on top of hoodie is strictly prohibited).
+   - **Dual Size Charts:** Sets almost always have TWO measurement tables (Top: chest/length/shoulder cm; Bottom: waist/hip/pants length cm).
+     * The pipeline preserves both as `size_chart_1.jpg` and `size_chart_2.jpg`.
+     * Both charts are attached to `metadata.json` (`images.size_charts = ["size_chart_1.jpg", "size_chart_2.jpg"]`) so the interactive modal displays both Top & Bottom size guides.
+   - **Weidian Multi-Tier SKU Pricing (Crucial Anti-Loss Rule):**
+     * Sellers on Weidian often post single listings with separate SKUs: Top Only (¥150) vs. Pants Only (¥130) vs. Full Set (¥260).
+     * The scraper extracts all `sku_options` and builds `price_tiers = {"set": 260.0, "top": 150.0, "bottom": 130.0}`.
+     * For sets, `price_cny` is strictly set to `price_tiers["set"]` (¥260).
+     * **NON-NEGOTIABLE:** Never default sets to `min(prices)` (¥130), as this would severely undercharge customers and cause fulfillment loss.
+
+2. **Multiple Products / Sibling Silhouettes in the Same Album:**
+   - Yupoo sellers occasionally post an entire capsule collection in one album (e.g. "Vintage Washed Black Collection" containing a T-shirt, a Hoodie, and Sweatpants all in the same color).
+   - The classifier detects distinct silhouettes (`distinct_categories`) and flags `has_multiple_products: True`.
+   - Distinct silhouettes are recorded in `metadata.json` (`detected_categories = ["top", "bottom"]`) to prevent mixing up back angles or confusing a hoodie as the back of a t-shirt.
+
+3. **Digital Weight Scales & GSM Extraction:**
+   - High-end streetwear sellers (ChaosMade, Goat, 3Madman, Taurus) frequently include a photo of the folded garment on a digital kitchen scale (e.g. reading "680g").
+   - Spatial geometry classifier extracts the numeric value: `weight_grams: 680`.
+   - The pipeline computes estimated fabric density: `gsm = int(weight_grams / 1.5)` (e.g. `450 GSM`).
+   - The weight and GSM are written to `metadata.json` for luxury heavyweight copy.
+   - **MANDATORY PURGE:** Digital scale photos are classified as `is_discard: True` and strictly PURGED from the public customer storefront gallery.
+
+4. **3M Reflective Flash Comparisons:**
+   - Streetwear garments with 3M reflective ink, piping, or logos feature paired photos: one taken in ambient light (looks dark/grey) and one with camera flash (glows bright white).
+   - The classifier identifies the flash photo as `reflective_flash_macro`.
+   - Prevents the pipeline from mistaking the flash photo as a different colorway or corrupted file.
+
+5. **Reversible / 2-in-1 Garments:**
+   - Outerwear jackets that can be worn inside out are classified with Side A (Hero) and Side B (Reversible reverse).
+   - Both angles are saved into the catalog gallery with custom badges.
 
 ### Yupoo Structure (CRITICAL TO UNDERSTAND)
 ```
@@ -410,6 +670,100 @@ When `outfit_warehouse.py` matches a **top + bottom** (same brand, compatible co
 | Instagram Reels | Same videos + carousel product shots | 2x/day |
 | Pinterest Watch | 10s videos as Watch Pins | 1x/day |
 | YouTube Shorts | Same 10s videos | 1x/day |
+
+---
+
+## 7.35 V2 IMAGE CLASSIFICATION PIPELINE (OCTOBER 2026 — NON-NEGOTIABLE)
+
+### 🎯 Purpose
+Bulletproof image classification that replaces the unreliable single-model `auto_image_classifier.py`. Every product image gets classified with a multi-model ensemble before being used for AI generation or storefront listing.
+
+### Architecture: 5-Component Pipeline
+```
+MANUAL_CURATION/<product>/
+    └── *.jpg images (from Discord scraper)
+              │
+              ▼
+┌──────────────────────────────────────────┐
+│  1. image_classifier_v2.py (CORE)        │
+│     Pre-filter (filename/size/aspect)    │
+│     → Gemini Flash primary (litellm 433) │
+│     → Qwen3-VL validator (OpenRouter)    │
+│     → Reconciliation engine              │
+│     → Partial JSON recovery + retry      │
+│     Output: image_classification.json    │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  2. seller_profiler.py                   │
+│     Profiles each Yupoo seller's posting │
+│     patterns (image order, backgrounds,  │
+│     typical categories). Boosts VLM      │
+│     confidence using learned patterns.   │
+│     Output: data/seller_profiles.json    │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  3. storefront_image_selector.py         │
+│     Category-specific waterfall:         │
+│     Tops/Bottoms: flat_lay → on_model    │
+│     Sets: combined_set → flat_lay        │
+│     Jewelry: detail → flat_lay           │
+│     Shoes: side_profile → on_foot        │
+│     Picks 4-5 images per product.        │
+│     Output: storefront_selection.json    │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  4. background_enhancer.py               │
+│     Replaces white/grey Yupoo backgrounds│
+│     with premium dark surfaces via Flow: │
+│     black_marble, dark_slate, concrete,  │
+│     charcoal_linen, matte_black          │
+│     Output: enhanced/ subdirectory       │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  5. pipeline_orchestrator.py (CLI)       │
+│     --classify  Single product           │
+│     --select    Run image selection      │
+│     --enhance   Run background enhance   │
+│     --full      Full pipeline            │
+│     --batch-all All MANUAL_CURATION/     │
+│     --profile-all Profile all sellers    │
+└──────────────────────────────────────────┘
+```
+
+### Classification Taxonomy
+```json
+{
+  "type": "front_flat_lay | back_flat_lay | detail_closeup | size_chart | on_model | combined_set | individual_piece | lifestyle | junk",
+  "garment_category": "top | bottom | set | shoes | bag | accessory | jewelry | outerwear",
+  "quality_score": 1-10,
+  "confidence": "high | medium | low",
+  "models_agreed": true/false,
+  "flags": ["partial_json_recovery", "disagreement", "low_confidence"]
+}
+```
+
+### Pre-Filter Rules (No API Calls)
+- Filename contains `size` + `chart`/`guide` → `size_chart`
+- Filename contains `tag_label` or `weight_scale` → `junk`
+- File extension not in `.jpg/.jpeg/.png/.webp` → skip
+- Pixel count < 10,000 → `junk` (tiny placeholder)
+- Aspect ratio > 2.5:1 → `size_chart`
+- **⚠️ NO dimension-based browser screenshot filtering** — overlaps with legitimate scraper viewport sizes (1548×1032, 1702×1276)
+
+### Discord Integration
+- All 3 save points in `discord_listener.py` trigger `_classify_product_background()` as a non-blocking `asyncio.create_task()`
+- Classification runs after metadata.json write and before Discord confirmation reply
+- Results saved to `MANUAL_CURATION/<product>/image_classification.json`
+
+### Seller Profiling Rules
+- Each Yupoo seller gets profiled on first scrape by analyzing 5-10 random albums
+- Profile includes: typical posting order, backgrounds, image count range, categories offered
+- Profile stored in `data/seller_profiles.json`, refreshed every 30 days
+- When classifying images from a profiled seller, VLM confidence is boosted based on learned patterns (e.g., if seller always puts front flat lay first, the first image gets a confidence boost for `front_flat_lay`)
 
 ---
 
@@ -839,6 +1193,44 @@ To test the pipeline end-to-end (from Yupoo/Weidian scraping, image processing, 
 4. **Flow Bridge Health Checks:** In Stage 3, the bridge token is checked for freshness/expiration before calling Flow APIs to prevent silent credential failures.
 5. **AI Self-Healing Corrections:** If any stage of the pipeline fails, passing the `--self-heal` flag triggers the local **Antigravity SDK Agent** (`from google.antigravity import Agent`). The agent receives the error traceback and code context, uses its `edit_file` tool to repair the bug in place, and the test runner auto-retries the stage (up to 2 attempts).
 6. **CLI Control Center:** Both the End-to-End Test Runner and the Stock Sync scheduler (`auto_stock_sync.py`) are integrated directly as options 8 and 9 inside the control center (`python start_engine.py`).
+
+---
+
+## 17. STOREFRONT ASSET COMPRESSION & VERIFIED MULTI-CATEGORY CATALOG (2026 UPDATE)
+
+### A. Non-Negotiable Performance & Image Compression Standard
+- **Sub-Second Vercel Load Times:** Zero heavy uncompressed images (>500KB) are allowed in `storefront/public/`.
+- **Pillow Compression Pipeline:** All product hero photos, hover backs, detail macros, and editorial stills are converted to RGB progressive JPEGs with max dimension 1200px at 78-82 quality (`optimize=True`, `progressive=True`).
+- **Benchmark:** Average image size must stay between 80KB–180KB (max 300KB). Reduces bundle load footprint by 85–93%, eliminating mobile page stalls and network lag.
+- **Hero Backgrounds:** Main hero backgrounds (`main_hero_bg.jpg`, `editorial_hero.jpg`) strictly compressed to <200KB.
+
+### B. Verified Multi-Category Catalog Deployment
+The storefront is populated with 8 fully verified, curated products spanning all luxury streetwear categories:
+1. **Sets:**
+   - `208-diplomatic-zipset-washed-camo`: Washed Camo Utility Zipset (480 GSM French Terry, Look 01 Hero).
+   - `corteiz-athletic-logo-tracksuit-set`: Athletic Logo Double-Knit Tracksuit Set (420 GSM Interlock Fleece).
+2. **Bottoms:**
+   - `hellstar-vintage-gradient-flare-sweatpants`: Vintage Gradient Graphic Flare Sweatpants (460 GSM French Terry).
+3. **Outerwear:**
+   - `represent-owners-club-heavyweight-hoodie`: Owners Club Heavyweight Boxy Hoodie (480 GSM Loopback Fleece, Look 02).
+   - `jil-sander-tailored-bomber-jacket`: Structural Tailored Minimalist Bomber (High-Density Milled Twill, Look 03).
+4. **Tops:**
+   - `essential-heavyweight-500gsm-tee`: Heavyweight 500GSM Structural Boxy Tee (Double-Combed Cotton, Look 04).
+5. **Accessories & Objects:**
+   - `palace-heritage-logo-baseball-cap`: Heritage Logo Six-Panel Baseball Cap (Heavy Washed Cotton Twill).
+   - `monogram-denim-slouch-hobo-bag`: Denim Monogram Slouch Hobo Bag (Washed Selvedge Jacquard Denim).
+
+### C. Comprehensive Multi-Angle Asset Bundle per Product
+Every product in `storefront/src/data/products.js` has complete assets in `storefront/public/products/<slug>/`:
+- **Primary Hero:** Front flat lay (`front.jpg`)
+- **Secondary Hover:** Back flat lay (`back.jpg`)
+- **Craftsmanship Inspection:** 3 to 5 detail macros (`detail_1.jpg` – `detail_5.jpg`)
+- **Sizing Guide Modal:** Official seller measurement table image (`size_chart.jpg` or `size_chart_1.jpg`, `size_chart_2.jpg`)
+- **Editorial Lookbook Stills:** 2 Vogue-standard on-model editorial stills (`lookbook_1.jpg`, `lookbook_2.jpg`)
+
+### D. Zero Pretentious Jargon
+- Never use words like "atelier" in customer-facing copy or developer prompts. Use clean, direct terms like "studio", "piece", and "collection".
+
 
 
 

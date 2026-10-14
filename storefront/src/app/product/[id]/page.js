@@ -74,7 +74,7 @@ export default function ProductPage({ params }) {
   const editorialStills = [
     ...(product.lookbookImages || []),
     ...(product.images || []).filter(img => 
-      /on_model|model|lookbook.*0[1-9]|outfit|editorial/i.test(img) && !/selfie|chart/i.test(img)
+      /on_model|model|lookbook|outfit|editorial/i.test(img) && !/selfie|chart/i.test(img)
     )
   ].filter((img, idx, arr) => {
     const url = typeof img === 'string' ? img : img.url;
