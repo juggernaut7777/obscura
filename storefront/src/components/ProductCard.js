@@ -62,19 +62,25 @@ export default function ProductCard({ product, index = 0 }) {
 
   const primaryImage = cleanImages[0] || images[0] || "/images/main_hero_bg.jpg";
   
-  // Hover angle: strictly prefer garment back flat lay or fabric detail
+  // Hover angle: strictly prefer AI-generated editorial on-model lookbook still, falling back to back flat lay
+  const editorialModel = cleanImages.find(img => 
+    img !== primaryImage && 
+    (img.toLowerCase().includes("lookbook") || 
+     img.toLowerCase().includes("on_model") || 
+     img.toLowerCase().includes("editorial") || 
+     img.toLowerCase().includes("model"))
+  );
+
   const backGarment = cleanImages.find(img => 
     img !== primaryImage && 
     (img.toLowerCase().includes("back") || 
      img.toLowerCase().includes("flat_lay") || 
      img.toLowerCase().includes("detail") ||
      img.toLowerCase().includes("default_2.jpg") ||
-     img.toLowerCase().includes("default_3.jpg")) &&
-    !img.toLowerCase().includes("model")
+     img.toLowerCase().includes("default_3.jpg"))
   );
 
-  // If no back garment exists, keep primaryImage (smooth scale transition, no face swap)
-  const hoverImage = backGarment || primaryImage;
+  const hoverImage = editorialModel || backGarment || primaryImage;
   const discount = comparePrice
     ? Math.round(((comparePrice - price) / comparePrice) * 100)
     : 0;
@@ -108,7 +114,7 @@ export default function ProductCard({ product, index = 0 }) {
           </svg>
         </button>
 
-        <Link href={`/product/${id}`}>
+        <Link href={`/product/${id}`} prefetch={false}>
           {/* Loading shimmer */}
           {!imageLoaded && <div className={styles.shimmer} />}
 
@@ -193,7 +199,7 @@ export default function ProductCard({ product, index = 0 }) {
           ) : null}
         </div>
         
-        <Link href={`/product/${id}`} className={styles.nameLink}>
+        <Link href={`/product/${id}`} className={styles.nameLink} prefetch={false}>
           <h3 className={styles.name}>{name}</h3>
         </Link>
         

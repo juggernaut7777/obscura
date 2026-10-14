@@ -16,45 +16,20 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size L for a slouchy architectural drape.",
     "weightGsm": 480,
     "brand": "OBSCURA",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
+    "sizes": ["S", "M", "L", "XL"],
     "sizeGuide": {
-      "S": {
-        "topChest": "124 cm",
-        "topLength": "68 cm",
-        "bottomWaist": "72 cm",
-        "bottomLength": "104 cm"
-      },
-      "M": {
-        "topChest": "128 cm",
-        "topLength": "70 cm",
-        "bottomWaist": "76 cm",
-        "bottomLength": "106 cm"
-      },
-      "L": {
-        "topChest": "132 cm",
-        "topLength": "72 cm",
-        "bottomWaist": "80 cm",
-        "bottomLength": "108 cm"
-      },
-      "XL": {
-        "topChest": "136 cm",
-        "topLength": "74 cm",
-        "bottomWaist": "84 cm",
-        "bottomLength": "110 cm"
-      }
+      "S": { "topChest": "124 cm", "topLength": "68 cm", "bottomWaist": "72 cm", "bottomLength": "104 cm" },
+      "M": { "topChest": "128 cm", "topLength": "70 cm", "bottomWaist": "76 cm", "bottomLength": "106 cm" },
+      "L": { "topChest": "132 cm", "topLength": "72 cm", "bottomWaist": "80 cm", "bottomLength": "108 cm" },
+      "XL": { "topChest": "136 cm", "topLength": "74 cm", "bottomWaist": "84 cm", "bottomLength": "110 cm" }
     },
     "image": "/products/208-diplomatic-zipset-washed-camo/front.jpg",
-    "hoverImage": "/products/208-diplomatic-zipset-washed-camo/back.jpg",
+    "hoverImage": "/products/208-diplomatic-zipset-washed-camo/lookbook_1.jpg",
     "images": [
       "/products/208-diplomatic-zipset-washed-camo/front.jpg",
-      "/products/208-diplomatic-zipset-washed-camo/back.jpg",
       "/products/208-diplomatic-zipset-washed-camo/lookbook_1.jpg",
       "/products/208-diplomatic-zipset-washed-camo/lookbook_2.jpg",
+      "/products/208-diplomatic-zipset-washed-camo/back.jpg",
       "/products/208-diplomatic-zipset-washed-camo/detail_1.jpg",
       "/products/208-diplomatic-zipset-washed-camo/detail_2.jpg",
       "/products/208-diplomatic-zipset-washed-camo/detail_3.jpg",
@@ -63,20 +38,37 @@ export const DEMO_PRODUCTS = [
       "/products/208-diplomatic-zipset-washed-camo/size_chart_1.jpg",
       "/products/208-diplomatic-zipset-washed-camo/size_chart_2.jpg"
     ],
+    "lookbookImages": [
+      "/products/208-diplomatic-zipset-washed-camo/lookbook_1.jpg",
+      "/products/208-diplomatic-zipset-washed-camo/lookbook_2.jpg"
+    ],
     "sizeChart": "/products/208-diplomatic-zipset-washed-camo/size_chart_1.jpg",
     "colors": [
       {
         "name": "Mineral Camo",
-        "hex": "#3b4238",
-        "inStock": true
+        "hex": "#3B4238",
+        "inStock": true,
+        "images": [
+          "/products/208-diplomatic-zipset-washed-camo/front.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/lookbook_1.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/lookbook_2.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/back.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/detail_1.jpg"
+        ]
+      },
+      {
+        "name": "Washed Charcoal",
+        "hex": "#27272A",
+        "inStock": true,
+        "images": [
+          "/products/208-diplomatic-zipset-washed-camo/back.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/lookbook_2.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/front.jpg",
+          "/products/208-diplomatic-zipset-washed-camo/detail_2.jpg"
+        ]
       }
     ],
-    "stock": {
-      "S": 45,
-      "M": 50,
-      "L": 55,
-      "XL": 40
-    }
+    "stock": { "S": 45, "M": 50, "L": 55, "XL": 40 }
   },
   {
     "id": "hellstar-vintage-gradient-flare-sweatpants",
@@ -92,33 +84,12 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size L for a relaxed drape.",
     "weightGsm": 460,
     "brand": "OBSCURA",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
+    "sizes": ["S", "M", "L", "XL"],
     "sizeGuide": {
-      "S": {
-        "length": "104 cm",
-        "waist": "70 cm / 27.5 in",
-        "hip": "90 cm / 35.4 in"
-      },
-      "M": {
-        "length": "106 cm",
-        "waist": "72 cm / 28.3 in",
-        "hip": "94 cm / 37.0 in"
-      },
-      "L": {
-        "length": "108 cm",
-        "waist": "74 cm / 29.1 in",
-        "hip": "98 cm / 38.6 in"
-      },
-      "XL": {
-        "length": "110 cm",
-        "waist": "76 cm / 29.9 in",
-        "hip": "102 cm / 40.1 in"
-      }
+      "S": { "length": "104 cm", "waist": "70 cm / 27.5 in", "hip": "90 cm / 35.4 in" },
+      "M": { "length": "106 cm", "waist": "72 cm / 28.3 in", "hip": "94 cm / 37.0 in" },
+      "L": { "length": "108 cm", "waist": "74 cm / 29.1 in", "hip": "98 cm / 38.6 in" },
+      "XL": { "length": "110 cm", "waist": "76 cm / 29.9 in", "hip": "102 cm / 40.1 in" }
     },
     "image": "/products/hellstar-vintage-gradient-flare-sweatpants/front.jpg",
     "hoverImage": "/products/hellstar-vintage-gradient-flare-sweatpants/back.jpg",
@@ -136,16 +107,26 @@ export const DEMO_PRODUCTS = [
     "colors": [
       {
         "name": "Washed Obsidian",
-        "hex": "#1A1A1A",
-        "inStock": true
+        "hex": "#18181B",
+        "inStock": true,
+        "images": [
+          "/products/hellstar-vintage-gradient-flare-sweatpants/front.jpg",
+          "/products/hellstar-vintage-gradient-flare-sweatpants/back.jpg",
+          "/products/hellstar-vintage-gradient-flare-sweatpants/detail_1.jpg"
+        ]
+      },
+      {
+        "name": "Heather Grey",
+        "hex": "#71717A",
+        "inStock": true,
+        "images": [
+          "/products/hellstar-vintage-gradient-flare-sweatpants/back.jpg",
+          "/products/hellstar-vintage-gradient-flare-sweatpants/detail_2.jpg",
+          "/products/hellstar-vintage-gradient-flare-sweatpants/front.jpg"
+        ]
       }
     ],
-    "stock": {
-      "S": 87,
-      "M": 88,
-      "L": 88,
-      "XL": 88
-    }
+    "stock": { "S": 87, "M": 88, "L": 88, "XL": 88 }
   },
   {
     "id": "represent-owners-club-heavyweight-hoodie",
@@ -161,60 +142,63 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size L.",
     "weightGsm": 480,
     "brand": "OBSCURA",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
+    "sizes": ["S", "M", "L", "XL"],
     "sizeGuide": {
-      "S": {
-        "chest": "122 cm",
-        "length": "67 cm",
-        "shoulder": "58 cm"
-      },
-      "M": {
-        "chest": "126 cm",
-        "length": "69 cm",
-        "shoulder": "60 cm"
-      },
-      "L": {
-        "chest": "130 cm",
-        "length": "71 cm",
-        "shoulder": "62 cm"
-      },
-      "XL": {
-        "chest": "134 cm",
-        "length": "73 cm",
-        "shoulder": "64 cm"
-      }
+      "S": { "chest": "122 cm", "length": "67 cm", "shoulder": "58 cm" },
+      "M": { "chest": "126 cm", "length": "69 cm", "shoulder": "60 cm" },
+      "L": { "chest": "130 cm", "length": "71 cm", "shoulder": "62 cm" },
+      "XL": { "chest": "134 cm", "length": "73 cm", "shoulder": "64 cm" }
     },
     "image": "/products/represent-owners-club-heavyweight-hoodie/front.jpg",
-    "hoverImage": "/products/represent-owners-club-heavyweight-hoodie/back.jpg",
+    "hoverImage": "/products/represent-owners-club-heavyweight-hoodie/lookbook_1.jpg",
     "images": [
       "/products/represent-owners-club-heavyweight-hoodie/front.jpg",
-      "/products/represent-owners-club-heavyweight-hoodie/back.jpg",
       "/products/represent-owners-club-heavyweight-hoodie/lookbook_1.jpg",
       "/products/represent-owners-club-heavyweight-hoodie/lookbook_2.jpg",
+      "/products/represent-owners-club-heavyweight-hoodie/back.jpg",
       "/products/represent-owners-club-heavyweight-hoodie/detail_1.jpg",
       "/products/represent-owners-club-heavyweight-hoodie/detail_2.jpg",
       "/products/represent-owners-club-heavyweight-hoodie/detail_3.jpg",
       "/products/represent-owners-club-heavyweight-hoodie/size_chart.jpg"
     ],
+    "lookbookImages": [
+      "/products/represent-owners-club-heavyweight-hoodie/lookbook_1.jpg",
+      "/products/represent-owners-club-heavyweight-hoodie/lookbook_2.jpg"
+    ],
     "sizeChart": "/products/represent-owners-club-heavyweight-hoodie/size_chart.jpg",
     "colors": [
       {
         "name": "Vintage Charcoal",
-        "hex": "#242424",
-        "inStock": true
+        "hex": "#27272A",
+        "inStock": true,
+        "images": [
+          "/products/represent-owners-club-heavyweight-hoodie/front.jpg",
+          "/products/represent-owners-club-heavyweight-hoodie/lookbook_1.jpg",
+          "/products/represent-owners-club-heavyweight-hoodie/back.jpg"
+        ]
+      },
+      {
+        "name": "Washed Black",
+        "hex": "#141416",
+        "inStock": true,
+        "images": [
+          "/products/represent-owners-club-heavyweight-hoodie/lookbook_2.jpg",
+          "/products/represent-owners-club-heavyweight-hoodie/back.jpg",
+          "/products/represent-owners-club-heavyweight-hoodie/front.jpg"
+        ]
+      },
+      {
+        "name": "Racing Green",
+        "hex": "#1A382B",
+        "inStock": true,
+        "images": [
+          "/products/represent-owners-club-heavyweight-hoodie/detail_1.jpg",
+          "/products/represent-owners-club-heavyweight-hoodie/front.jpg",
+          "/products/represent-owners-club-heavyweight-hoodie/lookbook_1.jpg"
+        ]
       }
     ],
-    "stock": {
-      "S": 40,
-      "M": 65,
-      "L": 70,
-      "XL": 35
-    }
+    "stock": { "S": 40, "M": 65, "L": 70, "XL": 35 }
   },
   {
     "id": "jil-sander-tailored-bomber-jacket",
@@ -230,60 +214,53 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size L.",
     "weightGsm": 420,
     "brand": "OBSCURA",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
+    "sizes": ["S", "M", "L", "XL"],
     "sizeGuide": {
-      "S": {
-        "chest": "118 cm",
-        "length": "66 cm",
-        "shoulder": "52 cm"
-      },
-      "M": {
-        "chest": "122 cm",
-        "length": "68 cm",
-        "shoulder": "54 cm"
-      },
-      "L": {
-        "chest": "126 cm",
-        "length": "70 cm",
-        "shoulder": "56 cm"
-      },
-      "XL": {
-        "chest": "130 cm",
-        "length": "72 cm",
-        "shoulder": "58 cm"
-      }
+      "S": { "chest": "118 cm", "length": "66 cm", "shoulder": "52 cm" },
+      "M": { "chest": "122 cm", "length": "68 cm", "shoulder": "54 cm" },
+      "L": { "chest": "126 cm", "length": "70 cm", "shoulder": "56 cm" },
+      "XL": { "chest": "130 cm", "length": "72 cm", "shoulder": "58 cm" }
     },
     "image": "/products/jil-sander-tailored-bomber-jacket/front.jpg",
-    "hoverImage": "/products/jil-sander-tailored-bomber-jacket/back.jpg",
+    "hoverImage": "/products/jil-sander-tailored-bomber-jacket/lookbook_1.jpg",
     "images": [
       "/products/jil-sander-tailored-bomber-jacket/front.jpg",
-      "/products/jil-sander-tailored-bomber-jacket/back.jpg",
       "/products/jil-sander-tailored-bomber-jacket/lookbook_1.jpg",
       "/products/jil-sander-tailored-bomber-jacket/lookbook_2.jpg",
+      "/products/jil-sander-tailored-bomber-jacket/back.jpg",
       "/products/jil-sander-tailored-bomber-jacket/detail_1.jpg",
       "/products/jil-sander-tailored-bomber-jacket/detail_2.jpg",
       "/products/jil-sander-tailored-bomber-jacket/detail_3.jpg",
       "/products/jil-sander-tailored-bomber-jacket/size_chart.jpg"
+    ],
+    "lookbookImages": [
+      "/products/jil-sander-tailored-bomber-jacket/lookbook_1.jpg",
+      "/products/jil-sander-tailored-bomber-jacket/lookbook_2.jpg"
     ],
     "sizeChart": "/products/jil-sander-tailored-bomber-jacket/size_chart.jpg",
     "colors": [
       {
         "name": "Stealth Noir",
         "hex": "#141414",
-        "inStock": true
+        "inStock": true,
+        "images": [
+          "/products/jil-sander-tailored-bomber-jacket/front.jpg",
+          "/products/jil-sander-tailored-bomber-jacket/lookbook_1.jpg",
+          "/products/jil-sander-tailored-bomber-jacket/back.jpg"
+        ]
+      },
+      {
+        "name": "Midnight Navy",
+        "hex": "#0F172A",
+        "inStock": true,
+        "images": [
+          "/products/jil-sander-tailored-bomber-jacket/lookbook_2.jpg",
+          "/products/jil-sander-tailored-bomber-jacket/back.jpg",
+          "/products/jil-sander-tailored-bomber-jacket/front.jpg"
+        ]
       }
     ],
-    "stock": {
-      "S": 25,
-      "M": 45,
-      "L": 50,
-      "XL": 30
-    }
+    "stock": { "S": 25, "M": 45, "L": 50, "XL": 30 }
   },
   {
     "id": "essential-heavyweight-500gsm-tee",
@@ -299,58 +276,61 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size L.",
     "weightGsm": 500,
     "brand": "OBSCURA",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
+    "sizes": ["S", "M", "L", "XL"],
     "sizeGuide": {
-      "S": {
-        "chest": "116 cm",
-        "length": "71 cm",
-        "shoulder": "54 cm"
-      },
-      "M": {
-        "chest": "120 cm",
-        "length": "73 cm",
-        "shoulder": "56 cm"
-      },
-      "L": {
-        "chest": "124 cm",
-        "length": "75 cm",
-        "shoulder": "58 cm"
-      },
-      "XL": {
-        "chest": "128 cm",
-        "length": "77 cm",
-        "shoulder": "60 cm"
-      }
+      "S": { "chest": "116 cm", "length": "71 cm", "shoulder": "54 cm" },
+      "M": { "chest": "120 cm", "length": "73 cm", "shoulder": "56 cm" },
+      "L": { "chest": "124 cm", "length": "75 cm", "shoulder": "58 cm" },
+      "XL": { "chest": "128 cm", "length": "77 cm", "shoulder": "60 cm" }
     },
     "image": "/products/essential-heavyweight-500gsm-tee/front.jpg",
-    "hoverImage": "/products/essential-heavyweight-500gsm-tee/back.jpg",
+    "hoverImage": "/products/essential-heavyweight-500gsm-tee/lookbook_1.jpg",
     "images": [
       "/products/essential-heavyweight-500gsm-tee/front.jpg",
-      "/products/essential-heavyweight-500gsm-tee/back.jpg",
       "/products/essential-heavyweight-500gsm-tee/lookbook_1.jpg",
       "/products/essential-heavyweight-500gsm-tee/lookbook_2.jpg",
+      "/products/essential-heavyweight-500gsm-tee/back.jpg",
       "/products/essential-heavyweight-500gsm-tee/detail_1.jpg",
       "/products/essential-heavyweight-500gsm-tee/detail_2.jpg"
+    ],
+    "lookbookImages": [
+      "/products/essential-heavyweight-500gsm-tee/lookbook_1.jpg",
+      "/products/essential-heavyweight-500gsm-tee/lookbook_2.jpg"
     ],
     "sizeChart": "/products/essential-heavyweight-500gsm-tee/front.jpg",
     "colors": [
       {
         "name": "Chalk White",
         "hex": "#EDEBE6",
-        "inStock": true
+        "inStock": true,
+        "images": [
+          "/products/essential-heavyweight-500gsm-tee/front.jpg",
+          "/products/essential-heavyweight-500gsm-tee/lookbook_1.jpg",
+          "/products/essential-heavyweight-500gsm-tee/back.jpg"
+        ]
+      },
+      {
+        "name": "Washed Black",
+        "hex": "#181818",
+        "inStock": true,
+        "images": [
+          "/products/essential-heavyweight-500gsm-tee/lookbook_2.jpg",
+          "/products/essential-heavyweight-500gsm-tee/back.jpg",
+          "/products/essential-heavyweight-500gsm-tee/detail_1.jpg"
+        ]
+      },
+      {
+        "name": "Heather Grey",
+        "hex": "#8A8D8F",
+        "inStock": true,
+        "images": [
+          "/products/essential-heavyweight-500gsm-tee/detail_2.jpg",
+          "/products/essential-heavyweight-500gsm-tee/front.jpg",
+          "/products/essential-heavyweight-500gsm-tee/back.jpg"
+        ]
       }
     ],
-    "stock": {
-      "S": 60,
-      "M": 85,
-      "L": 90,
-      "XL": 45
-    }
+    "stock": { "S": 60, "M": 85, "L": 90, "XL": 45 }
   },
   {
     "id": "palace-heritage-logo-baseball-cap",
@@ -366,15 +346,9 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Adjustable one-size strap fits head circumferences 54-61 cm.",
     "weightGsm": 180,
     "brand": "OBSCURA",
-    "sizes": [
-      "ONE SIZE"
-    ],
+    "sizes": ["ONE SIZE"],
     "sizeGuide": {
-      "ONE SIZE": {
-        "circumference": "54 - 61 cm (Adjustable)",
-        "brimLength": "7.5 cm",
-        "crownHeight": "12 cm"
-      }
+      "ONE SIZE": { "circumference": "54 - 61 cm (Adjustable)", "brimLength": "7.5 cm", "crownHeight": "12 cm" }
     },
     "image": "/products/palace-heritage-logo-baseball-cap/front.jpg",
     "hoverImage": "/products/palace-heritage-logo-baseball-cap/back.jpg",
@@ -390,12 +364,25 @@ export const DEMO_PRODUCTS = [
       {
         "name": "Desert Sand",
         "hex": "#C8B9A6",
-        "inStock": true
+        "inStock": true,
+        "images": [
+          "/products/palace-heritage-logo-baseball-cap/front.jpg",
+          "/products/palace-heritage-logo-baseball-cap/back.jpg",
+          "/products/palace-heritage-logo-baseball-cap/detail_1.jpg"
+        ]
+      },
+      {
+        "name": "Washed Black",
+        "hex": "#1A1A1A",
+        "inStock": true,
+        "images": [
+          "/products/palace-heritage-logo-baseball-cap/back.jpg",
+          "/products/palace-heritage-logo-baseball-cap/detail_2.jpg",
+          "/products/palace-heritage-logo-baseball-cap/front.jpg"
+        ]
       }
     ],
-    "stock": {
-      "ONE SIZE": 120
-    }
+    "stock": { "ONE SIZE": 120 }
   },
   {
     "id": "monogram-denim-slouch-hobo-bag",
@@ -411,16 +398,9 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Shoulder drop 32 cm. Bag dimensions: 38 cm W x 26 cm H x 12 cm D.",
     "weightGsm": 620,
     "brand": "OBSCURA",
-    "sizes": [
-      "ONE SIZE"
-    ],
+    "sizes": ["ONE SIZE"],
     "sizeGuide": {
-      "ONE SIZE": {
-        "width": "38 cm",
-        "height": "26 cm",
-        "depth": "12 cm",
-        "strapDrop": "32 cm"
-      }
+      "ONE SIZE": { "width": "38 cm", "height": "26 cm", "depth": "12 cm", "strapDrop": "32 cm" }
     },
     "image": "/products/monogram-denim-slouch-hobo-bag/front.jpg",
     "hoverImage": "/products/monogram-denim-slouch-hobo-bag/back.jpg",
@@ -437,12 +417,25 @@ export const DEMO_PRODUCTS = [
       {
         "name": "Washed Indigo",
         "hex": "#3E5879",
-        "inStock": true
+        "inStock": true,
+        "images": [
+          "/products/monogram-denim-slouch-hobo-bag/front.jpg",
+          "/products/monogram-denim-slouch-hobo-bag/back.jpg",
+          "/products/monogram-denim-slouch-hobo-bag/detail_1.jpg"
+        ]
+      },
+      {
+        "name": "Faded Noir",
+        "hex": "#252528",
+        "inStock": true,
+        "images": [
+          "/products/monogram-denim-slouch-hobo-bag/back.jpg",
+          "/products/monogram-denim-slouch-hobo-bag/detail_2.jpg",
+          "/products/monogram-denim-slouch-hobo-bag/front.jpg"
+        ]
       }
     ],
-    "stock": {
-      "ONE SIZE": 45
-    }
+    "stock": { "ONE SIZE": 45 }
   },
   {
     "id": "corteiz-athletic-logo-tracksuit-set",
@@ -458,63 +451,51 @@ export const DEMO_PRODUCTS = [
     "modelInfo": "Model is 6'1\" (185cm), 165 lbs (75kg), wearing size L.",
     "weightGsm": 420,
     "brand": "OBSCURA",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
+    "sizes": ["S", "M", "L", "XL"],
     "sizeGuide": {
-      "S": {
-        "topChest": "118 cm",
-        "topLength": "68 cm",
-        "bottomWaist": "70 cm",
-        "bottomLength": "102 cm"
-      },
-      "M": {
-        "topChest": "122 cm",
-        "topLength": "70 cm",
-        "bottomWaist": "74 cm",
-        "bottomLength": "104 cm"
-      },
-      "L": {
-        "topChest": "126 cm",
-        "topLength": "72 cm",
-        "bottomWaist": "78 cm",
-        "bottomLength": "106 cm"
-      },
-      "XL": {
-        "topChest": "130 cm",
-        "topLength": "74 cm",
-        "bottomWaist": "82 cm",
-        "bottomLength": "108 cm"
-      }
+      "S": { "topChest": "118 cm", "topLength": "68 cm", "bottomWaist": "70 cm", "bottomLength": "102 cm" },
+      "M": { "topChest": "122 cm", "topLength": "70 cm", "bottomWaist": "74 cm", "bottomLength": "104 cm" },
+      "L": { "topChest": "126 cm", "topLength": "72 cm", "bottomWaist": "78 cm", "bottomLength": "106 cm" },
+      "XL": { "topChest": "130 cm", "topLength": "74 cm", "bottomWaist": "82 cm", "bottomLength": "108 cm" }
     },
     "image": "/products/corteiz-athletic-logo-tracksuit-set/front.jpg",
-    "hoverImage": "/products/corteiz-athletic-logo-tracksuit-set/back.jpg",
+    "hoverImage": "/products/corteiz-athletic-logo-tracksuit-set/lookbook_1.jpg",
     "images": [
       "/products/corteiz-athletic-logo-tracksuit-set/front.jpg",
-      "/products/corteiz-athletic-logo-tracksuit-set/back.jpg",
       "/products/corteiz-athletic-logo-tracksuit-set/lookbook_1.jpg",
+      "/products/corteiz-athletic-logo-tracksuit-set/back.jpg",
       "/products/corteiz-athletic-logo-tracksuit-set/detail_1.jpg",
       "/products/corteiz-athletic-logo-tracksuit-set/detail_2.jpg",
       "/products/corteiz-athletic-logo-tracksuit-set/size_chart_1.jpg",
       "/products/corteiz-athletic-logo-tracksuit-set/size_chart_2.jpg"
+    ],
+    "lookbookImages": [
+      "/products/corteiz-athletic-logo-tracksuit-set/lookbook_1.jpg"
     ],
     "sizeChart": "/products/corteiz-athletic-logo-tracksuit-set/size_chart_1.jpg",
     "colors": [
       {
         "name": "Carbon Black",
         "hex": "#1C1C1C",
-        "inStock": true
+        "inStock": true,
+        "images": [
+          "/products/corteiz-athletic-logo-tracksuit-set/front.jpg",
+          "/products/corteiz-athletic-logo-tracksuit-set/lookbook_1.jpg",
+          "/products/corteiz-athletic-logo-tracksuit-set/back.jpg"
+        ]
+      },
+      {
+        "name": "Storm Grey",
+        "hex": "#5E646A",
+        "inStock": true,
+        "images": [
+          "/products/corteiz-athletic-logo-tracksuit-set/back.jpg",
+          "/products/corteiz-athletic-logo-tracksuit-set/detail_1.jpg",
+          "/products/corteiz-athletic-logo-tracksuit-set/front.jpg"
+        ]
       }
     ],
-    "stock": {
-      "S": 50,
-      "M": 75,
-      "L": 80,
-      "XL": 40
-    }
+    "stock": { "S": 50, "M": 75, "L": 80, "XL": 40 }
   }
 ];
 
@@ -553,11 +534,7 @@ export const DEMO_OUTFITS = [
       "/products/208-diplomatic-zipset-washed-camo/lookbook_2.jpg"
     ],
     "price": 250,
-    "tags": [
-      "DROP 04",
-      "RUNWAY",
-      "FULL ENSEMBLE"
-    ],
+    "tags": ["DROP 04", "RUNWAY", "FULL ENSEMBLE"],
     "products": [
       "208-diplomatic-zipset-washed-camo",
       "palace-heritage-logo-baseball-cap"
@@ -573,11 +550,7 @@ export const DEMO_OUTFITS = [
       "/products/represent-owners-club-heavyweight-hoodie/lookbook_2.jpg"
     ],
     "price": 310,
-    "tags": [
-      "DROP 04",
-      "ESSENTIALS",
-      "HEAVYWEIGHT"
-    ],
+    "tags": ["DROP 04", "ESSENTIALS", "HEAVYWEIGHT"],
     "products": [
       "represent-owners-club-heavyweight-hoodie",
       "hellstar-vintage-gradient-flare-sweatpants"

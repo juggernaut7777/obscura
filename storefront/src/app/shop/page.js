@@ -147,6 +147,7 @@ export default function ShopPage({ searchParams }) {
                 <Link 
                   key={cat} 
                   href={cat === 'all' ? '/shop' : `/shop?category=${cat}`}
+                  prefetch={false}
                   className={`${styles.filterLink} ${(!categoryFilter && cat === 'all') || categoryFilter === cat ? styles.filterActive : ""}`}
                   style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.14em", textTransform: "uppercase" }}
                 >
@@ -156,6 +157,7 @@ export default function ShopPage({ searchParams }) {
               <div className={styles.divider} />
               <Link 
                 href="/shop?category=sale"
+                prefetch={false}
                 className={`${styles.filterLink} ${styles.saleLink} ${categoryFilter === 'sale' ? styles.filterActive : ""}`}
                 style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.14em", textTransform: "uppercase" }}
               >

@@ -476,7 +476,7 @@ export default function ProductPage({ params }) {
                     </>
                   )}
                 </svg>
-                {tryonImage ? "[ RESET PRODUCT ARCHIVE VIEW ]" : "[ VIRTUAL ATELIER TRY-ON ]"}
+                {tryonImage ? "[ RESET PRODUCT ARCHIVE VIEW ]" : "[ TRY-ON WITH AI MODEL ]"}
               </button>
               
               <p className={styles.shippingInfo}>
