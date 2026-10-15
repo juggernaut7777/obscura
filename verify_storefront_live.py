@@ -81,7 +81,7 @@ def main():
             print("    [+] Lookbook page verified and screenshot captured.")
 
             browser.close()
-            print("\n🎉 ALL LOCAL STOREFRONT INTEGRITY CHECKS PASSED 100%!")
+            print("\n[+] ALL LOCAL STOREFRONT INTEGRITY CHECKS PASSED 100%!")
 
     finally:
         proc.terminate()

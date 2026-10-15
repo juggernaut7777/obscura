@@ -34,13 +34,10 @@ export const DEMO_PRODUCTS = [
       "/products/deateath-prada-inverted-triangle-tee/black_back.jpg",
       "/products/deateath-prada-inverted-triangle-tee/black_detail_1.jpg",
       "/products/deateath-prada-inverted-triangle-tee/black_detail_2.jpg",
-      "/products/deateath-prada-inverted-triangle-tee/black_model_1.jpg",
-      "/products/deateath-prada-inverted-triangle-tee/black_model_2.jpg",
       "/products/deateath-prada-inverted-triangle-tee/white_front.jpg",
       "/products/deateath-prada-inverted-triangle-tee/lookbook_white.jpg",
       "/products/deateath-prada-inverted-triangle-tee/white_front_2.jpg",
-      "/products/deateath-prada-inverted-triangle-tee/white_detail_1.jpg",
-      "/products/deateath-prada-inverted-triangle-tee/colorway_overview.jpg"
+      "/products/deateath-prada-inverted-triangle-tee/white_detail_1.jpg"
     ],
     "lookbookImages": [
       "/products/deateath-prada-inverted-triangle-tee/lookbook_black.jpg",
@@ -56,9 +53,7 @@ export const DEMO_PRODUCTS = [
           "/products/deateath-prada-inverted-triangle-tee/lookbook_black.jpg",
           "/products/deateath-prada-inverted-triangle-tee/black_back.jpg",
           "/products/deateath-prada-inverted-triangle-tee/black_detail_1.jpg",
-          "/products/deateath-prada-inverted-triangle-tee/black_detail_2.jpg",
-          "/products/deateath-prada-inverted-triangle-tee/black_model_1.jpg",
-          "/products/deateath-prada-inverted-triangle-tee/black_model_2.jpg"
+          "/products/deateath-prada-inverted-triangle-tee/black_detail_2.jpg"
         ]
       },
       {
@@ -69,8 +64,7 @@ export const DEMO_PRODUCTS = [
           "/products/deateath-prada-inverted-triangle-tee/white_front.jpg",
           "/products/deateath-prada-inverted-triangle-tee/lookbook_white.jpg",
           "/products/deateath-prada-inverted-triangle-tee/white_front_2.jpg",
-          "/products/deateath-prada-inverted-triangle-tee/white_detail_1.jpg",
-          "/products/deateath-prada-inverted-triangle-tee/colorway_overview.jpg"
+          "/products/deateath-prada-inverted-triangle-tee/white_detail_1.jpg"
         ]
       }
     ],
