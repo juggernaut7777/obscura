@@ -1,22 +1,25 @@
 import os
 import subprocess
 
-public_url = 'https://buffoon-correct-credible.ngrok-free.dev'
-router_path = '/home/USER/ai-ugc/generation_router.py'
-key_path = 'C:/Users/USER/.ssh/google_compute_engine'
+# Azure VPS Configuration (Active Production Server)
+VPS_IP = "20.215.232.214"
+VPS_USER = "azureuser"
+KEY_PATH = "C:/Users/USER/.ssh/azure_obscura_key.pem"
+ROUTER_PATH = "/home/azureuser/ai-ugc/generation_router.py"
+PUBLIC_URL = "http://127.0.0.1:9877"
 
-# Build the sed command carefully
-sed_cmd = f\"sed -i 's|BRIDGE_URL = .*|BRIDGE_URL = \\\"{public_url}\\\"|' {router_path}\"
+sed_cmd = f"sed -i 's|BRIDGE_URL = .*|BRIDGE_URL = \"{PUBLIC_URL}\"|' {ROUTER_PATH}"
 
-# Run the SSH command
 ssh_cmd = [
-    'ssh', '-i', key_path, 
+    'ssh', '-i', KEY_PATH,
+    '-o', 'ConnectTimeout=15',
     '-o', 'StrictHostKeyChecking=no',
-    'USER@34.75.179.135', 
+    f'{VPS_USER}@{VPS_IP}',
     sed_cmd
 ]
 
-print(f'Syncing URL: {public_url}')
+print(f"Syncing router on Azure VPS ({VPS_IP})...")
 result = subprocess.run(ssh_cmd, capture_output=True, text=True)
 print(result.stdout)
-print(result.stderr)
+if result.stderr:
+    print("[stderr]:", result.stderr)

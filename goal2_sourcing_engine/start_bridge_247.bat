@@ -26,11 +26,11 @@ echo.
 
 :: Now run the SSH tunnel in a persistent loop
 :tunnel_loop
-echo [%time%] Connecting SSH Tunnel to VPS (34.75.179.135)...
+echo [%time%] Connecting SSH Tunnel to Azure VPS (20.215.232.214)...
 echo [%time%] Your VPS can now reach localhost:9877 through this tunnel.
 echo.
 
-ssh -N -i "%USERPROFILE%\.ssh\google_compute_engine" -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -R 9877:127.0.0.1:9877 USER@34.75.179.135
+ssh -N -i "%USERPROFILE%\.ssh\azure_obscura_key.pem" -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -R 9877:127.0.0.1:9877 azureuser@20.215.232.214
 
 echo.
 echo [%time%] !! SSH Tunnel dropped. Reconnecting in 5 seconds...

@@ -5,10 +5,10 @@ echo ========================================================
 echo.
 echo Syncing new scripts (DeepSeek, Video Bridge, Factory Hunter, etc.) to the 24/7 VM...
 
-set KEY_PATH=C:\Users\USER\.ssh\google_compute_engine
-set VPS_USER=USER
-set VPS_IP=34.75.179.135
-set REMOTE_DIR=/home/USER/ai-ugc/
+set KEY_PATH=C:\Users\USER\.ssh\azure_obscura_key.pem
+set VPS_USER=azureuser
+set VPS_IP=20.215.232.214
+set REMOTE_DIR=/home/azureuser/ai-ugc/
 
 echo [1] Copying python files...
 scp -i %KEY_PATH% -o StrictHostKeyChecking=no *.py %VPS_USER%@%VPS_IP%:%REMOTE_DIR%

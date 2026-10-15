@@ -1,7 +1,7 @@
 """
 Resilient Sourcing Engine Deployment Tool
 ===========================================
-Synchronises all upgraded modules to the 24/7 VPS VM (34.75.179.135),
+Synchronises all upgraded modules to the 24/7 Azure VPS (20.215.232.214),
 runs dependency installation inside the remote virtualenv,
 and restarts both central services.
 """
@@ -9,24 +9,19 @@ import os
 import sys
 import subprocess
 
-KEY_PATH = "C:/Users/USER/.ssh/google_compute_engine"
-VPS_USER = "USER"
-VPS_IP = "34.75.179.135"
-REMOTE_DIR = "/home/USER/ai-ugc"
+KEY_PATH = "C:/Users/USER/.ssh/azure_obscura_key.pem"
+VPS_USER = "azureuser"
+VPS_IP = "20.215.232.214"
+REMOTE_DIR = "/home/azureuser/ai-ugc"
 
 FILES_TO_SYNC = [
     "requirements.txt",
     "litellm_router.py",
-    "mem0_memory.py",
-    "langgraph_brain.py",
     "agent_brain_vps.py",
     "agent_tools_vps.py",
     "agent_tools.py",
+    "agent_memory.py",
     "discord_listener.py",
-    "vlm_product_sourcer.py",
-    "reddit_brand_discovery.py",
-    "login_dreamina.py",
-    "video_bridge.py",
     "chinese_sourcing_agent.py",
     "sourcing_utils.py",
     "pricing_engine.py",
@@ -34,9 +29,30 @@ FILES_TO_SYNC = [
     "supplier_mappings.json",
     "auto_stock_sync.py",
     "yupoo_scraper.py",
-    "spreadsheet_ingestor.py",
+    "color_matcher.py",
+    "product_onboarder.py",
+    "image_classifier_v2.py",
+    "storefront_image_selector.py",
+    "seller_profiler.py",
+    "background_enhancer.py",
+    "pipeline_orchestrator.py",
+    "storefront_curator_guard.py",
+    "style_tagger.py",
+    "outfit_warehouse.py",
+    "auto_matcher.py",
+    "local_generation_worker.py",
+    "generation_router.py",
+    "all_in_one_bridge.py",
+    "composite_builder.py",
+    "storefront_uploader.py",
+    "reverse_search.py",
+    "meta_ai_video_worker.py",
+    "prompt_library.py",
+    "utils.py",
+    "start_engine.py",
     "data/yupoo_sellers.json",
 ]
+
 
 def run_command(cmd_list, description):
     print(f"\n[DEPLOY] {description}...")
@@ -73,10 +89,7 @@ def remote_execute():
     # Build list of remote operations
     remote_commands = [
         f"echo '📂 Directory listing remote ai-ugc:' && ls -la {REMOTE_DIR}",
-        # Archive remote replica scrapers
-        f"echo '🗄️ Archiving remote replica scrapers...' && mkdir -p {REMOTE_DIR}/archive_replica && mv {REMOTE_DIR}/vlm_product_sourcer.py {REMOTE_DIR}/reddit_sourcing_agent.py {REMOTE_DIR}/yupoo_sourcing_agent.py {REMOTE_DIR}/archive_replica/ 2>/dev/null || true",
-        # Clean crontab from replica tasks
-        f"echo '📅 Adjusting remote crontabs (removing replica/Yupoo scrapers)...' && crontab -l 2>/dev/null | grep -v -E 'vlm_product_sourcer.py|reddit_sourcing_agent.py' | crontab -",
+        # (Yupoo scrapers are now active — no longer archived)
         # Activate virtualenv and upgrade remote packages
         f"echo '📦 Installing remote pip packages...' && {REMOTE_DIR}/venv/bin/pip install -r {REMOTE_DIR}/requirements.txt",
         # Restart central services with systemd reset-failed

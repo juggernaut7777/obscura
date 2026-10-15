@@ -113,7 +113,22 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
                 data = json.loads(body)
-                TOKENS["bearer"] = data.get("bearer")
+                
+                bearer = data.get("bearer")
+                if not bearer or not bearer.startswith("ya29."):
+                    try:
+                        from google_token_manager import get_manager
+                        mgr = get_manager()
+                        if mgr.has_accounts():
+                            auto_bearer, auto_pid, _ = mgr.get_token()
+                            if auto_bearer and auto_bearer.startswith("ya29."):
+                                bearer = auto_bearer
+                                data["bearer"] = auto_bearer
+                                log("🔑 [BRIDGE] Injected valid ya29 OAuth token from GoogleTokenManager!")
+                    except Exception as ex:
+                        log(f"TokenManager error: {ex}")
+
+                TOKENS["bearer"] = bearer
                 TOKENS["recaptcha"] = data.get("recaptcha")
                 TOKENS["user"] = data.get("user")
                 TOKENS["action"] = data.get("action")
@@ -137,7 +152,7 @@ class Handler(BaseHTTPRequestHandler):
                     action = REQUIRED_ACTION or "IMAGE_GENERATION"
                 
                 TOKENS[action] = {
-                    "bearer": data.get("bearer"),
+                    "bearer": bearer,
                     "recaptcha": data.get("recaptcha"),
                     "user": data.get("user"),
                     "projectId": TOKENS.get("projectId"),
@@ -395,6 +410,19 @@ class Handler(BaseHTTPRequestHandler):
                 resp_user = TOKENS["user"]
                 resp_pid = TOKENS["projectId"]
                 resp_age = int(time.time() - TOKENS["ts"])
+
+            if not resp_bearer or not resp_bearer.startswith("ya29."):
+                try:
+                    from google_token_manager import get_manager
+                    mgr = get_manager()
+                    if mgr.has_accounts():
+                        auto_bearer, auto_pid, _ = mgr.get_token()
+                        if auto_bearer and auto_bearer.startswith("ya29."):
+                            resp_bearer = auto_bearer
+                            resp_pid = auto_pid or resp_pid
+                            log("🔑 [BRIDGE-GET] Injected valid ya29 OAuth token from GoogleTokenManager!")
+                except Exception as ex:
+                    log(f"TokenManager error: {ex}")
 
             self.send_response(200)
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -686,10 +714,10 @@ def compress_to_webp(local_path, quality=85):
 
 def upload_to_vps(local_path):
     """Securely uploads the file to the VPS and returns the remote path."""
-    vps_ip = "34.75.179.135"
-    vps_user = "USER"
-    ssh_key = os.path.expanduser("~/.ssh/google_compute_engine")
-    remote_dir = "/home/USER/ai-ugc/output/generated"
+    vps_ip = "20.215.232.214"
+    vps_user = "azureuser"
+    ssh_key = os.path.expanduser("~/.ssh/azure_obscura_key.pem")
+    remote_dir = "/home/azureuser/ai-ugc/output/generated"
     
     filename = os.path.basename(local_path)
     remote_path = f"{remote_dir}/{filename}"

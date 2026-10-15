@@ -57,9 +57,9 @@ def generate_sheet(model_id, prompt, suffix):
                         dest = dest.replace(".png", ".webp")
                         cmd = [
                             "scp",
-                            "-i", "C:/Users/USER/.ssh/google_compute_engine",
+                            "-i", "C:/Users/USER/.ssh/azure_obscura_key.pem",
                             "-o", "StrictHostKeyChecking=no",
-                            f"USER@34.75.179.135:{img_path}",
+                            f"azureuser@20.215.232.214:{img_path}",
                             dest
                         ]
                         subprocess.run(cmd, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
