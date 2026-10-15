@@ -1,6 +1,7 @@
 # 🧠 AGENTS.md — OBSCURA AI Fashion Pipeline Master Knowledge File
-> **Last Updated:** 2026-07-30
-> **Purpose:** This is the single source of truth for the entire project. Any AI agent (Gemini, Claude, Antigravity, Codex) that reads this file should fully understand the project without needing any prior context.
+> **Last Updated:** 2026-10-15
+> **Purpose:** Single source of truth for all AI agents (Antigravity, GitHub Copilot, Gemini, Claude, Codex).
+> **Copilot Handover:** Read `.github/copilot-instructions.md` and `COPILOT_BRIEF.md` for fast onboarding.
 
 ---
 

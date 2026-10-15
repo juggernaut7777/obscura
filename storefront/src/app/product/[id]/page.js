@@ -558,11 +558,11 @@ export default function ProductPage({ params }) {
               <div className={styles.editorialHeader}>
                 <div className={styles.editorialBadge}>
                   <span className={styles.goldDot}></span>
-                  <span>ATELIER ARCHIVE // EDITORIAL STILLS</span>
+                  <span>EDITORIAL ARCHIVE // LOOKBOOK STILLS</span>
                 </div>
                 <h2 className={`heading-display ${styles.editorialTitle}`}>VOGUE EDITORIAL STILLS</h2>
                 <p className={styles.editorialSubtitle}>
-                  Atmospheric editorial lookbook stills engineered by OBSCURA Atelier — highlighting architectural silhouette drape, heavyweight texture, and high-fashion editorial styling.
+                  Atmospheric editorial lookbook stills engineered by OBSCURA Studio — highlighting architectural silhouette drape, heavyweight texture, and high-fashion styling.
                 </p>
               </div>
 
@@ -574,11 +574,11 @@ export default function ProductPage({ params }) {
                     src.includes('art_gallery') ? 'ARCHITECTURAL ART GALLERY // MINIMALIST MONOLITH' :
                     src.includes('private_jet') ? 'PRIVATE AVIATION HANGAR // RUNWAY CANDID' :
                     src.includes('apres_ski') ? 'ALPINE CHALET // HEAVYWEIGHT DRAPE' :
-                    src.includes('recording_studio') ? 'ACOUSTIC ATELIER // NOIR MONOCHROME' :
+                    src.includes('recording_studio') ? 'STUDIO ARCHIVE // NOIR MONOCHROME' :
                     src.includes('brutalist') ? 'LIMESTONE QUARRY // STRUCTURAL TAILORING' :
                     src.includes('art_district') ? 'MODERNIST FACADE // BOX-CUT SILHOUETTE' :
                     src.includes('museum') ? 'GRAND ATRIUM // EDITORIAL ARCHIVE' :
-                    'ATELIER RUNWAY STILL'
+                    'RUNWAY STILL'
                   );
                   return (
                     <div key={idx} className={styles.editorialCard}>
@@ -622,7 +622,7 @@ export default function ProductPage({ params }) {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={() => setTryonOpen(false)}>&times;</button>
             <h2 className={styles.modalTitle} style={{ fontFamily: "var(--font-mono)", fontSize: "0.95rem", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-              ATELIER FITTING SPECIFICATION // SELECT SILHOUETTE
+              AI MODEL TRY-ON // SELECT SILHOUETTE
             </h2>
             
             <div className={styles.modelsGrid}>
@@ -669,7 +669,7 @@ export default function ProductPage({ params }) {
                 setTryonPhase("MAPPING ARCHITECTURAL DRAPE...");
                 
                 setTimeout(() => {
-                  setTryonPhase(`RENDERING ATELIER ${selectedModel.toUpperCase()} SPECIFICATION...`);
+                  setTryonPhase(`RENDERING MODEL ${selectedModel.toUpperCase()} SPECIFICATION...`);
                   
                   setTimeout(() => {
                     setTryonPhase("OPTIMIZING TEXTILE RENDER...");
@@ -691,7 +691,7 @@ export default function ProductPage({ params }) {
                 }, 1000);
               }}
             >
-              [ INITIATE ATELIER FITTING ]
+              [ INITIATE MODEL TRY-ON ]
             </button>
           </div>
         </div>
