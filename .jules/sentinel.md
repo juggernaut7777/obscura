@@ -1,0 +1,4 @@
+## 2026-10-27 - Command Injection via Node.js API
+**Vulnerability:** The Next.js API route `/api/admin/orders` executed Python scripts using `child_process.exec()` and string interpolation with unsanitized user inputs (`orderId`, `tracking`, `pipeline`), creating a critical Command Injection vulnerability.
+**Learning:** This existed because `child_process.exec()` invokes a shell by default. Passing raw user input directly into the command string allows an attacker to inject shell metacharacters (like `;`, `&&`, or `|`) and execute arbitrary system commands.
+**Prevention:** Never use `child_process.exec()` with concatenated user input strings. Always use `child_process.execFile()` or `child_process.spawn()` and pass the executable and arguments separately as an array, ensuring inputs are passed securely as command arguments rather than shell directives.
