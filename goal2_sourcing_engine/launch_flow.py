@@ -57,7 +57,7 @@ def main():
         is_running = False
         try:
             if sys.platform == "win32":
-                tasks = subprocess.check_output("tasklist", shell=True).decode("utf-8", errors="ignore")
+                tasks = subprocess.check_output(["tasklist"], shell=False).decode("utf-8", errors="ignore")
                 if "chrome.exe" in tasks.lower():
                     is_running = True
         except:
@@ -69,7 +69,7 @@ def main():
             safe_print("   Closing running Chrome windows...")
             try:
                 # Force close all chrome processes
-                subprocess.run("taskkill /F /IM chrome.exe", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 time.sleep(2.0)
             except:
                 pass
