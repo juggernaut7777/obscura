@@ -5,54 +5,62 @@ const manualCurationPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_en
 
 export async function GET() {
   try {
-    if (!fs.existsSync(manualCurationPath)) {
+    try {
+      await fs.promises.access(manualCurationPath);
+    } catch {
       return Response.json([]);
     }
 
-    const items = [];
-    const children = fs.readdirSync(manualCurationPath);
+    // ⚡ Performance optimization
+    // Why: Synchronous fs operations like fs.readdirSync block Node.js's single-threaded event loop. Calling fs.statSync on every file adds an N+1 performance penalty.
+    // What: Replaced blocking fs.*Sync methods with fs.promises, parallelized file reads using Promise.all, and used withFileTypes: true to avoid N+1 stat calls.
+    const children = await fs.promises.readdir(manualCurationPath, { withFileTypes: true });
 
-    for (const child of children) {
-      const folderPath = path.join(manualCurationPath, child);
-      const stat = fs.statSync(folderPath);
+    const promises = children.map(async (dirent) => {
+      if (dirent.isDirectory() && dirent.name !== "_rejected") {
+        const folderPath = path.join(manualCurationPath, dirent.name);
 
-      if (stat.isDirectory() && child !== "_rejected") {
-        let metadata = { product_name: child };
+        const statPromise = fs.promises.stat(folderPath);
+
         const metadataPath = path.join(folderPath, "metadata.json");
+        const metadataPromise = fs.promises.readFile(metadataPath, "utf-8")
+          .then(data => JSON.parse(data))
+          .catch(e => {
+            if (e.code !== 'ENOENT') console.error(`[API WAREHOUSE] Failed to parse metadata.json in ${dirent.name}:`, e);
+            return { product_name: dirent.name };
+          });
 
-        if (fs.existsSync(metadataPath)) {
-          try {
-            metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
-          } catch (e) {
-            console.error(`[API WAREHOUSE] Failed to parse metadata.json in ${child}:`, e);
-          }
-        }
+        const thumbnailPromise = fs.promises.readdir(folderPath)
+          .then(async (files) => {
+            const imgFile = files.find(f => f.startsWith("angle_") && /\.(png|jpg|jpeg|webp)$/i.test(f)) ||
+                            files.find(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
+            if (imgFile) {
+              const imgData = await fs.promises.readFile(path.join(folderPath, imgFile));
+              const base64 = imgData.toString("base64");
+              let ext = path.extname(imgFile).substring(1).toLowerCase();
+              if (ext === "jpg") ext = "jpeg";
+              return `data:image/${ext};base64,${base64}`;
+            }
+            return null;
+          })
+          .catch(e => {
+            if (e.code !== 'ENOENT') console.error(`[API WAREHOUSE] Image thumbnail load failed in ${dirent.name}:`, e);
+            return null;
+          });
 
-        // Extract thumbnail base64 image
-        let thumbnail = null;
-        try {
-          const files = fs.readdirSync(folderPath);
-          const imgFile = files.find(f => f.startsWith("angle_") && /\.(png|jpg|jpeg|webp)$/i.test(f)) ||
-                          files.find(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
-          if (imgFile) {
-            const imgData = fs.readFileSync(path.join(folderPath, imgFile));
-            const base64 = imgData.toString("base64");
-            let ext = path.extname(imgFile).substring(1).toLowerCase();
-            if (ext === "jpg") ext = "jpeg";
-            thumbnail = `data:image/${ext};base64,${base64}`;
-          }
-        } catch (e) {
-          console.error(`[API WAREHOUSE] Image thumbnail load failed in ${child}:`, e);
-        }
+        const [stat, metadata, thumbnail] = await Promise.all([statPromise, metadataPromise, thumbnailPromise]);
 
-        items.push({
-          folderName: child,
+        return {
+          folderName: dirent.name,
           metadata,
           thumbnail,
           mtime: stat.mtime
-        });
+        };
       }
-    }
+      return null;
+    });
+
+    const items = (await Promise.all(promises)).filter(item => item !== null);
 
     // Sort newest staged items first
     items.sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
