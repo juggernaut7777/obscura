@@ -5,37 +5,45 @@ const manualCurationPath = "c:\\Users\\USER\\ai ugc and sales\\goal2_sourcing_en
 
 export async function GET() {
   try {
-    if (!fs.existsSync(manualCurationPath)) {
+    try {
+      await fs.promises.access(manualCurationPath);
+    } catch {
       return Response.json([]);
     }
 
     const items = [];
-    const children = fs.readdirSync(manualCurationPath);
+    // ⚡ Performance optimization
+    // Why: Synchronous fs operations block the Node.js single-threaded event loop, freezing concurrent requests. Additionally, calling statSync on every child is an N+1 performance penalty.
+    // What: Replaced fs.*Sync methods with asynchronous fs.promises and used { withFileTypes: true } to avoid N+1 stat calls.
+    const children = await fs.promises.readdir(manualCurationPath, { withFileTypes: true });
 
-    for (const child of children) {
-      const folderPath = path.join(manualCurationPath, child);
-      const stat = fs.statSync(folderPath);
+    await Promise.all(children.map(async (dirent) => {
+      if (dirent.isDirectory() && dirent.name !== "_rejected") {
+        const child = dirent.name;
+        const folderPath = path.join(manualCurationPath, child);
 
-      if (stat.isDirectory() && child !== "_rejected") {
         let metadata = { product_name: child };
         const metadataPath = path.join(folderPath, "metadata.json");
 
-        if (fs.existsSync(metadataPath)) {
+        try {
+          await fs.promises.access(metadataPath);
           try {
-            metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
+            metadata = JSON.parse(await fs.promises.readFile(metadataPath, "utf-8"));
           } catch (e) {
             console.error(`[API WAREHOUSE] Failed to parse metadata.json in ${child}:`, e);
           }
+        } catch {
+          // File does not exist, ignore
         }
 
         // Extract thumbnail base64 image
         let thumbnail = null;
         try {
-          const files = fs.readdirSync(folderPath);
+          const files = await fs.promises.readdir(folderPath);
           const imgFile = files.find(f => f.startsWith("angle_") && /\.(png|jpg|jpeg|webp)$/i.test(f)) ||
                           files.find(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
           if (imgFile) {
-            const imgData = fs.readFileSync(path.join(folderPath, imgFile));
+            const imgData = await fs.promises.readFile(path.join(folderPath, imgFile));
             const base64 = imgData.toString("base64");
             let ext = path.extname(imgFile).substring(1).toLowerCase();
             if (ext === "jpg") ext = "jpeg";
@@ -45,6 +53,7 @@ export async function GET() {
           console.error(`[API WAREHOUSE] Image thumbnail load failed in ${child}:`, e);
         }
 
+        const stat = await fs.promises.stat(folderPath);
         items.push({
           folderName: child,
           metadata,
@@ -52,7 +61,7 @@ export async function GET() {
           mtime: stat.mtime
         });
       }
-    }
+    }));
 
     // Sort newest staged items first
     items.sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
