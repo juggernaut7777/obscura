@@ -1,0 +1,4 @@
+## 2024-05-28 - Command Injection via child_process.exec in Next.js APIs
+**Vulnerability:** Found `child_process.exec` being used to execute python scripts with user-controlled input (`orderId`, `tracking`, `pipeline`, etc.) interpolated directly into the command string in both checkout and admin API routes.
+**Learning:** Using `exec` with string interpolation is highly vulnerable to command injection because it spawns a shell to evaluate the command. Even though arguments were quoted, a malicious user could craft payloads to escape the quotes and execute arbitrary commands on the host system.
+**Prevention:** Always use `child_process.execFile` or `child_process.spawn` when executing local commands that require arguments. Pass arguments as an array instead of concatenating them into a single command string. This avoids invoking a shell and ensures arguments are safely escaped.
